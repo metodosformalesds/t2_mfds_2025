@@ -140,10 +140,10 @@ class Listing(BaseModel):
     )
  
     location_address_id: Mapped[Optional[int]] = mapped_column(
-         Integer,
-         ForeignKey("addresses.address_id", ondelete="SET NULL"),
-         nullable=True,
-         comment="ID de la dirección donde se encuentra el ítem físicamente"
+        Integer,
+        ForeignKey("addresses.address_id", ondelete="SET NULL"),
+        nullable=True,
+        comment="ID de la dirección donde se encuentra el ítem físicamente"
     )
     
     origin_description: Mapped[Optional[str]] = mapped_column(
