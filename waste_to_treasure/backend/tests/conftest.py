@@ -241,7 +241,7 @@ def address(db, user, sample_address_data):
     """Create and return a test address for a user."""
     from app.models.address import Address
     
-    address_data = {**sample_address_data, "user_id": user.id}
+    address_data = {**sample_address_data, "user_id": user.user_id}
     address = Address(**address_data)
     db.add(address)
     db.commit()
