@@ -4,13 +4,15 @@ Modelo de base de datos para ListingImage.
 Implementa la tabla 'listing_images'
 Almacena las URLs de imágenes asociadas a publicaciones.
 """
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 from sqlalchemy import String, Integer, Boolean, ForeignKey, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import BaseModel
-from app.models.listing import Listing
+
+if TYPE_CHECKING:
+    from app.models.listing import Listing
 
 
 class ListingImage(BaseModel):

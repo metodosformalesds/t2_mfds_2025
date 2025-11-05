@@ -4,7 +4,7 @@ Modelo de base de datos para Category.
 Implementa la tabla 'categories'
 Almacena la jerarquía de categorías para productos y materiales.
 """
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
 
 from sqlalchemy import String, Integer, ForeignKey, Enum as SQLEnum, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -12,6 +12,9 @@ import enum
 
 from app.models.base import BaseModel
 from app.models.listing import Listing  
+
+if TYPE_CHECKING:
+    from app.models.listing import Listing  
 
 class ListingTypeEnum(str, enum.Enum):
     """

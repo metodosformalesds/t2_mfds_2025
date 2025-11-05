@@ -1,5 +1,5 @@
 """
-Modelo "stub" de base de datos para OrderItem.
+Modelo de base de datos para OrderItem.
 
 Implementa la tabla 'order_items'
 Representa un ítem dentro de una orden de compra.
@@ -7,10 +7,14 @@ Representa un ítem dentro de una orden de compra.
 from decimal import Decimal
 from sqlalchemy import Integer, Numeric, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 from app.models.base import BaseModel
-from app.models.listing import Listing 
+
+if TYPE_CHECKING:
+    from app.models.order import Order
+    from app.models.listing import Listing
+    from app.models.reviews import Review
 
 class OrderItem(BaseModel):
     """
@@ -57,10 +61,25 @@ class OrderItem(BaseModel):
         comment="Precio unitario del ítem en el momento de la compra (precisión de 2 decimales)"
     )
 
-    #RELACIONES
+    # RELACIONES
+    
+    # Relación con la orden a la que pertenece este ítem
+    order: Mapped["Order"] = relationship(
+        "Order",
+        back_populates="order_items"
+    )
+    
+    # Relación con el listing (producto/material) que se compró
     listing: Mapped[Optional["Listing"]] = relationship(
         "Listing",
         back_populates="order_items"
+    )
+    
+    # Relación con la review (uno a uno)
+    review: Mapped[Optional["Review"]] = relationship(
+        "Review",
+        back_populates="order_item",
+        uselist=False  # Indica que es relación uno-a-uno
     )
 
     def __repr__(self) -> str:
