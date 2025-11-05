@@ -76,7 +76,7 @@ class Cart(BaseModel):
         cascade="all, delete-orphan",
         passive_deletes=True,
         lazy="selectin",
-        order_by="CartItem.added_at.desc()"  # Más recientes primero
+        order_by="CartItem.created_at.desc()"  # Más recientes primero
     )
     
     # MÉTODOS DE INSTANCIA
