@@ -5,7 +5,7 @@ Implementa la tabla 'shipping_methods' que permite a los vendedores
 definir sus propios métodos de envío, ya sea para recojo en tienda
 o para envío a domicilio.
 """
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, List
 import enum
 from sqlalchemy import (
     Integer,
@@ -20,6 +20,7 @@ from app.models.base import BaseModel
 
 if TYPE_CHECKING:
     from app.models.user import User
+    from app.models.listing_shipping_options import ListingShippingOption
 
 
 class ShippingTypeEnum(str, enum.Enum):
@@ -78,10 +79,13 @@ class ShippingMethod(BaseModel):
 
     # RELACIONES
     seller: Mapped["User"] = relationship(
-        "User",
-        back_populates="shipping_methods"
+        "User"
     )
-    
+    listing_options: Mapped[List["ListingShippingOption"]] = relationship(
+        "ListingShippingOption",
+        back_populates="shipping_method"
+    )
+
     def __repr__(self) -> str:
         """Representación legible del modelo."""
         return (

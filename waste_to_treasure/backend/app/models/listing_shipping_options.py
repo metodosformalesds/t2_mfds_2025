@@ -57,8 +57,7 @@ class ListingShippingOption(BaseModel):
 
     # RELACIONES
     listing: Mapped["Listing"] = relationship(
-        "Listing",
-        back_populates="shipping_options"
+        "Listing"
     )
 
     shipping_method: Mapped["ShippingMethod"] = relationship(

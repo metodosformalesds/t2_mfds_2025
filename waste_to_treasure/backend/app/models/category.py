@@ -11,7 +11,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 import enum
 
 from app.models.base import BaseModel
-from app.models.listing import Listing  
 
 if TYPE_CHECKING:
     from app.models.listing import Listing  
