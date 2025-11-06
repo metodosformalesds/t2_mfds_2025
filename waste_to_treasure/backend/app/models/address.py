@@ -4,10 +4,12 @@ Modelo de base de datos para Address.
 Implementa la tabla 'addresses'
 Almacena direcciones físicas para usuarios, listings y orders.
 """
+import uuid
 from typing import Optional, TYPE_CHECKING
 
 from sqlalchemy import String, Integer, Boolean, ForeignKey, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.dialects.postgresql import UUID
 
 from app.models.base import BaseModel
 
@@ -49,12 +51,12 @@ class Address(BaseModel):
         comment="Identificador único de la dirección"
     )
     
-    user_id: Mapped[Optional[int]] = mapped_column(
-        Integer,
+    user_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True),
         ForeignKey("users.user_id", ondelete="CASCADE"),
         nullable=True,
         index=True,
-        comment="Usuario propietario (NULL para direcciones de listings sin usuario)"
+        comment="UUID del usuario propietario (NULL para direcciones de listings sin usuario)"
     )
     
     street: Mapped[str] = mapped_column(

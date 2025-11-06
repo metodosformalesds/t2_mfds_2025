@@ -4,6 +4,7 @@ Modelo de base de datos para Cart y CartItem.
 Implementa las tablas 'carts' y 'cart_items'
 Gestiona el carrito de compras temporal de usuarios autenticados.
 """
+import uuid
 from typing import TYPE_CHECKING, List, Optional
 from decimal import Decimal
 
@@ -11,6 +12,7 @@ from sqlalchemy import (
     ForeignKey, Integer, UniqueConstraint, CheckConstraint, Index
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.dialects.postgresql import UUID
 
 from app.models.base import BaseModel
 
@@ -54,13 +56,13 @@ class Cart(BaseModel):
         comment="Identificador único del carrito"
     )
     
-    user_id: Mapped[int] = mapped_column(
-        Integer,
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         ForeignKey("users.user_id", ondelete="CASCADE"),
         unique=True,
         nullable=False,
         index=True,
-        comment="Usuario propietario del carrito (relación 1:1)"
+        comment="UUID del usuario propietario del carrito (relación 1:1)"
     )
     
     # RELACIONES

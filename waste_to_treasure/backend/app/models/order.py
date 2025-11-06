@@ -4,11 +4,13 @@ Modelo de base de datos para Order.
 Implementa la tabla 'orders'
 Almacena las órdenes de compra completadas (transacciones).
 """
+import uuid
 from typing import Optional, List, TYPE_CHECKING
 from decimal import Decimal
 
 from sqlalchemy import String, Integer, Numeric, ForeignKey, Enum as SQLEnum, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.dialects.postgresql import UUID
 import enum
 
 from app.models.base import BaseModel
@@ -78,12 +80,12 @@ class Order(BaseModel):
         comment="Identificador único de la orden"
     )
     
-    buyer_id: Mapped[int] = mapped_column(
-        Integer,
+    buyer_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         ForeignKey("users.user_id", ondelete="NO ACTION"),
         nullable=False,
         index=True,
-        comment="ID del usuario comprador que realizó la orden"
+        comment="UUID del usuario comprador que realizó la orden"
     )
     
     subtotal: Mapped[Decimal] = mapped_column(

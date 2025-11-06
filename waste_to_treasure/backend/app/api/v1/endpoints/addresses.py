@@ -9,8 +9,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_async_db
-from app.core.security import get_current_active_user
+from app.api.deps import get_async_db, get_current_active_user
 from app.models.user import User
 from app.schemas.address import (
     AddressRead,

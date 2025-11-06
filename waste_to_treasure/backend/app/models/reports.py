@@ -2,10 +2,12 @@
 Modelo de base de datos para Reports.
 Implementa la tabla 'reports'
 """
+import uuid
 from typing import Optional, TYPE_CHECKING
 from datetime import datetime
 from sqlalchemy import func, String, Integer, ForeignKey, DateTime, Text, Enum, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.dialects.postgresql import UUID
 from app.models.base import BaseModel
 import enum
 
@@ -59,11 +61,11 @@ class Report(BaseModel):
         comment="Identificador único del reporte"
     )
     
-    reporter_user_id: Mapped[int] = mapped_column(
-        Integer,
+    reporter_user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         ForeignKey("users.user_id", ondelete="NO ACTION"),
         nullable=False,
-        comment="Llave foránea a users (usuario que reporta)"
+        comment="UUID del usuario que reporta"
     )
     
     report_type: Mapped[ReportType] = mapped_column(
@@ -79,11 +81,11 @@ class Report(BaseModel):
         comment="Llave foránea a listings (si se reporta un listing)"
     )
     
-    reported_user_id: Mapped[Optional[int]] = mapped_column(
-        Integer,
+    reported_user_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True),
         ForeignKey("users.user_id", ondelete="NO ACTION"),
         nullable=True,
-        comment="Llave foránea a users (si se reporta un usuario)"
+        comment="UUID del usuario reportado (si se reporta un usuario)"
     )
     
     reported_order_id: Mapped[Optional[int]] = mapped_column(
@@ -112,11 +114,11 @@ class Report(BaseModel):
         comment="Estado de moderación del reporte"
     )
     
-    resolved_by_admin_id: Mapped[Optional[int]] = mapped_column(
-        Integer,
+    resolved_by_admin_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True),
         ForeignKey("users.user_id", ondelete="SET NULL"),
         nullable=True,
-        comment="Llave foránea a users (admin que resolvió el reporte)"
+        comment="UUID del admin que resolvió el reporte"
     )
     
     created_at: Mapped[datetime] = mapped_column(

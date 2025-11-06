@@ -4,12 +4,14 @@ Modelo de base de datos para Offer.
 Implementa la tabla 'offers'
 Permite la funcionalidad de negociación B2B en el marketplace de materiales.
 """
+import uuid
 from typing import TYPE_CHECKING, Optional
 from decimal import Decimal
 from datetime import datetime
 
 from sqlalchemy import String, Integer, Numeric, ForeignKey, Enum as SQLEnum, Index, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.dialects.postgresql import UUID
 import enum
 
 from app.models.base import BaseModel
@@ -84,20 +86,20 @@ class Offer(BaseModel):
         comment="ID del listing (material) sobre el que se hace la oferta"
     )
     
-    buyer_id: Mapped[int] = mapped_column(
-        Integer,
+    buyer_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         ForeignKey("users.user_id", ondelete="CASCADE"),
         nullable=False,
         index=True,
-        comment="ID del usuario comprador que envía la oferta"
+        comment="UUID del usuario comprador que envía la oferta"
     )
     
-    seller_id: Mapped[int] = mapped_column(
-        Integer,
+    seller_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         ForeignKey("users.user_id", ondelete="CASCADE"),
         nullable=False,
         index=True,
-        comment="ID del usuario vendedor que recibe la oferta"
+        comment="UUID del usuario vendedor que recibe la oferta"
     )
     
     offer_price: Mapped[Decimal] = mapped_column(

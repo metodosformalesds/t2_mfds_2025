@@ -9,8 +9,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_async_db
-from app.core.security import require_admin
+from app.api.deps import get_async_db, require_admin
 from app.models.user import User
 from app.models.category import ListingTypeEnum
 from app.schemas.category import (

@@ -5,6 +5,7 @@ Implementa la tabla 'shipping_methods' que permite a los vendedores
 definir sus propios métodos de envío, ya sea para recojo en tienda
 o para envío a domicilio.
 """
+import uuid
 from typing import TYPE_CHECKING, Optional, List
 import enum
 from sqlalchemy import (
@@ -15,6 +16,7 @@ from sqlalchemy import (
     ForeignKey,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.dialects.postgresql import UUID
 
 from app.models.base import BaseModel
 
@@ -53,11 +55,11 @@ class ShippingMethod(BaseModel):
         autoincrement=True,
         comment="Identificador único para el método de envío."
     )
-    seller_id: Mapped[int] = mapped_column(
-        Integer,
+    seller_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         ForeignKey("users.user_id"),
         nullable=False,
-        comment="Llave foránea al usuario (vendedor) que oferta este método."
+        comment="UUID del vendedor que ofrece este método."
     )
     name: Mapped[str] = mapped_column(
         String(100),

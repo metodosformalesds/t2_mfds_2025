@@ -63,6 +63,16 @@ class Settings(BaseSettings):
     COGNITO_APP_CLIENT_ID: str = ""
     COGNITO_REGION: str = "us-east-2"
     
+    @property
+    def cognito_issuer(self) -> str:
+        """Retorna el issuer URL del User Pool de Cognito."""
+        return f"https://cognito-idp.{self.COGNITO_REGION}.amazonaws.com/{self.COGNITO_USER_POOL_ID}"
+    
+    @property
+    def cognito_jwks_url(self) -> str:
+        """Retorna la URL de JWKS para validar tokens JWT."""
+        return f"{self.cognito_issuer}/.well-known/jwks.json"
+    
     # ==================================
     # JWT (Fallback)
     # ==================================
