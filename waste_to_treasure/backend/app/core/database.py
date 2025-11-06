@@ -3,10 +3,11 @@ Configuración de la base de datos usando SQLAlchemy 2.0.
 Proporciona el engine, sessionmaker y base declarativa para los modelos.
 """
 import logging
-from typing import Generator
+from typing import Generator, AsyncGenerator
 from sqlalchemy import create_engine, event, text
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, Session, DeclarativeBase
-from sqlalchemy.pool import QueuePool
+from sqlalchemy.pool import QueuePool, NullPool
 from app.core.config import get_settings
 
 # Configurar logger
@@ -50,7 +51,7 @@ engine = create_db_engine()
 
 
 # ==================================
-# SESSION FACTORY
+# SESSION FACTORY (SYNC)
 # ==================================
 SessionLocal = sessionmaker(
     bind=engine,
@@ -59,7 +60,35 @@ SessionLocal = sessionmaker(
     autoflush=False,
     expire_on_commit=False
 )
-logger.info("SessionLocal creado exitosamente.")
+logger.info("SessionLocal (sync) creado exitosamente.")
+
+
+# ==================================
+# ASYNC ENGINE Y SESSION FACTORY
+# ==================================
+# Adaptar la URL de la base de datos para el driver asíncrono
+async_database_url = str(settings.DATABASE_URL).replace(
+    "postgresql://", "postgresql+asyncpg://"
+)
+
+# IMPORTANTE: AsyncEngine NO puede usar QueuePool
+# Usar NullPool para async o dejar que SQLAlchemy use el pool por defecto para async
+async_engine = create_async_engine(
+    async_database_url,
+    echo=settings.DB_ECHO,
+    poolclass=NullPool,  # NullPool es compatible con async
+    pool_pre_ping=True,
+)
+logger.info("Async engine de base de datos creado exitosamente.")
+
+async_session_maker = sessionmaker(
+    bind=async_engine,
+    class_=AsyncSession,
+    autocommit=False,
+    autoflush=False,
+    expire_on_commit=False,
+)
+logger.info("Async session maker creado exitosamente.")
 
 
 # ==================================
@@ -93,6 +122,23 @@ def get_db() -> Generator[Session, None, None]:
         db.close()
 
 
+async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
+    """
+    Dependencia de FastAPI que proporciona una sesión de base de datos asíncrona.
+    Gestiona automáticamente el commit, rollback y cierre de la sesión.
+    """
+    async with async_session_maker() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception as e:
+            logger.error(f"Error en sesión de base de datos asíncrona: {e}", exc_info=True)
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
+
+
 # ==================================
 # FUNCIONES DE UTILIDAD
 # ==================================
@@ -108,6 +154,20 @@ def check_db_connection() -> bool:
         return True
     except Exception as e:
         logger.error(f"Error conectando a la base de datos: {e}")
+        return False
+
+async def check_db_connection_async() -> bool:
+    """
+    Verifica asíncronamente que la conexión a la base de datos funcione.
+    """
+    try:
+        logger.info("Verificando conexión asíncrona a la base de datos...")
+        async with async_engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+        logger.info("Conexión asíncrona a la base de datos verificada exitosamente.")
+        return True
+    except Exception as e:
+        logger.error(f"Error conectando a la base de datos de forma asíncrona: {e}")
         return False
 
 def init_db() -> None:

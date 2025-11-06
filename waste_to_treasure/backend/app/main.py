@@ -17,7 +17,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api.v1.router import router as api_router_v1
 from app.core.config import get_settings
-from app.core.database import check_db_connection
+from app.core.database import check_db_connection_async
 
 # 1. Cargar configuración e inicializar logging
 # ==============================================
@@ -36,7 +36,7 @@ async def lifespan(app: FastAPI):
     """
     # --- Startup ---
     logger.info(f"La aplicación se ha iniciado correctamente. Documentación en: http://127.0.0.1:8000{app.docs_url}")
-    if check_db_connection():
+    if await check_db_connection_async():
         logger.info("La conexión a la base de datos se ha verificado correctamente.")
     else:
         logger.error("Error al conectar con la base de datos al inicio.")
