@@ -50,12 +50,11 @@ class User(BaseModel):
     """
     __tablename__ = "users"
 
-    user_id: Mapped[UUID] = mapped_column(
+    user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
-        autoincrement=True,
         default=uuid.uuid4,
-        comment="Identificador único del usuario"
+        comment="UUID del usuario (cognito sub claim)"
     )
     # --- CAMBIO: Campo 'cognito_sub' ELIMINADO ---
     #
