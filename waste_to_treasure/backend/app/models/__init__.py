@@ -15,6 +15,8 @@ from app.models.reviews import Review
 from app.models.address import Address
 from app.models.cart import Cart, CartItem
 from app.models.reports import Report, ReportType, ModerationStatus
+from app.models.offer import Offer, OfferStatusEnum
+from app.models.notification import Notification
 
 # NOTE: Subscription comentado porque depende de 'plans' que aún no existe
 # from app.models.subscriptions import Subscription, SuscriptionStatus
@@ -58,4 +60,11 @@ __all__ = [
     "Report",
     "ReportType",
     "ModerationStatus",
+
+    # Offer
+    "Offer",
+    "OfferStatusEnum",
+
+    # Notification
+    "Notification",
 ]
