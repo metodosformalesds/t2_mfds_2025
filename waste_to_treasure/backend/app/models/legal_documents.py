@@ -1,65 +1,75 @@
 """
-Modelo de base de datos para los iteams de Preguntas Frecuentes.
-Implementa la tabla 'faq_items'
+Modelo de base de datos para Documentos Legales.
+Implementa la tabla 'legal_documents'    
 """
-from typing import Optional
-from sqlalchemy import String, Integer, Text, SmallInteger, text
+
+from datetime import datetime
+from sqlalchemy import func, String, Float, Text, DateTime, Integer
 from sqlalchemy.orm import Mapped, mapped_column
 from app.models.base import BaseModel
 
-
-class FAQItem(BaseModel):
+class LegalDocument(BaseModel):
     """
-    Los FAQ items almacenan preguntas frecuentes y sus respuestas
-    para ayudar a los usuarios de la plataforma.
+    Los legal documents almacenan documentos legales de la plataforma
+    como terminos y condiciones, politicas de privacidad, etc.
     
     Relationships:
-        - Ninguna. Esta tabla es independiente.
-    
+        -Ninguna. Esta tabla es independiente.
+        
     Database constraints:
-        - question: debe ser no nulo.
-        - answer: debe ser no nulo.
-        - category: campo opcional para agrupar preguntas por tema.
-        - display_order: determina el orden de visualización de las preguntas.
+        -slug: debe ser unico para identificar el documento por URL.
+        -title: titulo descriptivo del documento legal.
+        -content: contenido completo del documento en formato TEXT.
+        -version: numero de version del documento (ej: 1.0, 1.1).
+        -last_updated: timestamp de la ultima actualizacion del documento.
     """
-    __tablename__ = "faq_items"
-
-    # COLUMNAS PRINCIPALES
-    faq_id: Mapped[int] = mapped_column(
+    __tablename__="legal_documents"
+    
+    #Columnas principales
+    document_id: Mapped[int] = mapped_column(
         Integer,
         primary_key=True,
         autoincrement=True,
-        comment="Identificador único del item de FAQ"
+        comment="Identificador unico del documento legal"
     )
     
-    category: Mapped[Optional[str]] = mapped_column(
+    slug: Mapped[str] = mapped_column(
         String(100),
-        nullable=True,
-        server_default=text("'General'"),
-        comment="Categoría o tema de la pregunta frecuente"
+        nullable=False,
+        unique=True,
+        comment="Indentificador amigable para URLs (ej: 'terms-of-service)"
     )
     
-    question: Mapped[str] = mapped_column(
+    title: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+        comment="Titulo del documento legal"
+    )
+    
+    content: Mapped[str] = mapped_column(
         Text,
         nullable=False,
-        comment="Texto de la pregunta frecuente"
+        comment="Contenido completo del documento legal"
     )
     
-    answer: Mapped[str] = mapped_column(
-        Text,
+    version: Mapped[float] = mapped_column(
+        Float,
         nullable=False,
-        comment="Texto de la respuesta a la pregunta"
+        server_default="1.0",
+        comment="Numero de version del documento (ej: 1.0, 1.1)"
     )
     
-    display_order: Mapped[Optional[int]] = mapped_column(
-        SmallInteger,
-        nullable=True,
-        comment="Orden de visualización del item en la lista de FAQs"
+    last_updated: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default= func.now(),
+        comment="Fecha y hora de la ultima actualizacion del documento"
     )
-
+    
     def __repr__(self) -> str:
         return (
-            f"FAQItem(faq_id={self.faq_id!r}, "
-            f"category={self.category!r}, "
-            f"question={self.question[:50]!r}...)"
+            f"LegalDocument(document_id={self.document_id!r}, "
+            f"slug={self.slug!r}, "
+            f"tittle={self.title!r}, "
+            f"version={self.version!r})"
         )
