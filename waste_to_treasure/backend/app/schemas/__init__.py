@@ -23,6 +23,12 @@ from app.schemas.address import(
     AddressWithUser,
     UserBasic,
 )
+from app.schemas.user import (
+    UserRead,
+    UserPublic,
+    UserUpdate,
+    UserAdminUpdate,
+)
 
 __all__ = [
     # category schemas
@@ -45,4 +51,10 @@ __all__ = [
     "AddressList",
     "AddressWithUser",
     "UserBasic",
+    
+    # user schemas
+    "UserRead",
+    "UserPublic",
+    "UserUpdate",
+    "UserAdminUpdate",
 ]
