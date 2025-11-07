@@ -3,12 +3,13 @@ Modelo de base de datos para Reviews.
 
 Implementa la tabla 'reviews'
 """
-
+import uuid
 from typing import Optional, TYPE_CHECKING
 from datetime import datetime
 
 from sqlalchemy import func, String, Integer, ForeignKey, DateTime, Text, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.dialects.postgresql import UUID
 
 from app.models.base import BaseModel
 
@@ -53,17 +54,17 @@ class Review(BaseModel):
         nullable=False,
         comment='Llave foranea UNIQUE a order_items'
     )
-    buyer_id: Mapped[int] = mapped_column(
-        Integer,
+    buyer_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         ForeignKey("users.user_id", ondelete="NO ACTION"),
         nullable=False,
-        comment='Llave foranea a users (comprador)'
+        comment='UUID del comprador'
     )
-    seller_id: Mapped[int] = mapped_column(
-        Integer,
+    seller_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         ForeignKey("users.user_id", ondelete="NO ACTION"),
         nullable=False,
-        comment='Llave foranea a users (vendedor)'
+        comment='UUID del vendedor'
     )
     listing_id: Mapped[int] = mapped_column(
         Integer,

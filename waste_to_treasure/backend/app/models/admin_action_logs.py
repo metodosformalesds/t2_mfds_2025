@@ -2,11 +2,12 @@
 Modelo de base de datos para Registros de acciones de administrador.
 Implementa la tabla 'admin_action_logs'
 """
-
+import uuid
 from typing import Optional, TYPE_CHECKING
 from datetime import datetime
 from sqlalchemy import func, String, Integer, ForeignKey, Text, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.dialects.postgresql import UUID
 from app.models.base import BaseModel
 
 if TYPE_CHECKING:
@@ -38,11 +39,11 @@ class AdminActionLog(BaseModel):
         comment="Identificador unico del log de accion administrativa"
     )
     
-    admin_id: Mapped[int] = mapped_column(
-        Integer,
+    admin_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True),
         ForeignKey("users.user_id", ondelete="SET NULL"),
         nullable=True,
-        comment="Llave foranea a users (administrador que ejecuto la accion)"
+        comment="UUID del administrador que ejecutó la acción"
     )
     
     action_type:Mapped[str] = mapped_column(

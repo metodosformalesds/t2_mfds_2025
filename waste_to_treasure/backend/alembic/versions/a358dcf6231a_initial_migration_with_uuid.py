@@ -1,8 +1,8 @@
-"""Tables
+"""initial_migration_with_uuid
 
-Revision ID: 1987c48e4769
-Revises: 3f6e8514ccd3
-Create Date: 2025-11-06 01:36:30.271485
+Revision ID: a358dcf6231a
+Revises: 
+Create Date: 2025-11-06 10:29:06.857529
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '1987c48e4769'
-down_revision: Union[str, None] = '3f6e8514ccd3'
+revision: str = 'a358dcf6231a'
+down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -36,8 +36,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_categories_type'), 'categories', ['type'], unique=False)
     op.create_index('ix_categories_type_parent', 'categories', ['type', 'parent_category_id'], unique=False)
     op.create_table('users',
-    sa.Column('user_id', sa.Integer(), autoincrement=True, nullable=False, comment='Identificador único del usuario'),
-    sa.Column('cognito_sub', sa.String(length=255), nullable=False, comment='Sub (Subject) de Cognito para vincular con el servicio de autenticación'),
+    sa.Column('user_id', sa.UUID(), nullable=False, comment='UUID del usuario (cognito sub claim)'),
     sa.Column('email', sa.String(length=255), nullable=False, comment='Correo electrónico del usuario (debe ser normalizado)'),
     sa.Column('full_name', sa.String(length=255), nullable=True, comment='Nombre completo o visible del usuario'),
     sa.Column('role', sa.Enum('USER', 'ADMIN', name='user_role_enum', create_constraint=True), nullable=False, comment='Rol del usuario en la plataforma'),
@@ -46,11 +45,10 @@ def upgrade() -> None:
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False, comment='Fecha y hora de la ultima actualizacion del registro'),
     sa.PrimaryKeyConstraint('user_id')
     )
-    op.create_index(op.f('ix_users_cognito_sub'), 'users', ['cognito_sub'], unique=True)
     op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
     op.create_table('addresses',
     sa.Column('address_id', sa.Integer(), autoincrement=True, nullable=False, comment='Identificador único de la dirección'),
-    sa.Column('user_id', sa.Integer(), nullable=True, comment='Usuario propietario (NULL para direcciones de listings sin usuario)'),
+    sa.Column('user_id', sa.UUID(), nullable=True, comment='UUID del usuario propietario (NULL para direcciones de listings sin usuario)'),
     sa.Column('street', sa.String(length=255), nullable=False, comment='Calle y número'),
     sa.Column('city', sa.String(length=100), nullable=False, comment='Ciudad o municipio'),
     sa.Column('state', sa.String(length=100), nullable=False, comment='Estado, provincia o región'),
@@ -70,7 +68,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_addresses_user_id'), 'addresses', ['user_id'], unique=False)
     op.create_table('carts',
     sa.Column('cart_id', sa.Integer(), autoincrement=True, nullable=False, comment='Identificador único del carrito'),
-    sa.Column('user_id', sa.Integer(), nullable=False, comment='Usuario propietario del carrito (relación 1:1)'),
+    sa.Column('user_id', sa.UUID(), nullable=False, comment='UUID del usuario propietario del carrito (relación 1:1)'),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False, comment='Fecha y hora de creacion del registro'),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False, comment='Fecha y hora de la ultima actualizacion del registro'),
     sa.ForeignKeyConstraint(['user_id'], ['users.user_id'], ondelete='CASCADE'),
@@ -79,7 +77,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_carts_user_id'), 'carts', ['user_id'], unique=True)
     op.create_table('notifications',
     sa.Column('notification_id', sa.Integer(), autoincrement=True, nullable=False, comment='Identificador único de la notificación'),
-    sa.Column('user_id', sa.Integer(), nullable=False, comment='ID del usuario que recibe la notificación'),
+    sa.Column('user_id', sa.UUID(), nullable=False, comment='UUID del usuario que recibe la notificación'),
     sa.Column('content', sa.Text(), nullable=False, comment='Texto del mensaje de la notificación'),
     sa.Column('type', sa.String(length=50), nullable=True, comment='Categoría de la notificación (ORDER, REPORT_RESOLVED, OFFER, etc.)'),
     sa.Column('link_url', sa.String(length=512), nullable=True, comment="URL relativa de destino al hacer clic (ej. '/my-offers/123')"),
@@ -97,7 +95,7 @@ def upgrade() -> None:
     op.create_index('ix_notifications_user_read', 'notifications', ['user_id', 'is_read'], unique=False)
     op.create_table('orders',
     sa.Column('order_id', sa.Integer(), autoincrement=True, nullable=False, comment='Identificador único de la orden'),
-    sa.Column('buyer_id', sa.Integer(), nullable=False, comment='ID del usuario comprador que realizó la orden'),
+    sa.Column('buyer_id', sa.UUID(), nullable=False, comment='UUID del usuario comprador que realizó la orden'),
     sa.Column('subtotal', sa.Numeric(precision=10, scale=2), nullable=False, comment='Suma de los precios de todos los items sin comisión (precisión de 2 decimales)'),
     sa.Column('commission_amount', sa.Numeric(precision=10, scale=2), nullable=False, comment='Comisión de la plataforma, 10% del subtotal (precisión de 2 decimales)'),
     sa.Column('total_amount', sa.Numeric(precision=10, scale=2), nullable=False, comment='Monto total pagado: subtotal + commission_amount (precisión de 2 decimales)'),
@@ -116,7 +114,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_orders_order_status'), 'orders', ['order_status'], unique=False)
     op.create_table('listings',
     sa.Column('listing_id', sa.Integer(), autoincrement=True, nullable=False, comment='Identificador único de la publicación'),
-    sa.Column('seller_id', sa.Integer(), nullable=False, comment='ID del usuario vendedor que creó esta publicación'),
+    sa.Column('seller_id', sa.UUID(), nullable=False, comment='UUID del usuario vendedor que creó esta publicación'),
     sa.Column('category_id', sa.Integer(), nullable=False, comment='ID de la categoría a la que pertenece'),
     sa.Column('listing_type', sa.Enum('MATERIAL', 'PRODUCT', name='listing_type_enum'), nullable=False, comment='Tipo de publicación: MATERIAL (B2B) o PRODUCT (B2C)'),
     sa.Column('title', sa.String(length=255), nullable=False, comment='Título visible de la publicación'),
@@ -127,7 +125,7 @@ def upgrade() -> None:
     sa.Column('location_address_id', sa.Integer(), nullable=True, comment='ID de la dirección donde se encuentra el ítem físicamente'),
     sa.Column('origin_description', sa.Text(), nullable=True, comment='Descripción del origen reciclado o reutilizado del material'),
     sa.Column('status', sa.Enum('PENDING', 'ACTIVE', 'REJECTED', 'INACTIVE', name='listing_status_enum', create_constraint=True), nullable=False, comment='Estado de moderación: PENDING, ACTIVE, REJECTED, INACTIVE'),
-    sa.Column('approved_by_admin_id', sa.Integer(), nullable=True, comment='ID del administrador que aprobó la publicación'),
+    sa.Column('approved_by_admin_id', sa.UUID(), nullable=True, comment='UUID del administrador que aprobó la publicación'),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False, comment='Fecha y hora de creacion del registro'),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False, comment='Fecha y hora de la ultima actualizacion del registro'),
     sa.ForeignKeyConstraint(['approved_by_admin_id'], ['users.user_id'], ondelete='SET NULL'),
@@ -176,8 +174,8 @@ def upgrade() -> None:
     op.create_table('offers',
     sa.Column('offer_id', sa.Integer(), autoincrement=True, nullable=False, comment='Identificador único de la oferta'),
     sa.Column('listing_id', sa.Integer(), nullable=False, comment='ID del listing (material) sobre el que se hace la oferta'),
-    sa.Column('buyer_id', sa.Integer(), nullable=False, comment='ID del usuario comprador que envía la oferta'),
-    sa.Column('seller_id', sa.Integer(), nullable=False, comment='ID del usuario vendedor que recibe la oferta'),
+    sa.Column('buyer_id', sa.UUID(), nullable=False, comment='UUID del usuario comprador que envía la oferta'),
+    sa.Column('seller_id', sa.UUID(), nullable=False, comment='UUID del usuario vendedor que recibe la oferta'),
     sa.Column('offer_price', sa.Numeric(precision=10, scale=2), nullable=False, comment='Precio unitario propuesto por el comprador (precisión de 2 decimales)'),
     sa.Column('quantity', sa.Integer(), nullable=False, comment='Número de unidades que el comprador desea adquirir'),
     sa.Column('status', sa.Enum('PENDING', 'ACCEPTED', 'REJECTED', 'COUNTERED', 'EXPIRED', name='offer_status_enum', create_constraint=True), nullable=False, comment='Estado de la negociación: PENDING, ACCEPTED, REJECTED, COUNTERED, EXPIRED'),
@@ -213,15 +211,15 @@ def upgrade() -> None:
     op.create_index(op.f('ix_order_items_order_id'), 'order_items', ['order_id'], unique=False)
     op.create_table('reports',
     sa.Column('report_id', sa.Integer(), autoincrement=True, nullable=False, comment='Identificador único del reporte'),
-    sa.Column('reporter_user_id', sa.Integer(), nullable=False, comment='Llave foránea a users (usuario que reporta)'),
+    sa.Column('reporter_user_id', sa.UUID(), nullable=False, comment='UUID del usuario que reporta'),
     sa.Column('report_type', sa.Enum('LISTING', 'USER', 'ORDER', name='report_type_enum'), nullable=False, comment='Tipo de reporte: listing, user u order'),
     sa.Column('reported_listing_id', sa.Integer(), nullable=True, comment='Llave foránea a listings (si se reporta un listing)'),
-    sa.Column('reported_user_id', sa.Integer(), nullable=True, comment='Llave foránea a users (si se reporta un usuario)'),
+    sa.Column('reported_user_id', sa.UUID(), nullable=True, comment='UUID del usuario reportado (si se reporta un usuario)'),
     sa.Column('reported_order_id', sa.Integer(), nullable=True, comment='Llave foránea a orders (si se reporta una orden)'),
     sa.Column('reason', sa.String(length=255), nullable=False, comment='Razón o motivo del reporte'),
     sa.Column('details', sa.Text(), nullable=True, comment='Detalles adicionales opcionales sobre el reporte'),
     sa.Column('status', sa.Enum('PENDING', 'UNDER_REVIEW', 'RESOLVED', 'DISMISSED', name='moderation_status_enum'), server_default=sa.text("'PENDING'"), nullable=False, comment='Estado de moderación del reporte'),
-    sa.Column('resolved_by_admin_id', sa.Integer(), nullable=True, comment='Llave foránea a users (admin que resolvió el reporte)'),
+    sa.Column('resolved_by_admin_id', sa.UUID(), nullable=True, comment='UUID del admin que resolvió el reporte'),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False, comment='Fecha y hora de creación del registro'),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False, comment='Fecha y hora de la ultima actualizacion del registro'),
     sa.ForeignKeyConstraint(['reported_listing_id'], ['listings.listing_id'], ondelete='CASCADE'),
@@ -234,8 +232,8 @@ def upgrade() -> None:
     op.create_table('reviews',
     sa.Column('review_id', sa.Integer(), autoincrement=True, nullable=False, comment='Identificador único de la review'),
     sa.Column('order_item_id', sa.Integer(), nullable=False, comment='Llave foranea UNIQUE a order_items'),
-    sa.Column('buyer_id', sa.Integer(), nullable=False, comment='Llave foranea a users (comprador)'),
-    sa.Column('seller_id', sa.Integer(), nullable=False, comment='Llave foranea a users (vendedor)'),
+    sa.Column('buyer_id', sa.UUID(), nullable=False, comment='UUID del comprador'),
+    sa.Column('seller_id', sa.UUID(), nullable=False, comment='UUID del vendedor'),
     sa.Column('listing_id', sa.Integer(), nullable=False, comment='Llave foranea a listings'),
     sa.Column('rating', sa.Integer(), nullable=False, comment='Calificación de la review (1 a 5 estrellas)'),
     sa.Column('comment', sa.Text(), nullable=True, comment='Texto opcional que acompaña la review'),
@@ -300,7 +298,6 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_addresses_city'), table_name='addresses')
     op.drop_table('addresses')
     op.drop_index(op.f('ix_users_email'), table_name='users')
-    op.drop_index(op.f('ix_users_cognito_sub'), table_name='users')
     op.drop_table('users')
     op.drop_index('ix_categories_type_parent', table_name='categories')
     op.drop_index(op.f('ix_categories_type'), table_name='categories')

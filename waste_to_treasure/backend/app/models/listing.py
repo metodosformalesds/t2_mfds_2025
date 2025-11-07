@@ -4,11 +4,13 @@ Modelo de base de datos para Listing.
 Implementa la tabla 'listings'
 Almacena publicaciones de materiales (B2B) y productos (B2C).
 """
+import uuid
 from typing import Optional, List, TYPE_CHECKING
 from decimal import Decimal
 
 from sqlalchemy import String, Integer, Text, Numeric, ForeignKey, Enum as SQLEnum, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.dialects.postgresql import UUID
 import enum
 
 from app.models.base import BaseModel
@@ -87,12 +89,12 @@ class Listing(BaseModel):
         comment="Identificador único de la publicación"
     )
     
-    seller_id: Mapped[int] = mapped_column(
-        Integer,
+    seller_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         ForeignKey("users.user_id", ondelete="CASCADE"),
         nullable=False,
         index=True,
-        comment="ID del usuario vendedor que creó esta publicación"
+        comment="UUID del usuario vendedor que creó esta publicación"
     )
     
     category_id: Mapped[int] = mapped_column(
@@ -162,11 +164,11 @@ class Listing(BaseModel):
         comment="Estado de moderación: PENDING, ACTIVE, REJECTED, INACTIVE"
     )
     
-    approved_by_admin_id: Mapped[Optional[int]] = mapped_column(
-        Integer,
+    approved_by_admin_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True),
         ForeignKey("users.user_id", ondelete="SET NULL"),
         nullable=True,
-        comment="ID del administrador que aprobó la publicación"
+        comment="UUID del administrador que aprobó la publicación"
     )
     
     # RELACIONES
@@ -212,8 +214,16 @@ class Listing(BaseModel):
         back_populates="listing",
         cascade="all, delete-orphan"
     )
-
-    # INDICES COMPUESTOS
+    reports: Mapped[List["Report"]] = relationship(
+        "Report",
+        back_populates="reported_listing",
+        cascade="all, delete-orphan"
+    )
+    offers: Mapped[List["Offer"]] = relationship(
+        "Offer",
+        back_populates="listing",
+        cascade="all, delete-orphan"
+    )
     __table_args__ = (
         Index("ix_listings_type_status", "listing_type", "status"),
         Index("ix_listings_seller_status", "seller_id", "status"),

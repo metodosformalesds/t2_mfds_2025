@@ -3,6 +3,7 @@ Modelo de base de datos para Suscripciones.
 
 Implementa la tabla 'suscripciones'
 """
+import uuid
 import enum
 from datetime import datetime
 
@@ -17,6 +18,7 @@ from sqlalchemy import (
 )
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.dialects.postgresql import UUID
 
 from app.models.base import BaseModel
 
@@ -47,12 +49,12 @@ class Subscription(BaseModel):
         autoincrement=True,
         comment="Identificador único de la Suscripción"
     )
-    user_id: Mapped[int] = mapped_column(
-        Integer,
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         ForeignKey("users.user_id", ondelete="CASCADE"),
         nullable=False,
         index=True,
-        comment='Llave foranea a users'
+        comment='UUID del usuario suscrito'
     )
     plan_id: Mapped[int] = mapped_column(
         Integer,

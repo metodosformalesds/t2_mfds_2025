@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import categories, addresses
+from app.api.v1.endpoints import categories, addresses, users
 
 router = APIRouter()
 
@@ -16,7 +16,8 @@ router.include_router(
     tags=["Addresses"]
 )
 
-# Aquí se incluirán los routers de los diferentes módulos (usuarios, productos, etc.)
-# Ejemplo:
-# from app.api.v1.endpoints import users
-# router.include_router(users.router, prefix="/users", tags=["Users"])
+router.include_router(
+    users.router,
+    prefix="/users",
+    tags=["Users"]
+)

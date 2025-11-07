@@ -4,10 +4,12 @@ Modelo de base de datos para Notification.
 Implementa la tabla 'notifications'
 Almacena alertas in-app (campanita) para los usuarios.
 """
+import uuid
 from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import String, Integer, Text, Boolean, ForeignKey, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.dialects.postgresql import UUID
 
 from app.models.base import BaseModel
 
@@ -48,12 +50,12 @@ class Notification(BaseModel):
         comment="Identificador único de la notificación"
     )
     
-    user_id: Mapped[int] = mapped_column(
-        Integer,
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         ForeignKey("users.user_id", ondelete="CASCADE"),
         nullable=False,
         index=True,
-        comment="ID del usuario que recibe la notificación"
+        comment="UUID del usuario que recibe la notificación"
     )
     
     content: Mapped[str] = mapped_column(

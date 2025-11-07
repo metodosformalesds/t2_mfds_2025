@@ -4,9 +4,11 @@ Modelo de base de datos para User.
 Implementa la tabla 'users'
 Almacena la información de los usuarios de la plataforma.
 """
+import uuid
 from typing import Optional, List, TYPE_CHECKING
 from sqlalchemy import String, Integer, Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.dialects.postgresql import UUID
 import enum
 
 from app.models.base import BaseModel
@@ -40,25 +42,29 @@ class User(BaseModel):
     """
     Modelo de usuario para la autenticación y autorización.
 
-    NOTE: La normalización del email (ej. a minúsculas) debe ser
-    gestionada en la capa de servicio o en los schemas Pydantic
-    antes de guardar los datos para asegurar consistencia.
+   La clave primaria (id) ahora es un UUID que corresponde al
+    'sub' (Subject) claim del token JWT de Cognito.
+
+    La autenticación (contraseñas) es manejada 100% por Cognito,
+    por lo que los campos 'hashed_password' y 'cognito_sub' se eliminan.
     """
     __tablename__ = "users"
 
-    user_id: Mapped[int] = mapped_column(
-        Integer,
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         primary_key=True,
-        autoincrement=True,
-        comment="Identificador único del usuario"
+        default=uuid.uuid4,
+        comment="UUID del usuario (cognito sub claim)"
     )
-    cognito_sub: Mapped[str] = mapped_column(
-        String(255),
-        unique=True,
-        nullable=False,
-        index=True,
-        comment="Sub (Subject) de Cognito para vincular con el servicio de autenticación"
-    )
+    # --- CAMBIO: Campo 'cognito_sub' ELIMINADO ---
+    #
+    # POR QUÉ: El campo 'id' AHORA ES el 'cognito_sub'.
+    # Tener un campo separado para el 'sub' sería redundante.
+    # cognito_sub: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True) # <-- ELIMINADO
+   
+    # CAMBIO: Campo de Email ---
+    # Mantenemos el email, pero ahora su principal fuente de verdad
+    # será el token de Cognito. Es único porque Cognito lo requiere.
     email: Mapped[str] = mapped_column(
         String(255),
         unique=True,

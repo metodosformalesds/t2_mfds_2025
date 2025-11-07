@@ -6,6 +6,7 @@ sobre las direcciones físicas de los usuarios (Address Book).
 """
 from typing import Optional
 from datetime import datetime
+from uuid import UUID
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 
 class AddressBase(BaseModel):
@@ -147,7 +148,10 @@ class AddressInDB(AddressBase):
     Incluye campos autogenerados como ID, user_id y timestamps.
     """
     address_id: int = Field(..., description="Identificador único")
-    user_id: int = Field(..., description="ID del usuario propietario")
+    user_id: Optional[UUID] = Field(
+        None, 
+        description="UUID del usuario propietario (NULL para direcciones de listings sin usuario)"
+    )
     created_at: datetime = Field(..., description="Fecha de creación")
     updated_at: datetime = Field(..., description="Última actualización")
     
@@ -186,9 +190,10 @@ class AddressList(BaseModel):
 # Opcional: Si algún endpoint necesita devolver Address con User cargado
 class UserBasic(BaseModel):
     """Esquema simplificado de User para relaciones."""
-    user_id: int
-    email: str
-    full_name: Optional[str] = None
+    user_id: UUID = Field(..., description="UUID del usuario")
+    email: str = Field(..., description="Email del usuario")
+    first_name: str = Field(..., description="Nombre del usuario")
+    last_name: str = Field(..., description="Apellido del usuario")
     
     model_config = ConfigDict(from_attributes=True)
 
