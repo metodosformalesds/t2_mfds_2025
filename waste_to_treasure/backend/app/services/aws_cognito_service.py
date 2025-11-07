@@ -93,46 +93,36 @@ class CognitoService:
             # }
             ```
         """
-        # TODO: Descomenta cuando tengas AWS Cognito configurado
-        # try:
-        #     response = self.cognito_client.admin_get_user(
-        #         UserPoolId=self.user_pool_id,
-        #         Username=str(user_id)  # Cognito usa 'sub' como username en algunos casos
-        #     )
-        #     
-        #     # Convertir atributos a diccionario
-        #     user_attributes = {}
-        #     for attr in response['UserAttributes']:
-        #         user_attributes[attr['Name']] = attr['Value']
-        #     
-        #     return {
-        #         'username': response['Username'],
-        #         'user_status': response['UserStatus'],
-        #         'enabled': response['Enabled'],
-        #         'created_date': response['UserCreateDate'],
-        #         'modified_date': response['UserLastModifiedDate'],
-        #         **user_attributes
-        #     }
-        #     
-        # except ClientError as e:
-        #     if e.response['Error']['Code'] == 'UserNotFoundException':
-        #         logger.warning(f"Usuario no encontrado en Cognito: {user_id}")
-        #         return None
-        #     else:
-        #         logger.error(f"Error obteniendo usuario de Cognito: {e}")
-        #         return None
-        
-        # MOCK
-        logger.warning(
-            f"CognitoService en modo MOCK - Retornando datos ficticios para {user_id}"
-        )
-        return {
-            "sub": str(user_id),
-            "email": "mock@example.com",
-            "email_verified": "true",
-            "given_name": "Mock",
-            "family_name": "User"
-        }
+        try:
+            response = self.cognito_client.admin_get_user(
+                UserPoolId=self.user_pool_id,
+                Username=str(user_id)  # Cognito usa 'sub' como username en algunos casos
+            )
+            
+            # Convertir atributos a diccionario
+            user_attributes = {}
+            for attr in response['UserAttributes']:
+                user_attributes[attr['Name']] = attr['Value']
+            
+            return {
+                'username': response['Username'],
+                'user_status': response['UserStatus'],
+                'enabled': response['Enabled'],
+                'created_date': response['UserCreateDate'],
+                'modified_date': response['UserLastModifiedDate'],
+                **user_attributes
+            }
+            
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'UserNotFoundException':
+                logger.warning(f"Usuario no encontrado en Cognito: {user_id}")
+                return None
+            else:
+                logger.error(f"Error obteniendo usuario de Cognito: {e}")
+                return None
+        except Exception as e:
+            logger.error(f"Error inesperado obteniendo usuario: {e}")
+            return None
     
     async def update_user_attributes(
         self,
@@ -166,33 +156,28 @@ class CognitoService:
             )
             ```
         """
-        # TODO: Descomenta cuando tengas AWS Cognito configurado
-        # try:
-        #     # Convertir diccionario a formato de Cognito
-        #     user_attributes = [
-        #         {'Name': key, 'Value': value}
-        #         for key, value in attributes.items()
-        #     ]
-        #     
-        #     self.cognito_client.admin_update_user_attributes(
-        #         UserPoolId=self.user_pool_id,
-        #         Username=str(user_id),
-        #         UserAttributes=user_attributes
-        #     )
-        #     
-        #     logger.info(f"Atributos actualizados en Cognito para usuario {user_id}")
-        #     return True
-        #     
-        # except (ClientError, BotoCoreError) as e:
-        #     logger.error(f"Error actualizando atributos en Cognito: {e}")
-        #     return False
-        
-        # MOCK
-        logger.warning(
-            f"CognitoService en modo MOCK - Simulando actualización de {user_id}"
-        )
-        logger.info(f"Atributos a actualizar: {attributes}")
-        return True
+        try:
+            # Convertir diccionario a formato de Cognito
+            user_attributes = [
+                {'Name': key, 'Value': value}
+                for key, value in attributes.items()
+            ]
+            
+            self.cognito_client.admin_update_user_attributes(
+                UserPoolId=self.user_pool_id,
+                Username=str(user_id),
+                UserAttributes=user_attributes
+            )
+            
+            logger.info(f"Atributos actualizados en Cognito para usuario {user_id}")
+            return True
+            
+        except (ClientError, BotoCoreError) as e:
+            logger.error(f"Error actualizando atributos en Cognito: {e}")
+            return False
+        except Exception as e:
+            logger.error(f"Error inesperado actualizando atributos: {e}")
+            return False
     
     async def list_users(
         self,
@@ -218,49 +203,42 @@ class CognitoService:
             # }
             ```
         """
-        # TODO: Descomenta cuando tengas AWS Cognito configurado
-        # try:
-        #     params = {
-        #         'UserPoolId': self.user_pool_id,
-        #         'Limit': min(limit, 60)
-        #     }
-        #     
-        #     if pagination_token:
-        #         params['PaginationToken'] = pagination_token
-        #     
-        #     response = self.cognito_client.list_users(**params)
-        #     
-        #     users = []
-        #     for user in response.get('Users', []):
-        #         user_attributes = {}
-        #         for attr in user.get('Attributes', []):
-        #             user_attributes[attr['Name']] = attr['Value']
-        #         
-        #         users.append({
-        #             'username': user['Username'],
-        #             'user_status': user['UserStatus'],
-        #             'enabled': user['Enabled'],
-        #             'created_date': user['UserCreateDate'],
-        #             **user_attributes
-        #         })
-        #     
-        #     return {
-        #         'users': users,
-        #         'pagination_token': response.get('PaginationToken')
-        #     }
-        #     
-        # except (ClientError, BotoCoreError) as e:
-        #     logger.error(f"Error listando usuarios de Cognito: {e}")
-        #     return {'users': [], 'pagination_token': None}
-        
-        # MOCK
-        logger.warning(
-            "CognitoService en modo MOCK - Retornando lista vacía"
-        )
-        return {
-            'users': [],
-            'pagination_token': None
-        }
+        try:
+            params = {
+                'UserPoolId': self.user_pool_id,
+                'Limit': min(limit, 60)
+            }
+            
+            if pagination_token:
+                params['PaginationToken'] = pagination_token
+            
+            response = self.cognito_client.list_users(**params)
+            
+            users = []
+            for user in response.get('Users', []):
+                user_attributes = {}
+                for attr in user.get('Attributes', []):
+                    user_attributes[attr['Name']] = attr['Value']
+                
+                users.append({
+                    'username': user['Username'],
+                    'user_status': user['UserStatus'],
+                    'enabled': user['Enabled'],
+                    'created_date': user['UserCreateDate'],
+                    **user_attributes
+                })
+            
+            return {
+                'users': users,
+                'pagination_token': response.get('PaginationToken')
+            }
+            
+        except (ClientError, BotoCoreError) as e:
+            logger.error(f"Error listando usuarios de Cognito: {e}")
+            return {'users': [], 'pagination_token': None}
+        except Exception as e:
+            logger.error(f"Error inesperado listando usuarios: {e}")
+            return {'users': [], 'pagination_token': None}
     
     async def disable_user(self, user_id: UUID) -> bool:
         """
@@ -272,21 +250,19 @@ class CognitoService:
         Returns:
             True si se deshabilitó exitosamente.
         """
-        # TODO: Descomenta cuando tengas AWS Cognito configurado
-        # try:
-        #     self.cognito_client.admin_disable_user(
-        #         UserPoolId=self.user_pool_id,
-        #         Username=str(user_id)
-        #     )
-        #     logger.info(f"Usuario deshabilitado en Cognito: {user_id}")
-        #     return True
-        # except (ClientError, BotoCoreError) as e:
-        #     logger.error(f"Error deshabilitando usuario: {e}")
-        #     return False
-        
-        # MOCK
-        logger.warning(f"CognitoService MOCK - Usuario {user_id} 'deshabilitado'")
-        return True
+        try:
+            self.cognito_client.admin_disable_user(
+                UserPoolId=self.user_pool_id,
+                Username=str(user_id)
+            )
+            logger.info(f"Usuario deshabilitado en Cognito: {user_id}")
+            return True
+        except (ClientError, BotoCoreError) as e:
+            logger.error(f"Error deshabilitando usuario: {e}")
+            return False
+        except Exception as e:
+            logger.error(f"Error inesperado deshabilitando usuario: {e}")
+            return False
     
     async def enable_user(self, user_id: UUID) -> bool:
         """
@@ -298,21 +274,19 @@ class CognitoService:
         Returns:
             True si se habilitó exitosamente.
         """
-        # TODO: Descomenta cuando tengas AWS Cognito configurado
-        # try:
-        #     self.cognito_client.admin_enable_user(
-        #         UserPoolId=self.user_pool_id,
-        #         Username=str(user_id)
-        #     )
-        #     logger.info(f"Usuario habilitado en Cognito: {user_id}")
-        #     return True
-        # except (ClientError, BotoCoreError) as e:
-        #     logger.error(f"Error habilitando usuario: {e}")
-        #     return False
-        
-        # MOCK
-        logger.warning(f"CognitoService MOCK - Usuario {user_id} 'habilitado'")
-        return True
+        try:
+            self.cognito_client.admin_enable_user(
+                UserPoolId=self.user_pool_id,
+                Username=str(user_id)
+            )
+            logger.info(f"Usuario habilitado en Cognito: {user_id}")
+            return True
+        except (ClientError, BotoCoreError) as e:
+            logger.error(f"Error habilitando usuario: {e}")
+            return False
+        except Exception as e:
+            logger.error(f"Error inesperado habilitando usuario: {e}")
+            return False
 
 
 # Singleton del servicio
