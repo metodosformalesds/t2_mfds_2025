@@ -4,17 +4,19 @@ Test suite for User model.
 Este archivo demuestra cómo probar el modelo User en un proyecto que usa AWS Cognito.
 
 IMPORTANTE:
-- El modelo User está diseñado para AWS Cognito (cognito_sub es obligatorio en producción)
-- En tests, simulamos el comportamiento de Cognito generando cognito_sub de prueba
-- NO modificamos el modelo para adaptarlo a tests, adaptamos los tests al modelo
+- El modelo User usa user_id (UUID) como PK, que ES el Cognito 'sub' claim
+- En producción: user_id viene del token JWT de Cognito (campo 'sub')
+- En tests: Generamos UUIDs únicos para simular usuarios de Cognito
+- NO hay campo separado 'cognito_sub' - el user_id ES el cognito sub
 
 Conceptos clave:
-- cognito_sub: ID único que AWS Cognito asigna después de registro exitoso
-- En producción: cognito_sub viene de Cognito
-- En tests: Generamos cognito_sub simulados para testing aislado
+- user_id: UUID que corresponde al 'sub' claim del token JWT de Cognito
+- En producción: user_id = token['sub'] (viene de Cognito)
+- En tests: Generamos UUIDs únicos para testing aislado
 """
 
 import pytest
+from uuid import uuid4
 from sqlalchemy.exc import IntegrityError
 
 from app.models.user import User, UserRoleEnum, UserStatusEnum
@@ -31,11 +33,12 @@ class TestUserModel:
         
         Simula el flujo real:
         1. Usuario se registra en Cognito
-        2. Cognito retorna cognito_sub
-        3. Backend crea registro en DB con cognito_sub
+        2. Cognito retorna JWT con 'sub' claim (UUID)
+        3. Backend crea registro en DB con user_id = sub del token
         """
+        user_uuid = uuid4()
         user = User(
-            cognito_sub="cognito_test_abc123",
+            user_id=user_uuid,
             email="test@example.com",
             full_name="Test User"
         )
@@ -43,8 +46,7 @@ class TestUserModel:
         db.commit()
         db.refresh(user)
 
-        assert user.user_id is not None
-        assert user.cognito_sub == "cognito_test_abc123"
+        assert user.user_id == user_uuid
         assert user.email == "test@example.com"
         assert user.full_name == "Test User"
         assert user.role == UserRoleEnum.USER  # default value
@@ -54,8 +56,9 @@ class TestUserModel:
 
     def test_create_admin_user(self, db):
         """Test creating an admin user with explicit role."""
+        admin_uuid = uuid4()
         admin = User(
-            cognito_sub="cognito_admin_xyz789",
+            user_id=admin_uuid,
             email="admin@example.com",
             full_name="Admin User",
             role=UserRoleEnum.ADMIN,
@@ -67,12 +70,12 @@ class TestUserModel:
 
         assert admin.role == UserRoleEnum.ADMIN
         assert admin.status == UserStatusEnum.ACTIVE
-        assert admin.cognito_sub == "cognito_admin_xyz789"
+        assert admin.user_id == admin_uuid
 
     def test_user_email_unique_constraint(self, db, user):
         """Test that duplicate emails are not allowed."""
         duplicate_user = User(
-            cognito_sub="cognito_different_123",  # cognito_sub diferente
+            user_id=uuid4(),  # UUID diferente
             email=user.email,  # mismo email (debe fallar)
             full_name="Another User"
         )
@@ -81,10 +84,10 @@ class TestUserModel:
         with pytest.raises(IntegrityError):
             db.commit()
 
-    def test_user_cognito_sub_unique_constraint(self, db, user):
-        """Test that duplicate cognito_sub are not allowed."""
+    def test_user_id_unique_constraint(self, db, user):
+        """Test that duplicate user_id (cognito sub) are not allowed."""
         duplicate_user = User(
-            cognito_sub=user.cognito_sub,  # mismo cognito_sub (debe fallar)
+            user_id=user.user_id,  # mismo UUID (debe fallar)
             email="different@example.com",  # email diferente
             full_name="Another User"
         )
@@ -95,8 +98,9 @@ class TestUserModel:
 
     def test_user_with_all_fields(self, db):
         """Test creating a user with all fields populated."""
+        user_uuid = uuid4()
         user = User(
-            cognito_sub="cognito_complete_456",
+            user_id=user_uuid,
             email="complete@example.com",
             full_name="Complete User",
             role=UserRoleEnum.USER,
@@ -106,7 +110,7 @@ class TestUserModel:
         db.commit()
         db.refresh(user)
 
-        assert user.cognito_sub == "cognito_complete_456"
+        assert user.user_id == user_uuid
         assert user.email == "complete@example.com"
         assert user.full_name == "Complete User"
         assert user.role == UserRoleEnum.USER
@@ -114,8 +118,9 @@ class TestUserModel:
 
     def test_user_default_values(self, db):
         """Test that default values are set correctly."""
+        user_uuid = uuid4()
         user = User(
-            cognito_sub="cognito_defaults_789",
+            user_id=user_uuid,
             email="defaults@example.com",
             full_name="Default User"
         )
@@ -244,8 +249,9 @@ class TestUserEnums:
 
     def test_user_role_assignment(self, db):
         """Test assigning different roles to users."""
+        user_uuid = uuid4()
         user = User(
-            cognito_sub="cognito_role_test",
+            user_id=user_uuid,
             email="role@example.com",
             full_name="Role Test",
             role=UserRoleEnum.ADMIN
@@ -257,8 +263,9 @@ class TestUserEnums:
 
     def test_user_status_assignment(self, db):
         """Test assigning different statuses to users."""
+        user_uuid = uuid4()
         user = User(
-            cognito_sub="cognito_status_test",
+            user_id=user_uuid,
             email="status@example.com",
             full_name="Status Test",
             status=UserStatusEnum.BLOCKED
@@ -271,28 +278,43 @@ class TestUserEnums:
 
 @pytest.mark.models
 @pytest.mark.unit
-class TestUserFactory:
-    """Test using the user factory fixture."""
+class TestUserCreation:
+    """Test creating users programmatically."""
 
-    def test_create_multiple_users_with_factory(self, db, create_user):
+    def test_create_multiple_users(self, db):
         """
-        Test creating multiple users using the factory fixture.
+        Test creating multiple users with unique UUIDs.
         
-        El factory automáticamente genera cognito_sub únicos para cada usuario.
+        Simula múltiples usuarios registrados en Cognito.
         """
-        user1 = create_user("user1@example.com", "User One")
-        user2 = create_user("user2@example.com", "User Two")
-        user3 = create_user("user3@example.com", "User Three")
+        user1 = User(
+            user_id=uuid4(),
+            email="user1@example.com",
+            full_name="User One"
+        )
+        user2 = User(
+            user_id=uuid4(),
+            email="user2@example.com",
+            full_name="User Two"
+        )
+        user3 = User(
+            user_id=uuid4(),
+            email="user3@example.com",
+            full_name="User Three"
+        )
+        
+        db.add_all([user1, user2, user3])
+        db.commit()
 
         assert user1.email == "user1@example.com"
         assert user2.email == "user2@example.com"
         assert user3.email == "user3@example.com"
         
-        # Cada usuario debe tener cognito_sub único
-        assert user1.cognito_sub != user2.cognito_sub
-        assert user2.cognito_sub != user3.cognito_sub
-        assert user1.cognito_sub != user3.cognito_sub
+        # Cada usuario debe tener user_id único
+        assert user1.user_id != user2.user_id
+        assert user2.user_id != user3.user_id
+        assert user1.user_id != user3.user_id
 
         # Verificar que existen en DB
         users = db.query(User).all()
-        assert len(users) == 3
+        assert len(users) >= 3  # >= porque puede haber usuarios del fixture
