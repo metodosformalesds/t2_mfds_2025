@@ -104,10 +104,10 @@ async def process_checkout(
     description="Obtiene una lista paginada de las órdenes de compra del usuario."
 )
 async def get_my_purchases(
+    db: Annotated[AsyncSession, Depends(get_async_db)],
+    user: Annotated[User, Depends(get_current_active_user)],
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
-    db: Annotated[AsyncSession, Depends(get_async_db)] = Depends(get_async_db),
-    user: Annotated[User, Depends(get_current_active_user)] = Depends(get_current_active_user)
 ) -> OrderList:
     
     orders, total = await order_service.get_my_purchases(db, user, skip, limit)
@@ -128,10 +128,10 @@ async def get_my_purchases(
     description="Obtiene una lista paginada de las órdenes que contienen items vendidos por el usuario."
 )
 async def get_my_sales(
+    db: Annotated[AsyncSession, Depends(get_async_db)],
+    user: Annotated[User, Depends(get_current_active_user)],
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
-    db: Annotated[AsyncSession, Depends(get_async_db)] = Depends(get_async_db),
-    user: Annotated[User, Depends(get_current_active_user)] = Depends(get_current_active_user)
 ) -> OrderList:
     
     orders, total = await order_service.get_my_sales(db, user, skip, limit)

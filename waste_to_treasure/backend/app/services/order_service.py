@@ -20,7 +20,8 @@ from fastapi import HTTPException, status
 from app.models.user import User, UserRoleEnum
 from app.models.cart import Cart, CartItem
 from app.models.listing import Listing
-from app.models.order import Order, OrderItem, OrderStatusEnum
+from app.models.order import Order, OrderStatusEnum
+from app.models.order_item import OrderItem
 from app.services.aws_ses_service import ses_service
 from app.services.notification_service import notification_service # <-- 2. IMPORTAR NOTIFICATION_SERVICE
 

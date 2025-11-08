@@ -13,7 +13,7 @@ class PaymentGatewayEnum(str, enum.Enum):
         STRIPE: Stripe (tarjetas, wallets, OXXO, SPEI)
     """
     STRIPE = "STRIPE"
-    #PAYPAL = "PAYPAL"
+    PAYPAL = "PAYPAL"
 
 class PaymentStatusEnum(str, enum.Enum):
     """

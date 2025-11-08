@@ -29,10 +29,10 @@ router = APIRouter()
                 "ordenadas por no leídas primero."
 )
 async def get_my_notifications(
+    db: Annotated[AsyncSession, Depends(get_async_db)],
+    user: Annotated[User, Depends(get_current_active_user)],
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=50), # Límite más bajo para notificaciones
-    db: Annotated[AsyncSession, Depends(get_async_db)] = Depends(get_async_db),
-    user: Annotated[User, Depends(get_current_active_user)] = Depends(get_current_active_user)
 ) -> NotificationList:
     
     notifications, total, unread_count = (

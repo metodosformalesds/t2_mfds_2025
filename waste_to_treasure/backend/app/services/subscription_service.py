@@ -18,7 +18,7 @@ from fastapi import HTTPException, status
 
 from app.models.user import User
 from app.models.plans import Plan, BillingCycle
-from app.models.subscriptions import Subscription, SuscriptionStatus
+from app.models.subscriptions import Subscription, SubscriptionStatus
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +41,7 @@ class SubscriptionService:
             select(Subscription)
             .where(
                 Subscription.user_id == user.user_id,
-                Subscription.status == SuscriptionStatus.ACTIVE
+                Subscription.status == SubscriptionStatus.ACTIVE
             )
             .options(selectinload(Subscription.plan)) # Eager load plan details
         )
@@ -68,7 +68,7 @@ class SubscriptionService:
             logger.info(f"Cancelando suscripción anterior {active_sub.gateway_sub_id} para usuario {user.user_id}")
             # (SIMULADO) Llamar a Stripe para cancelar la sub anterior
             # payment_service.cancel_gateway_subscription(active_sub.gateway_sub_id)
-            active_sub.status = SuscriptionStatus.INACTIVE 
+            active_sub.status = SubscriptionStatus.INACTIVE 
             # O CANCELLED, dependiendo de la lógica de negocio
 
         # 3. (SIMULADO) Procesar pago con Stripe
@@ -96,7 +96,7 @@ class SubscriptionService:
         new_subscription = Subscription(
             user_id=user.user_id,
             plan_id=plan.plan_id,
-            status=SuscriptionStatus.ACTIVE,
+            status=SubscriptionStatus.ACTIVE,
             start_date=start_date,
             next_billing_date=next_billing_date,
             gateway_sub_id=simulated_gateway_sub_id
@@ -127,13 +127,13 @@ class SubscriptionService:
         logger.info(f"Cancelando suscripción (simulada) {active_sub.gateway_sub_id} en pasarela")
 
         # Actualizar estado en la BD
-        active_sub.status = SuscriptionStatus.CANCELLED
+        active_sub.status = SubscriptionStatus.CANCELLED
         # Opcional: ajustar next_billing_date según la lógica de Stripe
         # (ej. si permanece activa hasta el final del ciclo de pago)
-        
+
         await db.commit()
         await db.refresh(active_sub)
-        
+
         return active_sub
 
     async def check_user_subscription_tier(

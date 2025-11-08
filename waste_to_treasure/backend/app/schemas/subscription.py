@@ -8,7 +8,7 @@ import uuid
 from datetime import datetime
 from pydantic import BaseModel, Field, ConfigDict
 
-from app.models.subscriptions import SuscriptionStatus
+from app.models.subscriptions import SubscriptionStatus
 from app.schemas.plan import PlanRead # Importamos PlanRead para anidarlo
 
 # --- Schemas de Suscripción (Request) ---
@@ -43,7 +43,7 @@ class SubscriptionRead(BaseModel):
     """
     subscription_id: int
     user_id: uuid.UUID
-    status: SuscriptionStatus
+    status: SubscriptionStatus
     start_date: datetime
     next_billing_date: datetime
     gateway_sub_id: str = Field(
