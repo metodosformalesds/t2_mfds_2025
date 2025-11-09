@@ -1,4 +1,5 @@
 import { Poppins, Roboto, Inter } from 'next/font/google'
+import { AuthProvider } from '@/context/AuthContext'
 import '../styles/global.css'
 
 const poppins = Poppins({
@@ -29,7 +30,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="es" className={`${poppins.variable} ${roboto.variable} ${inter.variable}`}>
       <body className="font-inter antialiased bg-neutral-50">
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   )
