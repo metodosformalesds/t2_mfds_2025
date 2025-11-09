@@ -2,13 +2,13 @@
 
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
-import NavBar from '@/components/layout/NavBar'
 import Hero from '@/components/homepage/Hero'
 import HowItWorks from '@/components/homepage/HowItWorks'
 import FeaturedProducts from '@/components/homepage/FeaturedProducts'
 import FeaturedMaterials from '@/components/homepage/FeaturedMaterials'
 import Cta from '@/components/homepage/Cta'
 import Footer from '@/components/layout/Footer'
+import NavBar from '@/components/layout/NavBar'
 
 // Datos de ejemplo para los carruseles, se modificara despues con elementos de nuestra bd
 const mockProducts = [

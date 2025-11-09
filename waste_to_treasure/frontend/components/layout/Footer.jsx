@@ -11,7 +11,7 @@ export default function Footer() {
             <Link href="/">
               {/* Asumiendo un logo para fondo oscuro en public/images/logo-dark.svg */}
               <Image
-                src="/images/logo-dark.svg"
+                src="/images/LogoNoFondo.png"
                 alt="Waste to Treasure Logo"
                 width={100}
                 height={80}
