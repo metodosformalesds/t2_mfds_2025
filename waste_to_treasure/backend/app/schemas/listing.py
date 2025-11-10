@@ -6,8 +6,9 @@ Define los modelos de validación para requests y responses de la API.
 from typing import Optional, List
 from decimal import Decimal
 from datetime import datetime
+from uuid import UUID
 
-from pydantic import BaseModel, Field, field_validator, HttpUrl
+from pydantic import BaseModel, Field, field_validator, HttpUrl, computed_field, field_serializer
 
 from app.models.listing import ListingStatusEnum
 from app.models.category import ListingTypeEnum
@@ -87,21 +88,39 @@ class ListingRead(ListingBase):
     """Schema de respuesta completo para una publicación."""
     
     listing_id: int
-    seller_id: int
+    seller_id: UUID  # Cambiar a UUID, usaremos field_serializer para convertir a string
     status: ListingStatusEnum
-    approved_by_admin_id: Optional[int]
+    approved_by_admin_id: Optional[UUID] = None
     created_at: datetime
     updated_at: datetime
     
     # Relaciones
     images: List[ListingImageRead] = []
     
-    # Campos computados
-    is_available: bool = False
-    primary_image_url: Optional[str] = None
-    
     class Config:
         from_attributes = True
+    
+    @field_serializer('seller_id', 'approved_by_admin_id')
+    def serialize_uuid(self, value: Optional[UUID], _info) -> Optional[str]:
+        """Convierte UUID a string para la respuesta JSON."""
+        return str(value) if value else None
+    
+    @computed_field
+    @property
+    def is_available(self) -> bool:
+        """Verifica si el listing está disponible."""
+        return self.status == ListingStatusEnum.ACTIVE and self.quantity > 0
+    
+    @computed_field
+    @property
+    def primary_image_url(self) -> Optional[str]:
+        """Obtiene la URL de la imagen principal."""
+        if not self.images:
+            return None
+        for img in self.images:
+            if img.is_primary:
+                return str(img.image_url)
+        return str(self.images[0].image_url) if self.images else None
 
 
 class ListingCardRead(BaseModel):
@@ -113,12 +132,17 @@ class ListingCardRead(BaseModel):
     price_unit: Optional[str]
     listing_type: ListingTypeEnum
     primary_image_url: Optional[str]
-    seller_id: int
+    seller_id: UUID
     quantity: int
     created_at: datetime
     
     class Config:
         from_attributes = True
+    
+    @field_serializer('seller_id')
+    def serialize_seller_uuid(self, value: UUID, _info) -> str:
+        """Convierte seller_id UUID a string."""
+        return str(value)
 
 
 class ListingListResponse(BaseModel):

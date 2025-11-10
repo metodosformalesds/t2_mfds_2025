@@ -51,14 +51,12 @@ class OrderService:
         """
         logger.info(f"Iniciando checkout para usuario {user.user_id}")
         
-        # 1. Obtener carrito con items y listings (usando selectinload)
+        # 1. Obtener carrito con items y listings (usando selectinload con eager loading completo)
         cart_result = await db.execute(
             select(Cart)
             .where(Cart.user_id == user.user_id)
             .options(
-                selectinload(Cart.items).options(
-                    joinedload(CartItem.listing) # Usar joinedload para el listing
-                )
+                selectinload(Cart.items).selectinload(CartItem.listing).selectinload(Listing.images)
             )
         )
         cart = cart_result.scalar_one_or_none()
@@ -233,6 +231,19 @@ class OrderService:
             except Exception as email_error:
                 logger.error(f"Error enviando email de confirmación para orden {new_order.order_id}: {email_error}")
 
+            # Eager load relationships to avoid MissingGreenlet error
+            stmt = (
+                select(Order)
+                .where(Order.order_id == new_order.order_id)
+                .options(
+                    selectinload(Order.order_items)
+                    .selectinload(OrderItem.listing)
+                    .selectinload(Listing.images)
+                )
+            )
+            result = await db.execute(stmt)
+            new_order = result.scalar_one()
+
             return new_order
             
         except Exception as e:
@@ -262,9 +273,7 @@ class OrderService:
         stmt = (
             stmt_base
             .options(
-                selectinload(Order.order_items).options(
-                    selectinload(OrderItem.listing)
-                )
+                selectinload(Order.order_items).selectinload(OrderItem.listing).selectinload(Listing.images)
             )
             .order_by(Order.created_at.desc())
             .offset(skip)
@@ -303,9 +312,7 @@ class OrderService:
             select(Order)
             .where(Order.order_id.in_(stmt_base))
             .options(
-                selectinload(Order.order_items).options(
-                    selectinload(OrderItem.listing)
-                )
+                selectinload(Order.order_items).selectinload(OrderItem.listing).selectinload(Listing.images)
             )
             .order_by(Order.created_at.desc())
             .offset(skip)
@@ -330,9 +337,7 @@ class OrderService:
             select(Order)
             .where(Order.order_id == order_id)
             .options(
-                selectinload(Order.order_items).options(
-                    selectinload(OrderItem.listing) # Cargar listings de los items
-                ),
+                selectinload(Order.order_items).selectinload(OrderItem.listing).selectinload(Listing.images),
                 joinedload(Order.buyer) # Cargar comprador
             )
         )

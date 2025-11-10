@@ -30,12 +30,14 @@ async def get_or_create_cart(db: AsyncSession, user_id: UUID) -> Cart:
         user_id: UUID del usuario.
 
     Returns:
-        Cart del usuario.
+        Cart del usuario con todas las relaciones cargadas (eager loading).
     """
     result = await db.execute(
         select(Cart)
         .options(
-            selectinload(Cart.items).selectinload(CartItem.listing)
+            selectinload(Cart.items)
+            .selectinload(CartItem.listing)
+            .selectinload(Listing.images)
         )
         .where(Cart.user_id == user_id)
     )
@@ -45,7 +47,17 @@ async def get_or_create_cart(db: AsyncSession, user_id: UUID) -> Cart:
         cart = Cart(user_id=user_id)
         db.add(cart)
         await db.commit()
-        await db.refresh(cart)
+        # Refresh with eager loading to avoid lazy load issues
+        result = await db.execute(
+            select(Cart)
+            .options(
+                selectinload(Cart.items)
+                .selectinload(CartItem.listing)
+                .selectinload(Listing.images)
+            )
+            .where(Cart.cart_id == cart.cart_id)
+        )
+        cart = result.scalar_one()
 
     return cart
 
@@ -131,6 +143,19 @@ async def add_item_to_cart(
 
     await db.commit()
     await db.refresh(cart)
+    
+    # Eager load relationships to avoid MissingGreenlet error
+    stmt = (
+        select(Cart)
+        .where(Cart.cart_id == cart.cart_id)
+        .options(
+            selectinload(Cart.items)
+            .selectinload(CartItem.listing)
+            .selectinload(Listing.images)
+        )
+    )
+    result = await db.execute(stmt)
+    cart = result.scalar_one()
 
     return cart
 
@@ -194,7 +219,19 @@ async def update_cart_item_quantity(
     cart_item.quantity = update_data.quantity
 
     await db.commit()
-    await db.refresh(cart)
+    
+    # Reload cart with eager loading
+    stmt = (
+        select(Cart)
+        .where(Cart.cart_id == cart.cart_id)
+        .options(
+            selectinload(Cart.items)
+            .selectinload(CartItem.listing)
+            .selectinload(Listing.images)
+        )
+    )
+    result = await db.execute(stmt)
+    cart = result.scalar_one()
 
     return cart
 
@@ -239,7 +276,19 @@ async def remove_item_from_cart(
     # Eliminar el item
     await db.delete(cart_item)
     await db.commit()
-    await db.refresh(cart)
+    
+    # Reload cart with eager loading
+    stmt = (
+        select(Cart)
+        .where(Cart.cart_id == cart.cart_id)
+        .options(
+            selectinload(Cart.items)
+            .selectinload(CartItem.listing)
+            .selectinload(Listing.images)
+        )
+    )
+    result = await db.execute(stmt)
+    cart = result.scalar_one()
 
     return cart
 
@@ -263,7 +312,19 @@ async def clear_cart(db: AsyncSession, user_id: UUID) -> Cart:
     )
 
     await db.commit()
-    await db.refresh(cart)
+    
+    # Reload cart with eager loading
+    stmt = (
+        select(Cart)
+        .where(Cart.cart_id == cart.cart_id)
+        .options(
+            selectinload(Cart.items)
+            .selectinload(CartItem.listing)
+            .selectinload(Listing.images)
+        )
+    )
+    result = await db.execute(stmt)
+    cart = result.scalar_one()
 
     return cart
 

@@ -66,7 +66,7 @@ export default function PlansHeader() {
   return (
     <>
       {/* Fondo verde con título y toggle */}
-      <div className="w-full overflow-hidden rounded-b-lg bg-primary-600 px-4 py-16 text-center text-white shadow-lg">
+      <div className="w-full overflow-hidden rounded-b-lg bg-primary-500 px-4 py-16 text-center text-white shadow-lg">
         <div className="mx-auto max-w-3xl">
           <h1 className="font-poppins text-5xl font-bold">Planes y Precios</h1>
           <p className="mt-5 font-inter text-lg font-medium">

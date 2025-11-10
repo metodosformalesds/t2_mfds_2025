@@ -98,6 +98,15 @@ async def create_offer(
     db.add(db_offer)
     await db.commit()
     await db.refresh(db_offer)
+    
+    # Eager load relationships para evitar MissingGreenlet error
+    stmt = select(Offer).where(Offer.offer_id == db_offer.offer_id).options(
+        selectinload(Offer.listing),
+        selectinload(Offer.buyer),
+        selectinload(Offer.seller)
+    )
+    result = await db.execute(stmt)
+    db_offer = result.scalar_one()
 
     logger.info(
         f"Oferta {db_offer.offer_id} creada por comprador {buyer_id} "

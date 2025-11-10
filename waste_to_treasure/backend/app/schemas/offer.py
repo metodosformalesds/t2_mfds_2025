@@ -1,13 +1,14 @@
 """
-Schemas Pydantic para Offer.
+Esquemas de Pydantic para Offer.
 
-Define los modelos de validación para requests y responses de ofertas B2B.
+Define los contratos de entrada y salida para operaciones sobre ofertas B2B.
 """
-from typing import Optional
 from decimal import Decimal
+from typing import Optional
 from datetime import datetime
-
-from pydantic import BaseModel, Field, field_validator, model_validator
+from uuid import UUID
+from pydantic import BaseModel, Field, field_serializer, field_validator, model_validator
+from enum import Enum
 
 from app.models.offer import OfferStatusEnum
 
@@ -73,8 +74,8 @@ class OfferRead(OfferBase):
     """Schema de respuesta completo para una oferta."""
     
     offer_id: int
-    buyer_id: int
-    seller_id: int
+    buyer_id: UUID
+    seller_id: UUID
     status: OfferStatusEnum
     counter_offer_price: Optional[Decimal]
     rejection_reason: Optional[str]
@@ -89,6 +90,10 @@ class OfferRead(OfferBase):
     # Información del listing (nested opcional)
     listing_title: Optional[str] = None
     listing_original_price: Optional[Decimal] = None
+    
+    @field_serializer('buyer_id', 'seller_id')
+    def serialize_uuid(self, value: UUID) -> str:
+        return str(value)
     
     class Config:
         from_attributes = True
