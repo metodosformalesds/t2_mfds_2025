@@ -21,4 +21,6 @@ __all__ = [
     "reviews",
     "faq",
     "legal",
+    "admin",
+    "report",
 ]

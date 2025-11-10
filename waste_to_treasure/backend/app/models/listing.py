@@ -214,16 +214,7 @@ class Listing(BaseModel):
         back_populates="listing",
         cascade="all, delete-orphan"
     )
-    reports: Mapped[List["Report"]] = relationship(
-        "Report",
-        back_populates="reported_listing",
-        cascade="all, delete-orphan"
-    )
-    offers: Mapped[List["Offer"]] = relationship(
-        "Offer",
-        back_populates="listing",
-        cascade="all, delete-orphan"
-    )
+    
     __table_args__ = (
         Index("ix_listings_type_status", "listing_type", "status"),
         Index("ix_listings_seller_status", "seller_id", "status"),

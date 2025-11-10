@@ -3,6 +3,9 @@ from app.api.v1.endpoints import (
     categories,
     addresses,
     users,
+    cart,
+    offers,
+    listings,
     notifications,
     reviews,
     faq,
@@ -13,6 +16,8 @@ from app.api.v1.endpoints import (
     subscriptions,
     webhooks,
     payments,
+    admin,
+    report,
 )
 
 router = APIRouter()
@@ -34,6 +39,24 @@ router.include_router(
     users.router,
     prefix="/users",
     tags=["Users"]
+)
+
+router.include_router(
+    cart.router,
+    prefix="/cart",
+    tags=["Cart"]
+)
+
+router.include_router(
+    offers.router,
+    prefix="/offers",
+    tags=["Offers"]
+)
+
+router.include_router(
+    listings.router,
+    prefix="/listings",
+    tags=["Listings"]
 )
 
 router.include_router(
@@ -94,4 +117,16 @@ router.include_router(
     webhooks.router,
     prefix="/webhooks",
     tags=["Webhooks"]
+)
+
+router.include_router(
+    admin.router,
+    prefix="/admin",
+    tags=["Admin"]
+)
+
+router.include_router(
+    report.router,
+    prefix="/reports",
+    tags=["Reports"]
 )

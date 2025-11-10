@@ -315,12 +315,14 @@ class AdminService:
         # Formatear respuesta
         items = []
         for listing in listings:
-            # Mapear status del modelo al schema
-            schema_status = "pending"
+            # Mapear status del modelo al schema (usar MAYÚSCULAS para ModerationStatus enum)
+            schema_status = "PENDING"
             if listing.status == ListingStatusEnum.ACTIVE:
-                schema_status = "approved"
+                schema_status = "ACTIVE"
             elif listing.status == ListingStatusEnum.REJECTED:
-                schema_status = "rejected"
+                schema_status = "REJECTED"
+            elif listing.status == ListingStatusEnum.INACTIVE:
+                schema_status = "INACTIVE"
             
             items.append({
                 "listing_id": listing.listing_id,
@@ -382,7 +384,7 @@ class AdminService:
         
         return {
             "listing_id": listing_id,
-            "new_status": "approved",
+            "new_status": "ACTIVE",
             "message": "Listing approved successfully",
             "action_log_id": action_log.log_id
         }
@@ -438,7 +440,7 @@ class AdminService:
         
         return {
             "listing_id": listing_id,
-            "new_status": "rejected",
+            "new_status": "REJECTED",
             "message": "Listing rejected",
             "action_log_id": action_log.log_id
         }

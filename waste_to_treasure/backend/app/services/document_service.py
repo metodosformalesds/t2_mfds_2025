@@ -294,8 +294,9 @@ async def get_faq_items(
     
     stmt = select(FAQItem)
     
-    if active_only:
-        stmt = stmt.where(FAQItem.is_active == True)
+    # FAQItem no tiene campo is_active, todas las FAQs son públicas
+    # if active_only:
+    #     stmt = stmt.where(FAQItem.is_active == True)
     
     if category:
         stmt = stmt.where(FAQItem.category == category)

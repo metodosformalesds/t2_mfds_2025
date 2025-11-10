@@ -72,6 +72,15 @@ async def create_listing(
     db.add(db_listing)
     await db.commit()
     await db.refresh(db_listing)
+    
+    # Cargar las relaciones explícitamente para evitar lazy loading
+    stmt = (
+        select(Listing)
+        .options(selectinload(Listing.images))
+        .where(Listing.listing_id == db_listing.listing_id)
+    )
+    result = await db.execute(stmt)
+    db_listing = result.scalar_one()
 
     logger.info(f"Listing {db_listing.listing_id} creado por seller {seller_id}")
 
