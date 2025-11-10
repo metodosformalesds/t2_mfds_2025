@@ -12,11 +12,14 @@ import uuid
 from typing import Annotated
 from fastapi import APIRouter, Depends, Query, status, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+import stripe
+from stripe import CardError, StripeError
 
 from app.api.deps import get_async_db, get_current_active_user
 from app.models.user import User
 from app.schemas.order import OrderRead, OrderList, CheckoutCreate
 from app.services.order_service import order_service
+from app.services.stripe_service import stripe_service
 
 logger = logging.getLogger(__name__)
 
@@ -63,26 +66,85 @@ async def process_checkout(
     # 2. Calcular total (a enviar a Stripe)
     total_a_pagar = cart.get_estimated_total() # Incluye comisión
     
-    # 3. Procesar pago (SIMULACIÓN)
-    # En un caso real, aquí llamarías a Stripe
-    # =============================================================
-    # try:
-    #     payment_service = StripeService()
-    #     charge = await payment_service.create_charge(
-    #         token=checkout_data.payment_token,
-    #         amount_cents=int(total_a_pagar * 100) # Stripe usa centavos
-    #     )
-    #     simulated_charge_id = charge.id
-    # except StripeError as e:
-    #     raise HTTPException(status_code=400, detail=f"Pago fallido: {e.user_message}")
-    # =============================================================
-    
-    # Simulación de pago exitoso
-    if not checkout_data.payment_token.startswith("tok_"):
-        raise HTTPException(status_code=400, detail="Token de pago inválido (simulación).")
-    
-    simulated_charge_id = f"ch_sim_{uuid.uuid4()}"
-    logger.info(f"Pago (simulado) exitoso: {simulated_charge_id} por {total_a_pagar}")
+    # 3. Procesar pago con Stripe (INTEGRACIÓN REAL)
+    try:
+        # Crear Payment Intent en Stripe
+        payment_intent = await stripe_service.create_payment_intent(
+            amount=total_a_pagar,
+            currency="mxn",
+            metadata={
+                "user_id": str(user.user_id),
+                "cart_items": str(len(cart.items))
+            },
+            description=f"Orden de {user.full_name or user.email}"
+        )
+        
+        # Confirmar el pago con el token proporcionado
+        # Nota: Los tokens de prueba (tok_visa, tok_chargeDeclined, etc) 
+        # se procesan directamente sin confirmación adicional
+        if checkout_data.payment_token.startswith("tok_"):
+            # Para tokens de prueba, crear un cargo directo
+            try:
+                charge = stripe.Charge.create(
+                    amount=int(total_a_pagar * 100),  # centavos
+                    currency="mxn",
+                    source=checkout_data.payment_token,
+                    description=f"Orden de {user.full_name or user.email}",
+                    metadata={
+                        "user_id": str(user.user_id),
+                        "payment_intent_id": payment_intent.id
+                    }
+                )
+                payment_charge_id = charge.id
+                logger.info(f"Pago exitoso con token {checkout_data.payment_token}: {payment_charge_id}")
+            except CardError as e:
+                # Card was declined
+                await db.rollback()
+                logger.warning(f"Tarjeta declinada: {e.user_message}")
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Pago rechazado: {e.user_message or 'Tarjeta declinada'}"
+                )
+            except StripeError as e:
+                await db.rollback()
+                logger.error(f"Error de Stripe: {e}")
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Error procesando pago: {str(e)}"
+                )
+        else:
+            # Para payment methods normales
+            confirmed_intent = await stripe_service.confirm_payment_intent(
+                payment_intent_id=payment_intent.id,
+                payment_method_id=checkout_data.payment_token
+            )
+            
+            if confirmed_intent.status != "succeeded":
+                await db.rollback()
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Pago no exitoso. Status: {confirmed_intent.status}"
+                )
+            
+            payment_charge_id = confirmed_intent.id
+            logger.info(f"Payment Intent confirmado exitosamente: {payment_charge_id}")
+        
+    except HTTPException:
+        raise  # Re-raise para que FastAPI lo maneje
+    except StripeError as e:
+        logger.error(f"Error de Stripe en checkout: {e}")
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Error procesando pago con Stripe: {str(e)}"
+        )
+    except Exception as e:
+        logger.error(f"Error inesperado procesando pago: {e}", exc_info=True)
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error inesperado procesando el pago"
+        )
 
     # 4. Crear la orden (transaccional)
     order = await order_service.create_order_from_cart(
@@ -90,7 +152,7 @@ async def process_checkout(
         user=user,
         cart=cart,
         listings_map=listings_map,
-        payment_charge_id=simulated_charge_id,
+        payment_charge_id=payment_charge_id,
         payment_method="stripe"
     )
     
