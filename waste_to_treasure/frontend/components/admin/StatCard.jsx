@@ -8,7 +8,7 @@ export default function StatCard({ title, value }) {
       <h3 className="font-roboto text-2xl font-bold text-neutral-900/70">
         {title}
       </h3>
-      <p className="truncate font-roboto text-7xl font-bold text-primary-500">
+      <p className="truncate font-roboto text-4xl font-bold text-primary-500">
         {value}
       </p>
     </div>
