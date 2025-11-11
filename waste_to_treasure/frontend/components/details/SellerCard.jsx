@@ -1,15 +1,17 @@
 'use client'
 
+import Link from 'next/link'
 import { Star, MessageCircle, User } from 'lucide-react'
 
 /**
  * Seller Card Component
  * Displays seller information from backend
- * Seller data comes from listing.seller_id
+ * Seller data comes from listing.seller object
  */
-export default function SellerCard({ sellerId, sellerStats }) {
-  // In a real implementation, you would fetch seller data using sellerId
-  // For now, we'll display the seller ID and stats if available
+export default function SellerCard({ sellerId, seller, sellerStats }) {
+  // Extract seller information from the seller object passed from the listing
+  const sellerName = seller?.full_name || `Vendedor ${sellerId?.substring(0, 8)}`
+
   const {
     average_rating = 0,
     total_reviews = 0,
@@ -25,7 +27,7 @@ export default function SellerCard({ sellerId, sellerStats }) {
         </div>
         <div className="flex-1">
           <h3 className="font-roboto text-xl font-bold text-neutral-900">
-            Vendedor {sellerId?.substring(0, 8)}
+            {sellerName}
           </h3>
           {total_reviews > 0 && (
             <div className="mt-1 flex items-center gap-2">
@@ -61,10 +63,13 @@ export default function SellerCard({ sellerId, sellerStats }) {
           <MessageCircle size={18} />
           Contactar al vendedor
         </button>
-        <button className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary-500 px-4 py-2 font-inter text-sm font-medium text-white transition-colors hover:bg-primary-600">
+        <Link
+          href={`/sellers/${sellerId}`}
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary-500 px-4 py-2 font-inter text-sm font-medium text-white transition-colors hover:bg-primary-600"
+        >
           <User size={18} />
           Ver Perfil Completo
-        </button>
+        </Link>
       </div>
     </div>
   )
