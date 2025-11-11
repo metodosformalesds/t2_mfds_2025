@@ -1,22 +1,21 @@
 version: 1
+appRoot: waste_to_treasure/frontend
 frontend:
   phases:
     preBuild:
       commands:
-        - echo "Navigating to frontend directory..."
-        - cd waste_to_treasure/frontend
-        - echo "Installing dependencies..."
-        - npm ci
+        # Forzar una versión de Node.js compatible
+        - nvm use 20
+        - npm install
     build:
       commands:
-        - echo "Building Next.js application..."
-        - cd waste_to_treasure/frontend
+        # Construir la app de Next.js
         - npm run build
   artifacts:
-    baseDirectory: waste_to_treasure/frontend/.next
+    # Directorio de salida para Next.js SSR
+    baseDirectory: .next
     files:
       - '**/*'
   cache:
     paths:
-      - waste_to_treasure/frontend/node_modules/**/*
-      - waste_to_treasure/frontend/.next/cache/**/*
+      - node_modules/**/*
