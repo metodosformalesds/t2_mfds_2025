@@ -22,17 +22,24 @@ const inter = Inter({
 
 export const metadata = {
   title: 'Waste to Treasure - Economía Circular',
-  description: 'Plataforma de marketplace para materiales reciclados y productos sustentables',
+  description:
+    'Plataforma de marketplace para materiales reciclados y productos sustentables',
   keywords: 'reciclaje, economía circular, materiales, productos sustentables',
 }
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="es" className={`${poppins.variable} ${roboto.variable} ${inter.variable}`}>
-      <body className="font-inter antialiased bg-neutral-50">
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+    <html
+      lang="es"
+      className={`${poppins.variable} ${roboto.variable} ${inter.variable}`}
+    >
+      {/* --- INICIO DE LA CORRECCIÓN ---
+        Cambiado de bg-neutral-50 a bg-neutral-75 (#F5F5F5) 
+        para coincidir con el fondo de tu diseño.
+      --- FIN DE LA CORRECCIÓN ---
+      */}
+      <body className="font-inter antialiased bg-neutral-75">
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   )

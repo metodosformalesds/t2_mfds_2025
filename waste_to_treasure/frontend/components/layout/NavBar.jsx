@@ -1,12 +1,12 @@
-'use client';
+'use client'
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { ShoppingCart, LogOut, User } from 'lucide-react'
+import { ShoppingCart, LogOut, User, PlusCircle } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 
 export default function NavBar() {
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth()
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white shadow-md">
@@ -14,7 +14,6 @@ export default function NavBar() {
         {/* Columna Izquierda (Logo) */}
         <div className="flex flex-1 justify-start">
           <Link href="/" className="flex-shrink-0">
-            {/* Asumiendo que tu logo está en public/images/logo.svg */}
             <Image
               src="/images/LogoFondoBlanco.webp"
               alt="Waste to Treasure Logo"
@@ -51,19 +50,27 @@ export default function NavBar() {
         <div className="flex flex-1 items-center justify-end gap-4">
           {isAuthenticated ? (
             <>
-              {/* User Profile */}
+              {/* --- CORRECCIÓN DE RUTA --- */}
+              <Link
+                href="/dashboard/publicaciones/nuevo"
+                className="hidden rounded-lg bg-primary-500 px-4 py-2 text-base font-semibold text-white transition-colors hover:bg-primary-600 lg:flex lg:items-center lg:gap-2"
+              >
+                <PlusCircle size={18} />
+                <span className="hidden xl:inline">Nueva Publicación</span>
+              </Link>
+              {/* --- FIN DE CORRECCIÓN --- */}
+
               <div className="hidden sm:flex items-center gap-2 text-sm text-gray-700">
                 <User size={20} className="text-primary-500" />
                 <span>{user?.name || user?.email}</span>
               </div>
-              
-              {/* Logout Button */}
+
               <button
                 onClick={logout}
                 className="hidden sm:flex items-center gap-2 rounded-lg border-2 border-red-500 px-4 py-2 text-base font-semibold text-red-500 transition-colors hover:bg-red-500 hover:text-white"
               >
                 <LogOut size={18} />
-                Cerrar Sesión
+                <span className="hidden xl:inline">Cerrar Sesión</span>
               </button>
             </>
           ) : (
@@ -82,7 +89,7 @@ export default function NavBar() {
               </Link>
             </>
           )}
-          
+
           <button
             aria-label="Carrito de compras"
             className="rounded-full p-2 text-neutral-900 hover:bg-neutral-100"

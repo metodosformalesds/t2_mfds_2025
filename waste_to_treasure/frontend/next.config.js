@@ -4,6 +4,15 @@ const nextConfig = {
   images: {
     // Using remotePatterns instead of deprecated domains
     remotePatterns: [
+      // --- INICIO DE LA CORRECCIÓN ---
+      // Placeholder.com (usado en mockData del dashboard)
+      {
+        protocol: 'https',
+        hostname: 'via.placeholder.com',
+        pathname: '/**',
+      },
+      // --- FIN DE LA CORRECCIÓN ---
+
       // Bing image CDN (used in carousel and products)
       {
         protocol: 'https',
