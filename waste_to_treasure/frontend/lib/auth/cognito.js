@@ -162,6 +162,11 @@ export const signIn = async (email, password) => {
         const idToken = result.getIdToken().getJwtToken();
         const refreshToken = result.getRefreshToken().getToken();
 
+        // Store the ID token in localStorage for API authentication
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('auth-token', idToken);
+        }
+
         resolve({
           accessToken,
           idToken,

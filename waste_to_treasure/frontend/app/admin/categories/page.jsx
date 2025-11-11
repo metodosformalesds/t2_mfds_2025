@@ -1,28 +1,38 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import CreateCategoryForm from '@/components/admin/CreateCategoryForm'
 import CategoryList from '@/components/admin/CategoryList'
 import EditCategoryModal from '@/components/admin/EditCategoryModal'
 import { useConfirmStore } from '@/stores/useConfirmStore'
-
-// (Datos de initialCategories sin cambios...)
-const initialCategories = [
-  { id: 1, name: 'Plásticos', type: 'Material' },
-  { id: 2, name: 'Metales', type: 'Material' },
-  { id: 3, name: 'Sillas', type: 'Producto' },
-  { id: 4, name: 'Textiles', type: 'Material' },
-  { id: 5, name: 'Vidrio', type: 'Material' },
-]
+import { categoriesService } from '@/lib/api/categories'
 
 export default function AdminCategoriesPage() {
-  const [categories, setCategories] = useState(initialCategories)
+  const [categories, setCategories] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState(null)
 
   const openConfirmModal = useConfirmStore(state => state.open)
 
-  // Lógica de Modales (sin cambios)
+  // Función para cargar categorías
+  const fetchCategories = async () => {
+    try {
+      setIsLoading(true)
+      const data = await categoriesService.getAll({ limit: 200 }) 
+      setCategories(data.items || [])
+    } catch (error) {
+      console.error('Error al cargar categorías:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Cargar datos al montar
+  useEffect(() => {
+    fetchCategories()
+  }, [])
+
   const handleOpenEditModal = category => {
     setSelectedCategory(category)
     setIsEditModalOpen(true)
@@ -33,34 +43,48 @@ export default function AdminCategoriesPage() {
     setSelectedCategory(null)
   }
 
-  // Lógica de CRUD (sin cambios)
-  const handleCreateCategory = ({ name, type }) => {
-    console.log('Creando categoría:', { name, type })
-    const newCategory = {
-      id: categories.length + 1,
-      name,
-      type,
+  // Conectar CRUD a la API
+  const handleCreateCategory = async ({ name, type }) => {
+    try {
+      console.log('Creando categoría:', { name, type })
+      const newCategory = await categoriesService.create({ name, type })
+      setCategories([...categories, newCategory])
+    } catch (error) {
+      console.error('Error al crear categoría:', error)
+      // TODO: Mostrar error al usuario
     }
-    setCategories([...categories, newCategory])
   }
 
-  const handleUpdateCategory = ({ id, newName, newType }) => {
-    console.log('Actualizando categoría:', { id, newName, newType })
-    setCategories(
-      categories.map(cat =>
-        cat.id === id ? { ...cat, name: newName, type: newType } : cat
+  const handleUpdateCategory = async ({ id, newName, newType }) => {
+    try {
+      console.log('Actualizando categoría:', { id, newName, newType })
+      const updatedCategory = await categoriesService.update(id, { 
+        name: newName, 
+        type: newType 
+      })
+      
+      setCategories(
+        categories.map(cat => (cat.id === id ? updatedCategory : cat))
       )
-    )
-    handleCloseEditModal()
+      handleCloseEditModal()
+    } catch (error) {
+      console.error('Error al actualizar categoría:', error)
+      // TODO: Mostrar error al usuario
+    }
   }
 
-  // Lógica de Eliminación (sin cambios)
-  const createDeleteHandler = category => {
-    return () => {
-      console.log('Eliminando categoría:', category.id)
-      setCategories(prevCategories =>
-        prevCategories.filter(cat => cat.id !== category.id)
-      )
+  const createDeleteHandler = (category) => {
+    return async () => {
+      try {
+        console.log('Eliminando categoría:', category.id)
+        await categoriesService.delete(category.id)
+        setCategories(prevCategories =>
+          prevCategories.filter(cat => cat.id !== category.id)
+        )
+      } catch (error) {
+        console.error('Error al eliminar categoría:', error)
+        // TODO: Mostrar error (ej. si tiene listings asociados)
+      }
     }
   }
 
@@ -73,16 +97,23 @@ export default function AdminCategoriesPage() {
     )
   }
 
+  if (isLoading) {
+    return (
+      <div className="p-6">
+        <h1 className="font-poppins text-5xl font-bold text-primary-500">
+          Cargando Categorías...
+        </h1>
+      </div>
+    )
+  }
+
   return (
-    <>
-      {/* --- INICIO DE LA CORRECCIÓN --- */}
-      {/* Eliminado el 'p-12' de aquí */}
+    <div className="p-6">
       <h1 className="font-poppins text-5xl font-bold text-primary-500">
         Gestión de categorías
       </h1>
 
       <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-3">
-        {/* Columna de la Lista (ocupa 2/3) */}
         <div className="lg:col-span-2">
           <CategoryList
             categories={categories}
@@ -91,20 +122,17 @@ export default function AdminCategoriesPage() {
           />
         </div>
 
-        {/* Columna del Formulario (ocupa 1/3) */}
         <div className="lg:col-span-1">
           <CreateCategoryForm onSubmit={handleCreateCategory} />
         </div>
       </div>
-      {/* --- FIN DE LA CORRECCIÓN --- */}
 
-      {/* Modal de Edición (se muestra sobre todo) */}
       <EditCategoryModal
         isOpen={isEditModalOpen}
         onClose={handleCloseEditModal}
         category={selectedCategory}
         onUpdate={handleUpdateCategory}
       />
-    </>
+    </div>
   )
 }

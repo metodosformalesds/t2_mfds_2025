@@ -1,12 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState } from 'react'; // 1. Importar useContext
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
 import { signIn } from '@/lib/auth/cognito';
+import { useAuth } from '@/context/AuthContext'; // 2. Importar el Contexto
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login } = useAuth(); // 3. Obtener la función login del contexto
+  
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -57,11 +60,22 @@ export default function LoginPage() {
         localStorage.removeItem('userEmail');
       }
 
-      console.log('Login exitoso:', result);
+      console.log('Login en Cognito exitoso:', result);
       
       // --- MODIFICADO ---
-      // Redirigir a /materials en lugar de /
-      window.location.href = '/materials';
+      // 4. Llamar a la función login del contexto.
+      // Esta función (actualizada en AuthContext.jsx) ahora
+      // llama a checkAuthStatus(), que fetchea /users/me
+      // y obtiene el rol de la BD.
+      const updatedUser = await login();
+      
+      // 5. Redirigir según el rol
+      // Asumimos que `updatedUser` (del AuthContext) tiene el 'role'
+      if (updatedUser && updatedUser.role === 'ADMIN') {
+        window.location.href = '/admin';
+      } else {
+        window.location.href = '/materials'; // Redirección estándar
+      }
       // --- FIN DE MODIFICACIÓN ---
 
     } catch (err) {

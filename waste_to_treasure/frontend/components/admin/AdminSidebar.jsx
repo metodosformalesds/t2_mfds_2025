@@ -7,15 +7,13 @@ import {
   Users,
   Edit,
   Flag,
-  Boxes,
+  Folder,
   LogOut,
   X,
 } from 'lucide-react'
-// 1. Importar useAuth
 import { useAuth } from '@/context/AuthContext'
 
-// (navLinks y NavLink sin cambios...)
-const navLinks = [
+const menuItems = [
   {
     href: '/admin',
     label: 'Dashboard',
@@ -40,33 +38,14 @@ const navLinks = [
   {
     href: '/admin/categories',
     label: 'Categorías',
-    icon: Boxes,
+    icon: Folder,
   },
 ]
 
-function NavLink({ href, label, icon: Icon, isActive }) {
-  return (
-    <Link
-      href={href}
-      className={`flex items-center gap-3 rounded-lg px-6 py-4 font-semibold text-white transition-colors ${
-        isActive
-          ? 'bg-primary-500' // Estilo activo
-          : 'hover:bg-neutral-700' // Estilo inactivo
-      }`}
-    >
-      <Icon className="h-6 w-6" />
-      <span className="truncate">{label}</span>
-    </Link>
-  )
-}
-
-
 export default function AdminSidebar({ isOpen, onClose }) {
   const pathname = usePathname()
-  // 2. Obtener la función de logout del contexto
-  const { logout } = useAuth()
+  const { logout, user } = useAuth()
 
-  // 3. handleLogout ahora llama a la función del contexto
   const handleLogout = () => {
     logout()
   }
@@ -80,7 +59,7 @@ export default function AdminSidebar({ isOpen, onClose }) {
         lg:static lg:translate-x-0
       `}
     >
-      {/* Encabezado del Sidebar (sin cambios) */}
+      {/* Encabezado del Sidebar */}
       <div className="flex h-[120px] flex-shrink-0 items-center justify-between px-4">
         <div>
           <h1 className="font-roboto text-xl font-bold text-white">
@@ -98,29 +77,36 @@ export default function AdminSidebar({ isOpen, onClose }) {
         </button>
       </div>
 
-      {/* Navegación Principal (sin cambios) */}
+      {/* Navegación Principal */}
       <nav className="flex-1 space-y-2 overflow-y-auto px-4 py-4">
-        {navLinks.map(link => {
-          const isActive = link.exact
-            ? pathname === link.href
-            : pathname.startsWith(link.href)
+        {menuItems.map(item => {
+          const Icon = item.icon
+          const isActive = item.exact
+            ? pathname === item.href
+            : pathname.startsWith(item.href)
 
           return (
-            <NavLink
-              key={link.href}
-              href={link.href}
-              label={link.label}
-              icon={link.icon}
-              isActive={isActive}
-            />
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex items-center gap-3 rounded-lg px-6 py-4 font-semibold text-white transition-colors ${
+                isActive
+                  ? 'bg-primary-500'
+                  : 'hover:bg-neutral-700'
+              }`}
+            >
+              <Icon className="h-6 w-6" />
+              <span className="truncate">{item.label}</span>
+            </Link>
           )
         })}
       </nav>
 
-      {/* --- CORRECCIÓN DE LOGOUT --- */}
-      {/* Pie de página del Sidebar (Perfil) (botón actualizado) */}
+      {/* Pie de página del Sidebar (Perfil) */}
       <div className="h-[120px] flex-shrink-0 border-t border-white/20 px-4 pt-4">
-        <p className="font-inter text-base text-white">Admin: Arturo Pérez</p>
+        <p className="font-inter text-base text-white">
+          Admin: {user?.name || user?.full_name || 'Usuario Admin'}
+        </p>
         <button
           onClick={handleLogout}
           className="group mt-2 flex items-center gap-2 font-inter text-sm text-secondary-600 hover:underline"
@@ -129,7 +115,6 @@ export default function AdminSidebar({ isOpen, onClose }) {
           Cerrar sesión
         </button>
       </div>
-      {/* --- FIN DE LA CORRECCIÓN --- */}
     </aside>
   )
 }
