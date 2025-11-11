@@ -1,16 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Deshabilitar static export temporalmente para usar SSR/SSG
-  // output: 'export',
+  // Sin output específico - dejar que Amplify lo detecte automáticamente
   
-  // Trailing slash para mejor compatibilidad con Amplify
-  trailingSlash: true,
-  
-  // Deshabilitar optimización de imágenes para mejor rendimiento en Amplify
+  // Deshabilitar optimización de imágenes
   images: {
     unoptimized: true,
     remotePatterns: [
-      // Dominios de S3 (para producción)
       {
         protocol: 'https',
         hostname: 'waste-to-treasure-images.s3.us-east-2.amazonaws.com',
@@ -21,8 +16,6 @@ const nextConfig = {
         hostname: '*.amazonaws.com',
         pathname: '/**',
       },
-      
-      // Dominios de prueba locales (solo en desarrollo)
       ...(process.env.NODE_ENV === 'development' ? [{
         protocol: 'https',
         hostname: '**',
@@ -31,7 +24,7 @@ const nextConfig = {
     ],
   },
   
-  // Variables de entorno expuestas al cliente
+  // Variables de entorno
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
