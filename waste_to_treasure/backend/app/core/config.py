@@ -74,18 +74,11 @@ class Settings(BaseSettings):
         return f"{self.cognito_issuer}/.well-known/jwks.json"
     
     # ==================================
-    # JWT (Fallback)
+    # JWT (Fallback - NO SE USA, usamos Cognito)
     # ==================================
-    JWT_SECRET_KEY: str = "change_this_secret_key"
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    
-    @field_validator("JWT_SECRET_KEY")
-    @classmethod
-    def validate_secret_key(cls, v: str) -> str:
-        if len(v) < 32:
-            raise ValueError("JWT_SECRET_KEY debe tener al menos 32 caracteres")
-        return v
+    # JWT_SECRET_KEY: str = "not-used-we-use-cognito-jwt-validation"
+    # ALGORITHM: str = "RS256"
+    # ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
         
     # ==================================
     # PASARELAS DE PAGO

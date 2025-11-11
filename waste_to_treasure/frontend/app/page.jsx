@@ -145,17 +145,6 @@ export default function HomePage() {
     <div className="flex min-h-screen flex-col bg-white">
       <NavBar />
       <main>
-        {/* Show welcome message for authenticated users */}
-        {isAuthenticated && user && (
-          <div className="bg-[#396539] text-white py-3 px-4">
-            <div className="max-w-7xl mx-auto flex items-center justify-between">
-              <p className="text-sm">
-                Bienvenido de nuevo, <span className="font-semibold">{user.name || user.email}</span>! 
-              </p>
-            </div>
-          </div>
-        )}
-        
         <Hero />
         <HowItWorks />
         <FeaturedProducts products={mockProducts} />

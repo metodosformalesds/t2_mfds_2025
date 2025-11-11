@@ -59,8 +59,11 @@ export default function LoginPage() {
 
       console.log('Login exitoso:', result);
       
-      // Force a full page reload to ensure AuthContext picks up the new session
-      window.location.href = '/';
+      // --- MODIFICADO ---
+      // Redirigir a /materials en lugar de /
+      window.location.href = '/materials';
+      // --- FIN DE MODIFICACIÓN ---
+
     } catch (err) {
       console.error('Error al iniciar sesión:', err);
       

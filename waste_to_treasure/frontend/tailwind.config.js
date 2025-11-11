@@ -21,7 +21,14 @@ export default {
           600: '#555555', // Añadido para texto
           500: '#777777', // Añadido para texto
           100: '#F3F3F3',
+          75: '#F5F5F5', // <-- AÑADIDO: Color de fondo del panel
           50: '#FCFCFC',
+        },
+        // --- AÑADIDOS: Colores de la tabla ---
+        table: {
+          header: '#353A43',
+          body: '#596171',
+          price: '#353A44',
         },
       },
       fontFamily: {
@@ -29,7 +36,6 @@ export default {
         roboto: ['var(--font-roboto)'],
         inter: ['var(--font-inter)'],
       },
-      // SE ELIMINARON LAS PROPIEDADES DE ANIMACIÓN Y KEYFRAMES
     },
   },
 }

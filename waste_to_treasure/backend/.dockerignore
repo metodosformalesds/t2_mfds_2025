@@ -1,0 +1,21 @@
+# Entornos virtuales
+.venv
+venv
+env
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Archivos de Python cacheados
+__pycache__/
+*.pyc
+
+# Pruebas (no las necesitas en producción)
+tests/
+.pytest_cache/
+pytest.ini
+
+# Archivos de OS
+.DS_Store

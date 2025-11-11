@@ -17,11 +17,12 @@ dnspython==2.8.0
 ecdsa==0.19.1
 email-validator==2.3.0
 envs==1.4
-fastapi==0.120.4
+fastapi==0.121.1
 fastapi-cli==0.0.14
 fastapi-cloud-cli==0.3.1
 future==0.18.3
 greenlet==3.2.4
+gunicorn==23.0.0
 h11==0.16.0
 h2==4.3.0
 hpack==4.1.0
@@ -47,9 +48,9 @@ psycopg2-binary==2.9.11
 pyasn1==0.6.1
 pycparser==2.23
 pycryptodome==3.3.1
-pydantic==2.12.3
+pydantic==2.12.4
 pydantic-settings==2.11.0
-pydantic_core==2.41.4
+pydantic_core==2.41.5
 Pygments==2.19.2
 PyJWT==2.10.1
 pytest==8.4.2
