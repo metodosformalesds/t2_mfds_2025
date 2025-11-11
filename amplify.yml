@@ -1,5 +1,8 @@
 version: 1
 appRoot: waste_to_treasure/frontend
+framework:
+  name: nextjs
+  version: latest
 frontend:
   phases:
     preBuild:
@@ -10,7 +13,7 @@ frontend:
       commands:
         - npm run build
   artifacts:
-    baseDirectory: out
+    baseDirectory: .next
     files:
       - '**/*'
   cache:

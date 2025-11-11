@@ -1,9 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Habilitar exportación estática para Amplify Hosting
-  output: 'export',
+  // Deshabilitar static export temporalmente para usar SSR/SSG
+  // output: 'export',
   
-  // Deshabilitar optimización de imágenes para static export
+  // Trailing slash para mejor compatibilidad con Amplify
+  trailingSlash: true,
+  
+  // Deshabilitar optimización de imágenes para mejor rendimiento en Amplify
   images: {
     unoptimized: true,
     remotePatterns: [
@@ -20,7 +23,6 @@ const nextConfig = {
       },
       
       // Dominios de prueba locales (solo en desarrollo)
-      // En producción, AWS Amplify solo permitirá S3
       ...(process.env.NODE_ENV === 'development' ? [{
         protocol: 'https',
         hostname: '**',
@@ -33,29 +35,6 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
-  },
-  
-  // Headers de seguridad para producción
-  async headers() {
-    return [
-      {
-        source: '/(.*)',
-        headers: [
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          {
-            key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin',
-          },
-        ],
-      },
-    ]
   },
 }
 
