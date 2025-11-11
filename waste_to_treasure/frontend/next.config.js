@@ -77,6 +77,12 @@ const nextConfig = {
         hostname: 'www.xlsemanal.com',
         pathname: '/**',
       },
+      // Unsplash images
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        pathname: '/**',
+      },
     ],
   },
 };
