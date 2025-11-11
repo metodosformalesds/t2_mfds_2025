@@ -213,7 +213,7 @@ export default function ProductDetailPage() {
             <PricingCard listing={product} onAddToCart={handleAddToCart} />
 
             {/* Seller Card */}
-            <SellerCard sellerId={product.seller_id} sellerStats={reviewStats} />
+            <SellerCard sellerId={product.seller_id} seller={product.seller} sellerStats={reviewStats} />
           </div>
         </div>
 
