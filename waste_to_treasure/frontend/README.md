@@ -2,6 +2,29 @@
 
 Aplicación Next.js para la plataforma de marketplace sostenible Waste to Treasure.
 
+## 🚀 Deploy Rápido a AWS Amplify
+
+```bash
+# 1. Verificar configuración
+chmod +x verify-amplify-config.sh
+./verify-amplify-config.sh
+
+# 2. Push a GitHub
+git add .
+git commit -m "chore: Preparar deploy a Amplify"
+git push origin main
+
+# 3. Configurar en AWS Amplify Console
+# Ver guía completa: DEPLOY_AMPLIFY_GUIDE.md
+```
+
+📚 **Documentación de Deploy:**
+- [DEPLOY_AMPLIFY_GUIDE.md](./DEPLOY_AMPLIFY_GUIDE.md) - Guía completa paso a paso
+- [AMPLIFY_CHECKLIST.md](./AMPLIFY_CHECKLIST.md) - Checklist de verificación
+- [AMPLIFY_ENV_VARS.md](./AMPLIFY_ENV_VARS.md) - Variables de entorno requeridas
+
+---
+
 ## Tecnologías
 
 - Next.js 16 (App Router)

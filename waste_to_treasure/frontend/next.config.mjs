@@ -14,18 +14,43 @@ const nextConfig = {
         pathname: '/**',
       },
       
-      // --- INICIO DE CAMBIOS ---
-      // Dominios de prueba locales que estás usando, permite poner imagenes de cualquier dominio para modo dev
-      {
+      // Dominios de prueba locales (solo en desarrollo)
+      // En producción, AWS Amplify solo permitirá S3
+      ...(process.env.NODE_ENV === 'development' ? [{
         protocol: 'https',
         hostname: '**',
         pathname: '/**',
-      },
+      }] : []),
     ],
   },
+  
+  // Variables de entorno expuestas al cliente
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+  },
+  
+  // Headers de seguridad para producción
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+        ],
+      },
+    ]
   },
 }
 
