@@ -140,6 +140,59 @@ async def update_current_user_profile(
 
 
 # ==========================================
+# ENDPOINTS PÚBLICOS (SIN AUTENTICACIÓN)
+# ==========================================
+
+@router.get(
+    "/{user_id}/public",
+    response_model=UserPublic,
+    summary="Obtener perfil público de usuario",
+    description="""
+    Obtiene información pública de un usuario/vendedor por su UUID.
+
+    **Acceso:** Público (no requiere autenticación)
+
+    **Uso:**
+    - Mostrar perfiles públicos de vendedores
+    - Ver información de sellers en listings
+    """,
+    responses={
+        200: {"description": "Usuario encontrado"},
+        404: {"description": "Usuario no encontrado"}
+    }
+)
+async def get_user_public_profile(
+    user_id: UUID,
+    db: Annotated[AsyncSession, Depends(get_async_session)]
+) -> UserPublic:
+    """
+    Obtiene información pública de un usuario por su UUID.
+
+    Args:
+        user_id: UUID del usuario a buscar
+        db: Sesión de base de datos
+
+    Returns:
+        UserPublic: Información pública del usuario
+
+    Raises:
+        HTTPException: 404 si el usuario no existe
+    """
+    result = await db.execute(
+        select(User).where(User.user_id == user_id)
+    )
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Usuario con ID {user_id} no encontrado"
+        )
+
+    return UserPublic.model_validate(user)
+
+
+# ==========================================
 # ENDPOINTS DE ADMINISTRACIÓN
 # ==========================================
 
@@ -149,9 +202,9 @@ async def update_current_user_profile(
     summary="Obtener usuario por ID (Admin)",
     description="""
     Obtiene información pública de un usuario por su UUID.
-    
+
     **Requiere:** Rol ADMIN
-    
+
     **Uso:**
     - Ver perfiles de usuarios
     - Búsqueda de vendedores/compradores
@@ -167,7 +220,7 @@ async def update_current_user_profile(
 )
 async def get_user_by_id(
     user_id: UUID,
-    db: Annotated[AsyncSession, Depends(get_db)]
+    db: Annotated[AsyncSession, Depends(get_async_session)]
 ) -> UserPublic:
     """
     Obtiene un usuario por su UUID.
