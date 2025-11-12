@@ -23,7 +23,7 @@ const BoxIcon = () => (
 export default function ProductCard({ product }) {
   return (
     <Link
-      href={`/products/${product.id}`}
+      href={`/products/detail?id=${product.id}`}
       className="flex h-full w-full min-w-[240px] flex-col rounded-lg border border-primary-500 bg-white shadow-sm transition-all hover:shadow-lg"
     >
       {/* Imagen - Usando placeholder de gradiente como en tu diseño */}
