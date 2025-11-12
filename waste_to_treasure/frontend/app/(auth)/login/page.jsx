@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
 import { signIn } from '@/lib/auth/cognito';
 import { useAuth } from '@/context/AuthContext'; // 2. Importar el Contexto
+import Link from 'next/link'
 
 export default function LoginPage() {
   const router = useRouter();
@@ -141,13 +142,17 @@ export default function LoginPage() {
 
       {/* Login Card */}
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[611px] p-8 md:p-10 relative z-10">
-        {/* Logo */}
         <div className="flex justify-center mb-6">
-          <img 
-            src="https://www.figma.com/api/mcp/asset/18d60029-5bae-40c2-93da-26c7bc87e664" 
-            alt="Waste to Treasure Logo" 
-            className="w-28 h-24 object-contain"
-          />
+          <Link
+            href={'/'}
+            className="flex-shrink-0"
+          >
+            <img 
+              src="images/LogoFondoBlanco.webp" 
+              alt="Waste to Treasure Logo" 
+              className="w-28 h-24 object-contain"
+            />
+          </Link>
         </div>
 
         {/* Title */}
