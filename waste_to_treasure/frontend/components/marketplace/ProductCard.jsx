@@ -21,22 +21,24 @@ const BoxIcon = () => (
 )
 
 export default function ProductCard({ product }) {
+  const imageUrl = product.images && product.images.length > 0 
+    ? product.images[0].image_url 
+    : 'https://via.placeholder.com/260x160'; // Placeholder image
+
   return (
     <Link
       href={`/products/${product.id}`}
       className="flex h-full w-full min-w-[240px] flex-col rounded-lg border border-primary-500 bg-white shadow-sm transition-all hover:shadow-lg"
     >
-      {/* Imagen - Usando placeholder de gradiente como en tu diseño */}
+      {/* Imagen */}
       <div className="relative h-40 w-full overflow-hidden rounded-t-lg">
         <Image
-          src={product.imageUrl}
+          src={imageUrl}
           alt={product.title}
           layout="fill"
           objectFit="cover"
           className="transition-transform duration-300 group-hover:scale-105"
         />
-        {/* Overlay de gradiente (opcional, si la imagen no carga) */}
-        {/* <div className="absolute inset-0 bg-gradient-to-br from-red-500 to-purple-500" /> */}
       </div>
 
       {/* Contenido */}
@@ -46,17 +48,17 @@ export default function ProductCard({ product }) {
             {product.title}
           </h3>
           <p className="font-inter text-sm text-neutral-600">
-            {product.category}
+            {product.category?.name || 'Sin categoría'}
           </p>
         </div>
         <div className="mt-4 flex flex-col gap-3">
           <p className="font-roboto text-lg font-medium text-primary-500">
-            ${product.price.toFixed(2)} MXN
+            ${parseFloat(product.price).toFixed(2)} MXN
           </p>
           <div className="flex items-center gap-2">
             <BoxIcon />
             <span className="font-inter text-sm text-neutral-900">
-              {product.reviews} piezas disponibles
+              {product.quantity} piezas disponibles
             </span>
           </div>
         </div>

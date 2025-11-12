@@ -21,22 +21,24 @@ const BoxIcon = () => (
 )
 
 export default function MaterialCard({ material }) {
+  const imageUrl = material.images && material.images.length > 0 
+    ? material.images[0].image_url 
+    : 'https://via.placeholder.com/260x160'; // Placeholder image
+
   return (
     <Link
       href={`/materials/${material.id}`}
       className="flex h-full w-full min-w-[240px] flex-col rounded-lg border border-primary-500 bg-white shadow-sm transition-all hover:shadow-lg"
     >
-      {/* Imagen - Usando placeholder de gradiente como en tu diseño */}
+      {/* Imagen */}
       <div className="relative h-40 w-full overflow-hidden rounded-t-lg">
         <Image
-          src={material.imageUrl}
+          src={imageUrl}
           alt={material.title}
           layout="fill"
           objectFit="cover"
           className="transition-transform duration-300 group-hover:scale-105"
         />
-        {/* Overlay de gradiente (opcional, si la imagen no carga) */}
-        {/* <div className="absolute inset-0 bg-gradient-to-br from-red-500 to-purple-500" /> */}
       </div>
 
       {/* Contenido */}
@@ -46,18 +48,18 @@ export default function MaterialCard({ material }) {
             {material.title}
           </h3>
           <p className="font-inter text-sm text-neutral-600">
-            {material.seller}
+            Vendido por {material.user?.username || 'Vendedor anónimo'}
           </p>
         </div>
         <div className="mt-4 flex flex-col gap-3">
           <p className="font-roboto text-lg font-medium text-primary-500">
-            ${material.price.toFixed(2)} MXN / {material.unit}
+            ${parseFloat(material.price).toFixed(2)} MXN / {material.price_unit}
           </p>
           <div className="flex items-center gap-2">
             <BoxIcon />
             <span className="font-inter text-sm text-neutral-900">
-              {material.available} {material.unit_measure}
-              {material.available > 1 ? 's' : ''} disponibles
+              {material.quantity} {material.price_unit}
+              {material.quantity > 1 ? 's' : ''} disponibles
             </span>
           </div>
         </div>

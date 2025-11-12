@@ -136,13 +136,16 @@ export default function VerifyEmailPage() {
         {/* Logo */}
         <div className="flex justify-center mb-6">
           <div className="w-24 h-20 relative">
-            <Image
-              src="https://www.figma.com/api/mcp/asset/862f5d22-db71-40ea-b9f9-b4c7c219c2de"
-              alt="Waste to Treasure Logo"
-              fill
-              className="object-contain"
-              priority
+            <Link
+            href={'/'}
+            className="flex-shrink-0"
+          >
+            <img 
+              src="images/LogoFondoBlanco.webp" 
+              alt="Waste to Treasure Logo" 
+              className="w-28 h-24 object-contain"
             />
+          </Link>
           </div>
         </div>
 

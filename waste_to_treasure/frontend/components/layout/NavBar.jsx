@@ -15,9 +15,16 @@ import {
   CreditCard, // Icono para "Suscripciones"
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
+// --- INICIO DE MODIFICACIÓN ---
+import { useCartStore } from '@/stores/useCartStore'
+// --- FIN DE MODIFICACIÓN ---
 
 export default function NavBar() {
   const { isAuthenticated, user, logout } = useAuth()
+  // --- INICIO DE MODIFICACIÓN ---
+  const { total_items, fetchCart } = useCartStore()
+  // --- FIN DE MODIFICACIÓN ---
+
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
@@ -26,6 +33,15 @@ export default function NavBar() {
   const profileToggleRef = useRef(null)
   const mobileMenuRef = useRef(null)
   const mobileToggleRef = useRef(null)
+
+  // --- INICIO DE MODIFICACIÓN ---
+  // Cargar el carrito cuando el usuario se autentica
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchCart()
+    }
+  }, [isAuthenticated, fetchCart])
+  // --- FIN DE MODIFICACIÓN ---
 
   useEffect(() => {
     const handleClickOutside = event => {
@@ -113,6 +129,26 @@ export default function NavBar() {
       </Link>
     </>
   )
+  
+  // --- INICIO DE MODIFICACIÓN ---
+  // Componente de ícono de carrito reutilizable
+  const CartIcon = ({ isMobile = false }) => (
+    <Link
+      href="/cart"
+      aria-label="Carrito de compras"
+      className="relative rounded-full p-2 text-neutral-900 hover:bg-neutral-100"
+      onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
+    >
+      <ShoppingCart className="h-6 w-6 text-primary-500" />
+      {total_items > 0 && (
+        <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-secondary-600 text-xs font-bold text-white">
+          {total_items}
+        </span>
+      )}
+    </Link>
+  )
+  // --- FIN DE MODIFICACIÓN ---
+
 
   return (
     <>
@@ -134,23 +170,18 @@ export default function NavBar() {
             </Link>
           </div>
 
-          {/* --- MODIFICADO --- */}
           {/* Columna Central (Navegación) - AHORA SIEMPRE VISIBLE */}
           <nav className="hidden flex-1 justify-center gap-8 md:flex">
             {siteLinks}
           </nav>
-          {/* --- FIN DE MODIFICACIÓN --- */}
 
           {/* Columna Derecha (Acciones de Escritorio) - Oculta en móvil */}
           <div className="hidden flex-1 items-center justify-end gap-4 md:flex">
             {isAuthenticated ? (
               <>
-                <button
-                  aria-label="Carrito de compras"
-                  className="rounded-full p-2 text-neutral-900 hover:bg-neutral-100"
-                >
-                  <ShoppingCart className="h-6 w-6 text-primary-500" />
-                </button>
+                {/* --- INICIO DE MODIFICACIÓN --- */}
+                <CartIcon />
+                {/* --- FIN DE MODIFICACIÓN --- */}
 
                 {/* --- Menú de Perfil --- */}
                 <div className="relative">
@@ -226,24 +257,18 @@ export default function NavBar() {
                 >
                   Regístrate
                 </Link>
-                <button
-                  aria-label="Carrito de compras"
-                  className="rounded-full p-2 text-neutral-900 hover:bg-neutral-100"
-                >
-                  <ShoppingCart className="h-6 w-6 text-primary-500" />
-                </button>
+                {/* --- INICIO DE MODIFICACIÓN --- */}
+                <CartIcon />
+                {/* --- FIN DE MODIFICACIÓN --- */}
               </>
             )}
           </div>
 
           {/* --- Botón de Menú Móvil --- */}
           <div className="flex flex-1 items-center justify-end md:hidden">
-            <button
-              aria-label="Carrito de compras"
-              className="rounded-full p-2 text-neutral-900 hover:bg-neutral-100"
-            >
-              <ShoppingCart className="h-6 w-6 text-primary-500" />
-            </button>
+            {/* --- INICIO DE MODIFICACIÓN --- */}
+            <CartIcon isMobile />
+            {/* --- FIN DE MODIFICACIÓN --- */}
             <button
               ref={mobileToggleRef}
               onClick={() => setIsMobileMenuOpen(prev => !prev)}

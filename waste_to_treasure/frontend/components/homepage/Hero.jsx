@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import ImageCarousel from './ImageCarousel'
 
-export default function Hero() {
+export default function Hero({ items = [] }) {
   return (
     <section className="w-full bg-neutral-100">
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-4 py-20 md:grid-cols-2 md:items-center lg:px-8">
@@ -33,7 +33,7 @@ export default function Hero() {
 
         {/* Carrusel de Imágenes */}
         <div className="relative h-96 w-full md:h-[500px]">
-          <ImageCarousel />
+          <ImageCarousel items={items} />
         </div>
       </div>
     </section>

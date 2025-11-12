@@ -1,42 +1,83 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/context/AuthContext'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 import AdminMobileHeader from '@/components/admin/AdminMobileHeader'
-import GlobalConfirmModal from '@/components/admin/GlobalConfirmModal'
+import AdminLoading from '@/components/admin/AdminLoading'
 
 export default function AdminLayout({ children }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const router = useRouter()
+  const { user, isAuthenticated, isLoading } = useAuth()
+  const [isAuthorized, setIsAuthorized] = useState(false)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
+  useEffect(() => {
+    // Esperar a que termine de cargar el estado de autenticación
+    if (isLoading) return
+
+    // Si no está autenticado, redirigir al login
+    if (!isAuthenticated) {
+      console.log('🔒 Usuario no autenticado, redirigiendo a /login')
+      router.replace('/login')
+      return
+    }
+
+    // Si está autenticado pero no es ADMIN, redirigir a materials
+    if (user && user.role !== 'ADMIN') {
+      console.log('🔒 Usuario no es ADMIN, redirigiendo a /materials')
+      router.replace('/materials')
+      return
+    }
+
+    // Si está autenticado y es ADMIN, autorizar acceso
+    if (user && user.role === 'ADMIN') {
+      console.log('✅ Usuario ADMIN autorizado')
+      setIsAuthorized(true)
+    }
+  }, [isAuthenticated, isLoading, user, router])
+
+  // Funciones para controlar el sidebar en móvil
+  const handleOpenSidebar = () => setIsSidebarOpen(true)
+  const handleCloseSidebar = () => setIsSidebarOpen(false)
+
+  // Mostrar loading mientras se verifica la autenticación
+  if (isLoading && (user && user.role === 'ADMIN')) {
+    return <AdminLoading message="Accediendo..." />
+  }
+
+  // Si no está autorizado, no mostrar nada (ya se redirigió)
+  if (!isAuthorized) {
+    return <AdminLoading message="Redirigiendo..." />
+  }
+
+  // Si está autorizado, mostrar el layout de admin
   return (
-    <div className="flex h-screen bg-neutral-100">
-      <AdminSidebar
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-      />
+    <div className="flex h-screen bg-gray-50">
+      {/* Sidebar - Oculto en móvil, visible en desktop */}
+      <AdminSidebar isOpen={isSidebarOpen} onClose={handleCloseSidebar} />
 
-      <div className="flex h-full flex-1 flex-col overflow-hidden">
-        <AdminMobileHeader onOpen={() => setSidebarOpen(true)} />
+      {/* Main Content */}
+      <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Mobile Header - Solo visible en móvil */}
+        <AdminMobileHeader onOpen={handleOpenSidebar} />
 
-        {/* --- INICIO DE LA CORRECCIÓN --- */}
-        {/* El 'main' ahora es el contenedor scrollable */}
-        <main className="flex-1 overflow-y-auto overflow-x-auto">
-          {/* Este div interno asegura que el contenido no se encoja menos de 1024px */}
-          <div className="min-w-[1024px] p-12">
+        {/* Page Content */}
+        <main className="flex-1 overflow-y-auto overflow-x-hidden bg-gray-50 p-6">
+          <div className="mx-auto max-w-7xl">
             {children}
           </div>
         </main>
-        {/* --- FIN DE LA CORRECCIÓN --- */}
       </div>
 
-      {sidebarOpen && (
+      {/* Overlay para cerrar sidebar en móvil */}
+      {isSidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/50 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
+          onClick={handleCloseSidebar}
         />
       )}
-
-      <GlobalConfirmModal />
     </div>
   )
 }

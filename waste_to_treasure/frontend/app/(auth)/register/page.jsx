@@ -193,11 +193,16 @@ export default function RegisterPage() {
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-[611px] p-8 md:p-10 z-10">
         {/* Logo */}
         <div className="flex justify-center mb-4">
-          <img
-            src="https://www.figma.com/api/mcp/asset/b8adc43e-0322-40bf-b1bf-d2759b52c7e7"
-            alt="Waste to Treasure Logo"
-            className="w-28 h-24 object-contain"
-          />
+          <Link
+            href={'/'}
+            className="flex-shrink-0"
+          >
+            <img 
+              src="images/LogoFondoBlanco.webp" 
+              alt="Waste to Treasure Logo" 
+              className="w-28 h-24 object-contain"
+            />
+          </Link>
         </div>
 
         {/* Title */}
