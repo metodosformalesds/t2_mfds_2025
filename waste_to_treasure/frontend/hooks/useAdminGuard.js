@@ -4,14 +4,11 @@ import { useAuth } from '@/context/AuthContext'
 
 /**
  * Hook personalizado para proteger rutas de administrador.
- * 
- * Verifica que:
+ * * Verifica que:
  * 1. El usuario esté autenticado
  * 2. El usuario tenga rol de ADMIN
- * 
- * Si no cumple, redirige automáticamente.
- * 
- * @returns {Object} { isAuthorized, isLoading }
+ * * Si no cumple, redirige automáticamente.
+ * * @returns {Object} { isAuthorized, isLoading }
  */
 export function useAdminGuard() {
   const router = useRouter()
@@ -25,7 +22,7 @@ export function useAdminGuard() {
     // Si no está autenticado, redirigir al login
     if (!isAuthenticated) {
       console.log('🔒 Acceso denegado: Usuario no autenticado')
-      router.replace('/login')
+      router.replace('/login?redirect=' + window.location.pathname)
       return
     }
 
@@ -49,8 +46,7 @@ export function useAdminGuard() {
 /**
  * Hook para proteger rutas que requieren solo autenticación
  * (no necesariamente ADMIN).
- * 
- * @returns {Object} { isAuthorized, isLoading }
+ * * @returns {Object} { isAuthorized, isLoading }
  */
 export function useAuthGuard() {
   const router = useRouter()
@@ -62,7 +58,9 @@ export function useAuthGuard() {
 
     if (!isAuthenticated) {
       console.log('🔒 Acceso denegado: Usuario no autenticado')
-      router.replace('/login')
+      // Guardar la ruta a la que se intentaba acceder
+      const redirectPath = window.location.pathname
+      router.replace(`/login?redirect=${redirectPath}`)
       return
     }
 

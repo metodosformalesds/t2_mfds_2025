@@ -148,7 +148,7 @@ export default function Step2_Info({
           <div className="relative w-full md:col-span-2">
             <label
               htmlFor="condition"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              className="block text-sm font-medium text-dark mb-1"
             >
               Condición {<span className="text-red-500">*</span>}
             </label>

@@ -69,4 +69,28 @@ export const useCartStore = create((set, get) => ({
       set({ isLoading: false, error: 'Error al eliminar el item' })
     }
   },
+  
+  // --- INICIO DE MODIFICACIÓN ---
+  // Acción para vaciar el carrito (después de una compra)
+  clearCart: async () => {
+    set({ isLoading: true })
+    try {
+      // Llama a la API para vaciar el carrito en el backend
+      const data = await cartService.clearCart()
+      get()._setCartState(data) // Setea el estado vacío
+    } catch (error) {
+      console.error("Error al limpiar el carrito:", error)
+      // Aunque falle la API, limpiamos el frontend
+      set({
+        items: [],
+        total_items: 0,
+        subtotal: '0.00',
+        estimated_commission: '0.00',
+        estimated_total: '0.00',
+        isLoading: false,
+        error: 'Error al limpiar el carrito',
+      })
+    }
+  }
+  // --- FIN DE MODIFICACIÓN ---
 }))
