@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronRight, ArrowLeft } from 'lucide-react'
 import listingsService from '@/lib/api/listings'
@@ -13,14 +13,13 @@ import ReviewsSection from '@/components/details/ReviewsSection'
 import SimilarMaterials from '@/components/details/SimilarMaterials'
 
 /**
- * Material Details Page
- * Displays full information about a material
- * All data comes from backend API
+ * Material Details Page (Query Params Version)
+ * URL: /materials/detail?id=123
  */
 export default function MaterialDetailPage() {
-  const params = useParams()
+  const searchParams = useSearchParams()
   const router = useRouter()
-  const materialId = params.id
+  const materialId = searchParams.get('id')
 
   // State management
   const [material, setMaterial] = useState(null)
@@ -34,6 +33,12 @@ export default function MaterialDetailPage() {
    * Fetch material data from API
    */
   useEffect(() => {
+    if (!materialId) {
+      setError('ID de material no especificado')
+      setIsLoading(false)
+      return
+    }
+
     const fetchMaterialData = async () => {
       setIsLoading(true)
       setError(null)
@@ -57,14 +62,6 @@ export default function MaterialDetailPage() {
           )
           setSimilarMaterials(filtered)
         }
-
-        // TODO: Fetch reviews from reviews endpoint when available
-        // const reviewsData = await reviewsService.getByListing(materialId)
-        // setReviews(reviewsData.items)
-        // setReviewStats({
-        //   average_rating: reviewsData.average_rating,
-        //   total_reviews: reviewsData.total
-        // })
       } catch (err) {
         console.error('Error al cargar material:', err)
         setError('Error al cargar los detalles del material')
@@ -73,18 +70,14 @@ export default function MaterialDetailPage() {
       }
     }
 
-    if (materialId) {
-      fetchMaterialData()
-    }
+    fetchMaterialData()
   }, [materialId])
 
   /**
    * Handle add to cart
    */
   const handleAddToCart = async (listingId, quantity) => {
-    // TODO: Implement cart functionality
     console.log('Agregar al carrito:', { listingId, quantity })
-    // You would call your cart API here
     alert(`Agregado al carrito: ${quantity} unidades`)
   }
 
@@ -153,7 +146,7 @@ export default function MaterialDetailPage() {
 
       {/* Main Content */}
       <div className="px-4 pb-12 sm:px-6 lg:px-[220px]">
-        {/* Product Overview Section */}
+        {/* Material Overview Section */}
         <div className="mb-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
           {/* Left Column - Image Gallery */}
           <div className="lg:col-span-2">
@@ -173,6 +166,18 @@ export default function MaterialDetailPage() {
               </p>
             </div>
 
+            {/* What is the Material Made From */}
+            {material.origin_description && (
+              <div className="mt-8 rounded-lg border border-neutral-300 bg-white p-6">
+                <h2 className="mb-4 font-roboto text-2xl font-bold text-neutral-900">
+                  ¿De Qué Está Hecho El Material?
+                </h2>
+                <p className="whitespace-pre-wrap font-inter text-base text-neutral-700">
+                  {material.origin_description}
+                </p>
+              </div>
+            )}
+
             {/* Specifications */}
             <div className="mt-8">
               <SpecificationsTable listing={material} />
@@ -181,30 +186,14 @@ export default function MaterialDetailPage() {
 
           {/* Right Column - Pricing and Seller */}
           <div className="space-y-6">
-            {/* Material Title (mobile only) */}
-            <div className="lg:hidden">
+            <div className="rounded-lg border border-neutral-300 bg-white p-6">
               <h1 className="mb-2 font-roboto text-3xl font-bold text-neutral-900">
                 {material.title}
               </h1>
-              <p className="font-inter text-sm text-neutral-600">
-                {material.listing_type === 'MATERIAL' ? 'Material' : 'Producto'}
-              </p>
+              <p className="font-inter text-sm text-neutral-600">Material</p>
             </div>
 
-            {/* Material Title (desktop) */}
-            <div className="hidden rounded-lg border border-neutral-300 bg-white p-6 lg:block">
-              <h1 className="mb-2 font-roboto text-3xl font-bold text-neutral-900">
-                {material.title}
-              </h1>
-              <p className="font-inter text-sm text-neutral-600">
-                {material.listing_type === 'MATERIAL' ? 'Material' : 'Producto'}
-              </p>
-            </div>
-
-            {/* Pricing Card */}
             <PricingCard listing={material} onAddToCart={handleAddToCart} />
-
-            {/* Seller Card */}
             <SellerCard sellerId={material.seller_id} sellerStats={reviewStats} />
           </div>
         </div>
@@ -221,7 +210,7 @@ export default function MaterialDetailPage() {
         {/* Similar Materials */}
         {similarMaterials.length > 0 && (
           <div>
-            <SimilarMaterials materials={similarMaterials} />
+            <SimilarMaterials materials={similarMaterials} title="Materiales Similares" />
           </div>
         )}
       </div>

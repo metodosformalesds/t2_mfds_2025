@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronRight, ArrowLeft } from 'lucide-react'
 import listingsService from '@/lib/api/listings'
@@ -13,15 +13,13 @@ import ReviewsSection from '@/components/details/ReviewsSection'
 import SimilarMaterials from '@/components/details/SimilarMaterials'
 
 /**
- * Product Details Page
- * Displays full information about a product
- * All data comes from backend API
- * Uses same components as Material Details but with listing_type='PRODUCT'
+ * Product Details Page (Query Params Version)
+ * URL: /products/detail?id=123
  */
 export default function ProductDetailPage() {
-  const params = useParams()
+  const searchParams = useSearchParams()
   const router = useRouter()
-  const productId = params.id
+  const productId = searchParams.get('id')
 
   // State management
   const [product, setProduct] = useState(null)
@@ -35,6 +33,12 @@ export default function ProductDetailPage() {
    * Fetch product data from API
    */
   useEffect(() => {
+    if (!productId) {
+      setError('ID de producto no especificado')
+      setIsLoading(false)
+      return
+    }
+
     const fetchProductData = async () => {
       setIsLoading(true)
       setError(null)
@@ -58,14 +62,6 @@ export default function ProductDetailPage() {
           )
           setSimilarProducts(filtered)
         }
-
-        // TODO: Fetch reviews from reviews endpoint when available
-        // const reviewsData = await reviewsService.getByListing(productId)
-        // setReviews(reviewsData.items)
-        // setReviewStats({
-        //   average_rating: reviewsData.average_rating,
-        //   total_reviews: reviewsData.total
-        // })
       } catch (err) {
         console.error('Error al cargar producto:', err)
         setError('Error al cargar los detalles del producto')
@@ -74,16 +70,13 @@ export default function ProductDetailPage() {
       }
     }
 
-    if (productId) {
-      fetchProductData()
-    }
+    fetchProductData()
   }, [productId])
 
   /**
    * Handle add to cart
    */
   const handleAddToCart = async (listingId, quantity) => {
-    // TODO: Implement cart functionality
     console.log('Agregar al carrito:', { listingId, quantity })
     alert(`Agregado al carrito: ${quantity} unidades`)
   }
@@ -173,18 +166,6 @@ export default function ProductDetailPage() {
               </p>
             </div>
 
-            {/* What is the Material Made From */}
-            {product.origin_description && (
-              <div className="mt-8 rounded-lg border border-neutral-300 bg-white p-6">
-                <h2 className="mb-4 font-roboto text-2xl font-bold text-neutral-900">
-                  ¿De Qué Está Hecho El Material?
-                </h2>
-                <p className="whitespace-pre-wrap font-inter text-base text-neutral-700">
-                  {product.origin_description}
-                </p>
-              </div>
-            )}
-
             {/* Specifications */}
             <div className="mt-8">
               <SpecificationsTable listing={product} />
@@ -193,26 +174,14 @@ export default function ProductDetailPage() {
 
           {/* Right Column - Pricing and Seller */}
           <div className="space-y-6">
-            {/* Product Title (mobile only) */}
-            <div className="lg:hidden">
+            <div className="rounded-lg border border-neutral-300 bg-white p-6">
               <h1 className="mb-2 font-roboto text-3xl font-bold text-neutral-900">
                 {product.title}
               </h1>
               <p className="font-inter text-sm text-neutral-600">Producto</p>
             </div>
 
-            {/* Product Title (desktop) */}
-            <div className="hidden rounded-lg border border-neutral-300 bg-white p-6 lg:block">
-              <h1 className="mb-2 font-roboto text-3xl font-bold text-neutral-900">
-                {product.title}
-              </h1>
-              <p className="font-inter text-sm text-neutral-600">Producto</p>
-            </div>
-
-            {/* Pricing Card */}
             <PricingCard listing={product} onAddToCart={handleAddToCart} />
-
-            {/* Seller Card */}
             <SellerCard sellerId={product.seller_id} sellerStats={reviewStats} />
           </div>
         </div>

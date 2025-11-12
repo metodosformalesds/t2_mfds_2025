@@ -1,11 +1,11 @@
 'use client';
 
 import PurchaseDetails from '@/components/dashboard/PurchaseDetails';
-import { useParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 
 export default function PurchaseDetailPage() {
-  const params = useParams();
-  const { id } = params;
+  const searchParams = useSearchParams();
+  const id = searchParams.get('id');
 
   // TODO: Reemplazar con fetch real desde API
   const order = {

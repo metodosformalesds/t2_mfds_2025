@@ -1,0 +1,48 @@
+{
+  "name": "waste-to-treasure-frontend",
+  "description": "Frontend Next.js para Waste to Treasure - Marketplace sostenible",
+  "repository": "https://github.com/metodosformalesds/t2_mfds_2025",
+  "logo": "https://waste-to-treasure-images.s3.us-east-2.amazonaws.com/logo.png",
+  "success_url": "/",
+  "scripts": {},
+  "env": {
+    "NEXT_PUBLIC_API_URL": {
+      "description": "URL del backend API (sin trailing slash)",
+      "value": "https://api.tu-dominio.com/api/v1",
+      "required": true
+    },
+    "NEXT_PUBLIC_AWS_REGION": {
+      "description": "AWS Region donde está desplegado Cognito",
+      "value": "us-east-2",
+      "required": true
+    },
+    "NEXT_PUBLIC_COGNITO_USER_POOL_ID": {
+      "description": "ID del User Pool de AWS Cognito",
+      "value": "us-east-2_1Mcmsviiy",
+      "required": true
+    },
+    "NEXT_PUBLIC_COGNITO_APP_CLIENT_ID": {
+      "description": "ID del App Client de Cognito",
+      "value": "6b3dtprccp309ovs6a769049oo",
+      "required": true
+    },
+    "NEXT_PUBLIC_COGNITO_REGION": {
+      "description": "Region de Cognito (usualmente igual a AWS_REGION)",
+      "value": "us-east-2",
+      "required": true
+    },
+    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY": {
+      "description": "Clave pública de Stripe (pk_live_... para producción)",
+      "value": "pk_live_your_key_here",
+      "required": true
+    },
+    "NEXT_PUBLIC_S3_BUCKET_NAME": {
+      "description": "Nombre del bucket S3 para imágenes",
+      "value": "waste-to-treasure-images",
+      "required": false
+    }
+  },
+  "formation": {},
+  "addons": [],
+  "buildpacks": []
+}
