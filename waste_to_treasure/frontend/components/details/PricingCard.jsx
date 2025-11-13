@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { ShoppingCart, Truck, ShieldCheck, RotateCcw } from 'lucide-react'
+import { ShoppingCart, Truck, ShieldCheck, RotateCcw, CreditCard, Globe, FileText, Check, Flag } from 'lucide-react'
+import ReportModal from '@/components/reports/ReportModal'
 
 /**
  * Pricing Card Component
@@ -11,6 +12,7 @@ import { ShoppingCart, Truck, ShieldCheck, RotateCcw } from 'lucide-react'
  */
 export default function PricingCard({ listing, onAddToCart }) {
   const [quantity, setQuantity] = useState(1)
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false)
 
   const price = parseFloat(listing?.price || 0)
   const priceUnit = listing?.price_unit || 'unidad'
@@ -87,60 +89,29 @@ export default function PricingCard({ listing, onAddToCart }) {
       </button>
 
       {/* Second Button - Different for Materials vs Products */}
-      {isProduct ? (
         <button className="mb-6 w-full rounded-lg border border-primary-500 bg-white px-6 py-3 font-inter text-base font-medium text-primary-500 transition-colors hover:bg-primary-50">
           Gestionar mi carrito
         </button>
-      ) : (
-        <button className="mb-4 w-full rounded-lg border border-primary-500 bg-white px-6 py-3 font-inter text-base font-medium text-primary-500 transition-colors hover:bg-primary-50">
-          Contactar al vendedor
-        </button>
-      )}
 
-      {/* Policies Section - Only for Products */}
-      {isProduct && (
-        <>
-          <div className="mb-4 space-y-3 border-t border-neutral-200 pt-4">
-            <h4 className="font-inter text-sm font-semibold text-neutral-900">
-              Políticas de este producto
-            </h4>
+      {/* Divider */}
+      <div className="mb-4 space-y-3 border-t border-neutral-200 pt-4">
+      </div>
 
-            {/* Shipping Policy */}
-            <button className="flex w-full items-center justify-between rounded-lg border border-neutral-300 bg-white px-4 py-3 text-left transition-colors hover:bg-neutral-50">
-              <div className="flex items-center gap-3">
-                <Truck size={18} className="text-primary-500" />
-                <span className="font-inter text-sm text-neutral-900">Política de envíos</span>
-              </div>
-              <span className="text-neutral-400">›</span>
-            </button>
+      {/* Report Button - For both Materials and Products */}
+      <button
+        onClick={() => setIsReportModalOpen(true)}
+        className="flex w-full items-center justify-center gap-2 rounded-lg border border-red-500 bg-white px-6 py-3 font-inter text-sm font-medium text-red-500 transition-colors hover:bg-red-50"
+      >
+        <Flag size={18} />
+        Reportar
+      </button>
 
-            {/* Warranty Policy */}
-            <button className="flex w-full items-center justify-between rounded-lg border border-neutral-300 bg-white px-4 py-3 text-left transition-colors hover:bg-neutral-50">
-              <div className="flex items-center gap-3">
-                <ShieldCheck size={18} className="text-primary-500" />
-                <span className="font-inter text-sm text-neutral-900">Política de garantía</span>
-              </div>
-              <span className="text-neutral-400">›</span>
-            </button>
-
-            {/* Return Policy */}
-            <button className="flex w-full items-center justify-between rounded-lg border border-neutral-300 bg-white px-4 py-3 text-left transition-colors hover:bg-neutral-50">
-              <div className="flex items-center gap-3">
-                <RotateCcw size={18} className="text-primary-500" />
-                <span className="font-inter text-sm text-neutral-900">
-                  Política de devolución
-                </span>
-              </div>
-              <span className="text-neutral-400">›</span>
-            </button>
-          </div>
-
-          {/* Report Button */}
-          <button className="flex w-full items-center justify-center gap-2 font-inter text-sm text-red-600 transition-colors hover:text-red-700">
-            🚩 Reportar
-          </button>
-        </>
-      )}
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        listingId={listing?.listing_id}
+      />
     </div>
   )
 }

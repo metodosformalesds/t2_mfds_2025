@@ -61,7 +61,9 @@ export default function MaterialCard({ material }) {
             {material.title}
           </h3>
           <p className="font-inter text-sm text-neutral-600">
-            {material.seller ?? material.user?.username ?? 'Vendedor anónimo'}
+            {typeof material.seller === 'string'
+              ? material.seller
+              : material.seller?.full_name || material.user?.full_name || material.user?.username || 'Vendedor anónimo'}
           </p>
         </div>
         <div className="mt-4 flex flex-col gap-3">
