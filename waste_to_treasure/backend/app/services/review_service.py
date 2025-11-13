@@ -168,9 +168,9 @@ async def get_listing_reviews(
             detail=f"Publicación con ID {listing_id} no encontrada"
         )
     
-    # Query base con eager loading del reviewer
+    # Query base con eager loading del buyer (reviewer)
     stmt = select(Review).options(
-        selectinload(Review.reviewer)
+        selectinload(Review.buyer)
     ).where(Review.listing_id == listing_id)
     
     # Contar total

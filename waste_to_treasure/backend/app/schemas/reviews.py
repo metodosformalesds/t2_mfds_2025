@@ -92,7 +92,7 @@ class ReviewList(BaseModel):
     
     Usado en: GET /api/v1/reviews/listing/{listing_id}
     """
-    items: list[ReviewRead] = Field(..., description="Lista de reseñas")
+    items: list["ReviewWithReviewer"] = Field(..., description="Lista de reseñas")
     total: int = Field(..., ge=0, description="Total de reseñas")
     page: int = Field(..., ge=1, description="Página actual")
     page_size: int = Field(..., ge=1, le=100, description="Items por página")
@@ -117,19 +117,27 @@ class ReviewerBasic(BaseModel):
 
 class ReviewWithReviewer(ReviewInDB):
     """
-    Esquema extendido que incluye información básica del reviewer.
-    
+    Esquema extendido que incluye información básica del reviewer (buyer).
+
     Usado en: Listados públicos de reseñas de una publicación.
-    
+
     Note:
         Si usas este schema, asegúrate de hacer eager loading:
         ```python
-        stmt = select(Review).options(selectinload(Review.reviewer))
+        stmt = select(Review).options(selectinload(Review.buyer))
         ```
+        El campo reviewer mapea a buyer en el modelo de base de datos.
     """
     reviewer: Optional[ReviewerBasic] = Field(
         None,
-        description="Información básica del usuario que reseñó"
+        description="Información básica del usuario que reseñó",
+        alias="buyer"
+    )
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        populate_by_name=True,
+        populate_by_alias=True
     )
 
 
@@ -157,16 +165,23 @@ class ReviewWithListing(ReviewInDB):
 class ReviewWithDetails(ReviewInDB):
     """
     Esquema completo con reviewer y listing.
-    
+
     Usado en: Endpoints que requieren información completa.
     """
     reviewer: Optional[ReviewerBasic] = Field(
         None,
-        description="Información del reviewer"
+        description="Información del reviewer",
+        alias="buyer"
     )
     listing: Optional[ListingBasic] = Field(
         None,
         description="Información de la publicación"
+    )
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        populate_by_name=True,
+        populate_by_alias=True
     )
 
 class ReviewStatistics(BaseModel):
