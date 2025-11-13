@@ -1,13 +1,39 @@
 'use client'
 
 import { Star } from 'lucide-react'
-import { format } from 'date-fns'
+import { formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
+
+/**
+ * Helper function to get user initials from name
+ */
+function getInitials(firstName, lastName) {
+  const first = firstName?.charAt(0)?.toUpperCase() || ''
+  const last = lastName?.charAt(0)?.toUpperCase() || ''
+  return `${first}${last}` || 'U'
+}
+
+/**
+ * Helper function to format relative time
+ */
+function getRelativeTime(date) {
+  if (!date) return 'Fecha no disponible'
+
+  try {
+    return formatDistanceToNow(new Date(date), {
+      addSuffix: true,
+      locale: es,
+    })
+  } catch (error) {
+    return 'Fecha no disponible'
+  }
+}
 
 /**
  * Reviews Section Component
  * Displays customer reviews from backend API
  * Data comes from /reviews/listing/{listing_id} endpoint
+ * Matches Figma design node 6-2574
  */
 export default function ReviewsSection({ reviews = [], averageRating = 0, totalReviews = 0 }) {
   // Rating distribution (from 1 to 5 stars)
@@ -21,122 +47,175 @@ export default function ReviewsSection({ reviews = [], averageRating = 0, totalR
   })
 
   return (
-    <div className="rounded-lg border border-neutral-300 bg-white p-6">
-      <h3 className="mb-6 font-roboto text-2xl font-bold text-neutral-900">
-        Reseñas de Clientes
-      </h3>
+    <div className="rounded-lg bg-[#fcfcfc] p-[25px] shadow-[0px_2px_8px_0px_rgba(0,0,0,0.25)]">
+      {/* Titulo Section */}
+      <div className="border-b border-[rgba(0,0,0,0.2)] pb-[30px] pt-[10px]">
+        <p className="mb-[10px] font-poppins text-[36px] font-bold leading-normal text-black">
+          Reseñas de Clientes
+        </p>
 
-      {/* Overall Rating Summary */}
-      <div className="mb-8 flex items-start gap-8">
-        {/* Average Rating */}
-        <div className="text-center">
-          <div className="mb-2 font-roboto text-5xl font-bold text-neutral-900">
-            {averageRating.toFixed(1)}
+        {/* Overall Rating Summary */}
+        <div className="flex gap-[10px]">
+          {/* Calificacion - Average Rating */}
+          <div className="flex flex-col items-center px-[30px]">
+            <p
+              className="font-roboto text-[100px] font-black leading-normal text-[#396530]"
+              style={{ fontVariationSettings: "'wdth' 100" }}
+            >
+              {averageRating.toFixed(1)}
+            </p>
+            <div className="flex items-center">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star
+                  key={star}
+                  size={24}
+                  className={
+                    star <= Math.round(averageRating)
+                      ? 'fill-[#fbbc05] text-[#fbbc05]'
+                      : 'fill-transparent text-[rgba(0,0,0,0.3)]'
+                  }
+                />
+              ))}
+            </div>
+            <p
+              className="mt-2 font-roboto text-[18px] font-normal text-[rgba(0,0,0,0.7)]"
+              style={{ fontVariationSettings: "'wdth' 100" }}
+            >
+              Basado en {totalReviews} reseña{totalReviews !== 1 ? 's' : ''}
+            </p>
           </div>
-          <div className="mb-1 flex justify-center gap-1">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <Star
-                key={star}
-                size={20}
-                className={
-                  star <= Math.round(averageRating)
-                    ? 'fill-yellow-400 text-yellow-400'
-                    : 'text-neutral-300'
-                }
-              />
-            ))}
-          </div>
-          <p className="font-inter text-sm text-neutral-600">
-            Basado en {totalReviews} reseña{totalReviews !== 1 ? 's' : ''}
-          </p>
-        </div>
 
-        {/* Rating Bars */}
-        <div className="flex-1 space-y-2">
-          {[5, 4, 3, 2, 1].map((rating) => {
-            const count = ratingDistribution[rating] || 0
-            const percentage = totalReviews > 0 ? (count / totalReviews) * 100 : 0
+          {/* Rating Bars */}
+          <div className="flex flex-1 items-start justify-between px-[5px]">
+            {/* Labels - star counts */}
+            <div className="flex h-full flex-col justify-between font-roboto text-[18px] font-normal text-[rgba(0,0,0,0.7)]">
+              <p style={{ fontVariationSettings: "'wdth' 100" }}>5 estrellas</p>
+              <p style={{ fontVariationSettings: "'wdth' 100" }}>4 estrellas</p>
+              <p style={{ fontVariationSettings: "'wdth' 100" }}>3 estrellas</p>
+              <p style={{ fontVariationSettings: "'wdth' 100" }}>2 estrellas</p>
+              <p style={{ fontVariationSettings: "'wdth' 100" }}>1 estrella</p>
+            </div>
 
-            return (
-              <div key={rating} className="flex items-center gap-3">
-                <span className="w-8 font-inter text-sm text-neutral-900">{rating}</span>
-                <Star size={14} className="fill-yellow-400 text-yellow-400" />
-                <div className="h-2 flex-1 overflow-hidden rounded-full bg-neutral-200">
+            {/* Progress Bars */}
+            <div className="flex h-full flex-1 flex-col justify-between px-[10px]">
+              {[5, 4, 3, 2, 1].map((rating) => {
+                const count = ratingDistribution[rating] || 0
+                const percentage = totalReviews > 0 ? (count / totalReviews) * 100 : 0
+
+                return (
                   <div
-                    className="h-full bg-yellow-400 transition-all"
-                    style={{ width: `${percentage}%` }}
-                  />
-                </div>
-                <span className="w-8 text-right font-inter text-sm text-neutral-600">
-                  {count}
-                </span>
-              </div>
-            )
-          })}
+                    key={rating}
+                    className="relative h-[21px] w-full overflow-hidden rounded-[6px] bg-[rgba(0,0,0,0.15)]"
+                  >
+                    <div
+                      className="h-full rounded-[6px] bg-[#fbbc05] transition-all"
+                      style={{ width: `${percentage}%` }}
+                    />
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Count numbers */}
+            <div className="flex h-full flex-col justify-between font-roboto text-[18px] font-normal text-[rgba(0,0,0,0.7)]">
+              {[5, 4, 3, 2, 1].map((rating) => (
+                <p key={rating} style={{ fontVariationSettings: "'wdth' 100" }}>
+                  {ratingDistribution[rating] || 0}
+                </p>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Individual Reviews */}
-      {reviews.length > 0 ? (
-        <div className="space-y-6 border-t border-neutral-200 pt-6">
-          {reviews.slice(0, 3).map((review) => (
-            <div key={review.review_id} className="border-b border-neutral-200 pb-6 last:border-0">
-              {/* Reviewer Info */}
-              <div className="mb-3 flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-500 font-roboto font-bold text-white">
-                    {review.reviewer?.first_name?.charAt(0) || 'U'}
+      <div className="pt-[30px]">
+        {reviews.length > 0 ? (
+          reviews.slice(0, 3).map((review, index) => {
+            const isLast = index === reviews.slice(0, 3).length - 1
+            const initials = getInitials(
+              review.reviewer?.first_name,
+              review.reviewer?.last_name
+            )
+            const fullName = `${review.reviewer?.first_name || 'Usuario'} ${review.reviewer?.last_name || ''}`
+
+            return (
+              <div
+                key={review.review_id}
+                className={`flex flex-col gap-[10px] ${!isLast ? 'border-b border-[rgba(0,0,0,0.2)] pb-[20px]' : ''} ${index > 0 ? 'pt-[20px]' : ''}`}
+              >
+                {/* Header with user info and rating */}
+                <div className="flex items-center justify-between px-[10px]">
+                  {/* User profile */}
+                  <div className="flex items-center gap-[20px]">
+                    {/* Avatar with initials */}
+                    <div className="relative flex h-[67px] w-[67px] items-center justify-center rounded-full bg-[#7b3ff2]">
+                      <p className="font-poppins text-[32px] font-bold leading-normal text-white">
+                        {initials}
+                      </p>
+                    </div>
+
+                    {/* Name and time */}
+                    <div className="flex flex-col gap-[5px]">
+                      <p className="font-poppins text-[24px] font-bold leading-normal text-black">
+                        {fullName}
+                      </p>
+                      <div className="flex gap-[10px]">
+                        <p
+                          className="font-roboto text-[18px] font-medium text-[rgba(0,0,0,0.6)]"
+                          style={{ fontVariationSettings: "'wdth' 100" }}
+                        >
+                          {getRelativeTime(review.created_at)}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-inter text-sm font-medium text-neutral-900">
-                      {review.reviewer?.first_name || 'Usuario'}{' '}
-                      {review.reviewer?.last_name?.[0] || ''}.
-                    </p>
-                    <p className="font-inter text-xs text-neutral-600">
-                      {review.created_at
-                        ? format(new Date(review.created_at), "d 'de' MMMM, yyyy", {
-                            locale: es,
-                          })
-                        : 'Fecha no disponible'}
-                    </p>
+
+                  {/* Rating Stars */}
+                  <div className="flex items-center">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        size={24}
+                        className={
+                          star <= review.rating
+                            ? 'fill-[#fbbc05] text-[#fbbc05]'
+                            : 'fill-transparent text-[rgba(0,0,0,0.3)]'
+                        }
+                      />
+                    ))}
                   </div>
                 </div>
 
-                {/* Rating Stars */}
-                <div className="flex gap-1">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star
-                      key={star}
-                      size={16}
-                      className={
-                        star <= review.rating
-                          ? 'fill-yellow-400 text-yellow-400'
-                          : 'text-neutral-300'
-                      }
-                    />
-                  ))}
+                {/* Review Comment */}
+                <div className="flex flex-col gap-[10px] px-[10px]">
+                  {review.comment && (
+                    <p className="font-inter text-[18px] font-normal leading-normal text-black">
+                      {review.comment}
+                    </p>
+                  )}
+
+                  {/* Review Images - placeholder for future implementation */}
+                  {review.images && review.images.length > 0 && (
+                    <div className="flex gap-[23px]">
+                      {review.images.slice(0, 4).map((image, idx) => (
+                        <div
+                          key={idx}
+                          className="h-[98px] w-[150px] rounded-[4px] bg-neutral-200"
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
-
-              {/* Review Comment */}
-              {review.comment && (
-                <p className="font-inter text-sm text-neutral-700">{review.comment}</p>
-              )}
-            </div>
-          ))}
-
-          {/* Show More Button */}
-          {reviews.length > 3 && (
-            <button className="w-full rounded-lg border border-primary-500 bg-white px-4 py-2 font-inter text-sm font-medium text-primary-500 transition-colors hover:bg-primary-50">
-              Ver todas las reseñas ({totalReviews})
-            </button>
-          )}
-        </div>
-      ) : (
-        <p className="border-t border-neutral-200 pt-6 text-center font-inter text-sm text-neutral-600">
-          Aún no hay reseñas para este producto
-        </p>
-      )}
+            )
+          })
+        ) : (
+          <p className="py-[20px] text-center font-inter text-[18px] text-[rgba(0,0,0,0.6)]">
+            Aún no hay reseñas para este producto
+          </p>
+        )}
+      </div>
     </div>
   )
 }
