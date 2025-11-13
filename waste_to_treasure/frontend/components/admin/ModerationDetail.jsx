@@ -69,7 +69,10 @@ export default function ModerationDetail({
         <textarea
           id="rejectionReason"
           value={rejectionReason}
-          onChange={onReasonChange}
+          onChange={(e) => {
+            console.log('[ModerationDetail] Razón actualizada:', e.target.value)
+            onReasonChange(e)
+          }}
           placeholder="Ej: Imagen no clara, descripción incompleta"
           rows={3}
           className="mt-2 w-full rounded-xl border border-neutral-900 bg-white px-4 py-2.5 font-inter text-neutral-900/70 placeholder-neutral-900/70 focus:ring-2 focus:ring-primary-500"
@@ -80,13 +83,22 @@ export default function ModerationDetail({
       {/* Botones de Acción */}
       <div className="mt-6 flex gap-4">
         <button
-          onClick={onApprove}
+          onClick={() => {
+            console.log('[ModerationDetail] Botón APROBAR clickeado')
+            console.log('[ModerationDetail] Item:', item)
+            onApprove()
+          }}
           className="rounded-lg bg-primary-500 px-6 py-3 font-inter text-base font-semibold text-white transition-colors hover:bg-primary-600"
         >
           Aprobar
         </button>
         <button
-          onClick={onReject}
+          onClick={() => {
+            console.log('[ModerationDetail] Botón RECHAZAR clickeado')
+            console.log('[ModerationDetail] Item:', item)
+            console.log('[ModerationDetail] Razón:', rejectionReason)
+            onReject()
+          }}
           className="rounded-lg bg-secondary-600 px-6 py-3 font-inter text-base font-semibold text-white transition-colors hover:bg-secondary-500"
         >
           Rechazar

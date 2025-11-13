@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 import AdminMobileHeader from '@/components/admin/AdminMobileHeader'
 import AdminLoading from '@/components/admin/AdminLoading'
+import GlobalConfirmModal from '@/components/admin/GlobalConfirmModal'
 
 export default function AdminLayout({ children }) {
   const router = useRouter()
@@ -19,21 +20,21 @@ export default function AdminLayout({ children }) {
 
     // Si no está autenticado, redirigir al login
     if (!isAuthenticated) {
-      console.log('🔒 Usuario no autenticado, redirigiendo a /login')
+      console.log('[AdminLayout] Usuario no autenticado, redirigiendo a /login')
       router.replace('/login')
       return
     }
 
     // Si está autenticado pero no es ADMIN, redirigir a materials
     if (user && user.role !== 'ADMIN') {
-      console.log('🔒 Usuario no es ADMIN, redirigiendo a /materials')
+      console.log('[AdminLayout] Usuario no es ADMIN, redirigiendo a /materials')
       router.replace('/materials')
       return
     }
 
     // Si está autenticado y es ADMIN, autorizar acceso
     if (user && user.role === 'ADMIN') {
-      console.log('✅ Usuario ADMIN autorizado')
+      console.log('[AdminLayout] Usuario ADMIN autorizado')
       setIsAuthorized(true)
     }
   }, [isAuthenticated, isLoading, user, router])
@@ -78,6 +79,9 @@ export default function AdminLayout({ children }) {
           onClick={handleCloseSidebar}
         />
       )}
+
+      {/* Modal de confirmación global */}
+      <GlobalConfirmModal />
     </div>
   )
 }

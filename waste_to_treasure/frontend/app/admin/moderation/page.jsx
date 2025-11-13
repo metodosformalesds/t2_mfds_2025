@@ -73,37 +73,24 @@ export default function AdminModerationPage() {
     setError('')
   }
   
-  const createApproveHandler = () => {
-    return async () => {
-      try {
-        console.log(`Aprobando item ${selectedItem.id}`)
-        await adminService.approveListing(selectedItem.id, 'Aprobado por moderador')
-        removeItemFromQueue(selectedItem.id)
-      } catch (error) {
-        console.error("Error al aprobar:", error)
-        setError("Error al aprobar la publicación.")
-      }
-    }
-  }
-
-  const createRejectHandler = () => {
-    return async () => {
-      try {
-        console.log(`Rechazando item ${selectedItem.id} por: ${rejectionReason}`)
-        await adminService.rejectListing(selectedItem.id, rejectionReason)
-        removeItemFromQueue(selectedItem.id)
-      } catch (error) {
-        console.error("Error al rechazar:", error)
-        setError("Error al rechazar la publicación.")
-      }
-    }
-  }
-
-  const handleApprove = () => {
+  const handleApprove = async () => {
+    console.log('[handleApprove] Iniciando aprobación de:', selectedItem.id)
+    
     openConfirmModal(
       'Aprobar Publicación',
       `¿Estás seguro de que quieres aprobar "${selectedItem.title}"?`,
-      createApproveHandler(),
+      async () => {
+        try {
+          console.log('[handleApprove] Usuario confirmó, llamando a API...')
+          await adminService.approveListing(selectedItem.id, 'Aprobado por moderador')
+          console.log('[handleApprove] Listing aprobado exitosamente')
+          removeItemFromQueue(selectedItem.id)
+        } catch (error) {
+          console.error('[handleApprove] Error al aprobar:', error)
+          console.error('[handleApprove] Detalles:', error.response?.data)
+          setError('Error al aprobar la publicación.')
+        }
+      },
       { danger: false }
     )
   }
@@ -114,10 +101,23 @@ export default function AdminModerationPage() {
       return
     }
     
+    console.log('[handleReject] Iniciando rechazo de:', selectedItem.id, 'Razón:', rejectionReason)
+    
     openConfirmModal(
       'Rechazar Publicación',
       `¿Estás seguro de que quieres rechazar "${selectedItem.title}"? El vendedor recibirá la razón: "${rejectionReason}"`,
-      createRejectHandler(),
+      async () => {
+        try {
+          console.log('[handleReject] Usuario confirmó, llamando a API...')
+          await adminService.rejectListing(selectedItem.id, rejectionReason)
+          console.log('[handleReject] Listing rechazado exitosamente')
+          removeItemFromQueue(selectedItem.id)
+        } catch (error) {
+          console.error('[handleReject] Error al rechazar:', error)
+          console.error('[handleReject] Detalles:', error.response?.data)
+          setError('Error al rechazar la publicación.')
+        }
+      },
       { danger: true }
     )
   }
