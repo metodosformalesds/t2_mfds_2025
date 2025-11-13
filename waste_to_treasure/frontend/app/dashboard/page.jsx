@@ -1,6 +1,7 @@
+// app/dashboard/page.jsx
 'use client'
 
-// import { useState, useEffect } from 'react'
+import { Loader2, AlertCircle, RefreshCw } from 'lucide-react'
 import {
   DollarSign,
   Package,
@@ -12,90 +13,67 @@ import PublicationStatus from '@/components/dashboard/PublicationStatus'
 import TopProducts from '@/components/dashboard/TopProducts'
 import QuickActions from '@/components/dashboard/QuickActions'
 import RecentActivity from '@/components/dashboard/RecentActivity'
+import { useDashboardData } from '@/hooks/useDashboardData'
 
-// --- DATOS DE PRUEBA (Sin cambios) ---
-const mockData = {
-  stats: [
+export default function DashboardPage() {
+  const { dashboardData, isLoading, error, refresh } = useDashboardData()
+
+  // Mostrar loader mientras carga por primera vez
+  if (isLoading && !dashboardData.stats.totalSales) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
+      </div>
+    )
+  }
+
+  // Preparar datos para las estadísticas
+  const stats = [
     {
       title: 'Ventas (Últimos 30d)',
-      value: '$4,850.50',
+      value: `$${dashboardData.stats.totalSales}`,
       icon: DollarSign,
     },
     {
       title: 'Publicaciones Activas',
-      value: '12',
+      value: dashboardData.stats.activeListings.toString(),
       icon: Package,
     },
     {
       title: 'Pedidos Recibidos',
-      value: '8',
+      value: dashboardData.stats.receivedOrders.toString(),
       icon: ClipboardList,
     },
     {
       title: 'Consultas Nuevas',
-      value: '2',
+      value: dashboardData.stats.newNotifications.toString(),
       icon: MessageSquare,
     },
-  ],
-  publications: {
-    pending: [
-      {
-        id: 1,
-        title: 'Sillas de Madera',
-      },
-      {
-        id: 2,
-        title: 'Lote de llantas',
-      },
-    ],
-    stockAlerts: [
-      {
-        id: 3,
-        title: 'Retazos de Tela',
-        stock: 2,
-      },
-    ],
-  },
-  topProducts: [
-    {
-      id: 1,
-      title: 'Lote de Retazos de Tela',
-      stats: '12 ventas • $4,500.00 generados',
-      price: '$4.5k',
-      imageUrl: 'https://via.placeholder.com/100x100.png?text=Tela',
-    },
-    {
-      id: 2,
-      title: 'Madera Reciclada de Pino',
-      stats: '3 ventas • $3,600.00 generados',
-      price: '$3.6k',
-      imageUrl: 'https://via.placeholder.com/100x100.png?text=Madera',
-    },
-  ],
-  activity: [
-    {
-      id: 1,
-      type: 'sale',
-      text: '¡Nueva Venta! Lote de retazos...',
-      time: 'hace 15 minutos',
-    },
-    {
-      id: 2,
-      type: 'review',
-      text: 'Arturo P. ha dejado una reseña de 5 estrellas...',
-      time: 'hace 2 horas',
-    },
-  ],
-}
-// --- FIN DE DATOS DE PRUEBA ---
+  ]
 
-export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-8">
-      {/* Sección 1: Tarjetas de Estadísticas (Ahora responsive) */}
+      {/* Mensaje de error */}
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-5 h-5 text-red-600" />
+            <span className="text-red-700 font-inter">{error}</span>
+          </div>
+          <button
+            onClick={refresh}
+            className="px-4 py-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Reintentar
+          </button>
+        </div>
+      )}
+
+      {/* Sección 1: Tarjetas de Estadísticas */}
       <section>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-          {mockData.stats.map(stat => (
+          {stats.map(stat => (
             <StatCard
               key={stat.title}
               title={stat.title}
@@ -108,19 +86,19 @@ export default function DashboardPage() {
 
       {/* Sección 2: Contenido Principal (3 columnas) */}
       <section className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        {/* Columna Izquierda (2/3) - Añadido min-w-0 */}
+        {/* Columna Izquierda (2/3) */}
         <div className="flex flex-col gap-8 lg:col-span-2 min-w-0">
           <PublicationStatus
-            pending={mockData.publications.pending}
-            stockAlerts={mockData.publications.stockAlerts}
+            pending={dashboardData.pendingListings}
+            stockAlerts={dashboardData.lowStockListings}
           />
-          <TopProducts products={mockData.topProducts} />
+          <TopProducts products={dashboardData.topProducts} />
         </div>
 
-        {/* Columna Derecha (1/3) - Añadido min-w-0 */}
+        {/* Columna Derecha (1/3) */}
         <div className="flex flex-col gap-8 lg:col-span-1 min-w-0">
           <QuickActions />
-          <RecentActivity activities={mockData.activity} />
+          <RecentActivity activities={dashboardData.recentActivity} />
         </div>
       </section>
     </div>
