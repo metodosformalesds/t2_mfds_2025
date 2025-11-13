@@ -21,11 +21,8 @@ import uuid
 from typing import Optional
 from io import BytesIO
 
-# NOTE: boto3 debe instalarse cuando estés listo para usar AWS
-# pip install boto3==1.34.0 botocore==1.34.0
-
-# import boto3
-# from botocore.exceptions import ClientError, BotoCoreError
+import boto3
+from botocore.exceptions import ClientError, BotoCoreError
 from fastapi import UploadFile, HTTPException, status
 
 from app.core.config import get_settings
@@ -62,15 +59,13 @@ class S3Service:
     def __init__(self):
         """
         Inicializa el cliente S3.
-        
-        NOTA: Descomenta cuando tengas configuradas las credenciales AWS.
         """
-        # self.s3_client = boto3.client(
-        #     's3',
-        #     aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-        #     aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-        #     region_name=settings.AWS_REGION
-        # )
+        self.s3_client = boto3.client(
+            's3',
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+            region_name=settings.AWS_REGION
+        )
         self.bucket_name = settings.S3_BUCKET_NAME
         self.images_prefix = settings.S3_IMAGES_PREFIX
         
@@ -85,9 +80,7 @@ class S3Service:
         # Tamaño máximo: 5MB
         self.max_file_size = 5 * 1024 * 1024
         
-        logger.info(
-            "S3Service inicializado (modo mock - configura AWS para activar)"
-        )
+        logger.info(f"S3Service inicializado - Bucket: {self.bucket_name}")
     
     async def upload_listing_image(
         self,
@@ -146,38 +139,32 @@ class S3Service:
         prefix = "primary_" if is_primary else ""
         s3_key = f"{self.images_prefix}listings/{listing_id}/{prefix}{unique_filename}"
         
-        # TODO: Descomenta cuando tengas AWS configurado
-        # try:
-        #     # Upload a S3
-        #     self.s3_client.put_object(
-        #         Bucket=self.bucket_name,
-        #         Key=s3_key,
-        #         Body=BytesIO(contents),
-        #         ContentType=file.content_type,
-        #         CacheControl='max-age=31536000',  # 1 año
-        #         Metadata={
-        #             'listing_id': str(listing_id),
-        #             'is_primary': str(is_primary)
-        #         }
-        #     )
-        #     
-        #     # Construir URL pública
-        #     file_url = f"https://{self.bucket_name}.s3.{settings.AWS_REGION}.amazonaws.com/{s3_key}"
-        #     
-        #     logger.info(f"Imagen subida exitosamente: {s3_key}")
-        #     return file_url
-        #     
-        # except (ClientError, BotoCoreError) as e:
-        #     logger.error(f"Error subiendo imagen a S3: {e}")
-        #     raise HTTPException(
-        #         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        #         detail="Error subiendo imagen"
-        #     )
-        
-        # MOCK: Retorna URL ficticia
-        logger.warning("S3Service en modo MOCK - configura AWS para funcionalidad real")
-        mock_url = f"https://{self.bucket_name}.s3.{settings.AWS_REGION}.amazonaws.com/{s3_key}"
-        return mock_url
+        try:
+            # Upload a S3
+            self.s3_client.put_object(
+                Bucket=self.bucket_name,
+                Key=s3_key,
+                Body=BytesIO(contents),
+                ContentType=file.content_type,
+                CacheControl='max-age=31536000',  # 1 año
+                Metadata={
+                    'listing_id': str(listing_id),
+                    'is_primary': str(is_primary)
+                }
+            )
+            
+            # Construir URL pública
+            file_url = f"https://{self.bucket_name}.s3.{settings.AWS_REGION}.amazonaws.com/{s3_key}"
+            
+            logger.info(f"Imagen subida exitosamente: {s3_key}")
+            return file_url
+            
+        except (ClientError, BotoCoreError) as e:
+            logger.error(f"Error subiendo imagen a S3: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Error subiendo imagen: {str(e)}"
+            )
     
     async def delete_image(self, s3_key: str) -> bool:
         """
@@ -196,21 +183,16 @@ class S3Service:
             )
             ```
         """
-        # TODO: Descomenta cuando tengas AWS configurado
-        # try:
-        #     self.s3_client.delete_object(
-        #         Bucket=self.bucket_name,
-        #         Key=s3_key
-        #     )
-        #     logger.info(f"Imagen eliminada: {s3_key}")
-        #     return True
-        # except (ClientError, BotoCoreError) as e:
-        #     logger.error(f"Error eliminando imagen de S3: {e}")
-        #     return False
-        
-        # MOCK
-        logger.warning("S3Service en modo MOCK - configura AWS para funcionalidad real")
-        return True
+        try:
+            self.s3_client.delete_object(
+                Bucket=self.bucket_name,
+                Key=s3_key
+            )
+            logger.info(f"Imagen eliminada: {s3_key}")
+            return True
+        except (ClientError, BotoCoreError) as e:
+            logger.error(f"Error eliminando imagen de S3: {e}")
+            return False
     
     def generate_presigned_url(
         self,
@@ -236,27 +218,22 @@ class S3Service:
             )
             ```
         """
-        # TODO: Descomenta cuando tengas AWS configurado
-        # try:
-        #     url = self.s3_client.generate_presigned_url(
-        #         'get_object',
-        #         Params={
-        #             'Bucket': self.bucket_name,
-        #             'Key': s3_key
-        #         },
-        #         ExpiresIn=expiration
-        #     )
-        #     return url
-        # except (ClientError, BotoCoreError) as e:
-        #     logger.error(f"Error generando URL presignada: {e}")
-        #     raise HTTPException(
-        #         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        #         detail="Error generando URL de acceso"
-        #     )
-        
-        # MOCK
-        logger.warning("S3Service en modo MOCK - configura AWS para funcionalidad real")
-        return f"https://{self.bucket_name}.s3.{settings.AWS_REGION}.amazonaws.com/{s3_key}?mock=true"
+        try:
+            url = self.s3_client.generate_presigned_url(
+                'get_object',
+                Params={
+                    'Bucket': self.bucket_name,
+                    'Key': s3_key
+                },
+                ExpiresIn=expiration
+            )
+            return url
+        except (ClientError, BotoCoreError) as e:
+            logger.error(f"Error generando URL presignada: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Error generando URL de acceso: {str(e)}"
+            )
 
 
 # Singleton del servicio
