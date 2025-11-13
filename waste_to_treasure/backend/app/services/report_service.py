@@ -13,7 +13,7 @@ from sqlalchemy.orm import selectinload
 from fastapi import HTTPException, status
 from uuid import UUID
 
-from app.models.reports import Report, ModerationStatus
+from app.models.reports import Report, ModerationStatus, ReportType
 from app.models.user import User
 from app.models.listing import Listing
 from app.models.order import Order
@@ -48,50 +48,28 @@ async def create_report(
         - Se valida que la entidad reportada exista
     """
     logger.info(
-        f"Usuario {current_user.user_id} creando reporte: "
-        f"razón={report_data.reason}"
+        f"Usuario {current_user.user_id} creando reporte de publicación: "
+        f"listing_id={report_data.reported_listing_id}, razón={report_data.reason}"
     )
-    
-    # Validar que se especifique al menos una entidad
-    if not any([
-        report_data.reported_listing_id,
-        report_data.reported_user_id,
-        report_data.reported_order_id
-    ]):
-        logger.warning("Intento de crear reporte sin especificar entidad")
+
+    # Validar que se especifique la publicación
+    if not report_data.reported_listing_id:
+        logger.warning("Intento de crear reporte sin especificar publicación")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Debe especificar al menos una entidad a reportar: listing, user o order"
+            detail="Debe especificar el ID de la publicación a reportar"
         )
-    
-    # Validar que solo se especifique una entidad
-    specified_count = sum([
-        report_data.reported_listing_id is not None,
-        report_data.reported_user_id is not None,
-        report_data.reported_order_id is not None
-    ])
-    
-    if specified_count > 1:
-        logger.warning("Intento de reportar múltiples entidades en un solo reporte")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Solo puede reportar una entidad a la vez"
-        )
-    
-    # Validar existencia de la entidad reportada
-    if report_data.reported_listing_id:
-        await validate_listing_exists(db, report_data.reported_listing_id)
-    
-    if report_data.reported_user_id:
-        await validate_user_exists(db, report_data.reported_user_id)
-    
-    if report_data.reported_order_id:
-        await validate_order_exists(db, report_data.reported_order_id)
-    
-    # Crear instancia del modelo
+
+    # Validar existencia de la publicación
+    await validate_listing_exists(db, report_data.reported_listing_id)
+
+    # Crear instancia del modelo - solo para listings
     db_report = Report(
-        **report_data.model_dump(),
         reporter_user_id=current_user.user_id,
+        report_type=ReportType.LISTING,
+        reported_listing_id=report_data.reported_listing_id,
+        reason=report_data.reason,  # Ya es string del schema
+        details=report_data.description,
         status=ModerationStatus.PENDING
     )
     

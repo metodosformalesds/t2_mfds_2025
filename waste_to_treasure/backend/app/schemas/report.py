@@ -33,10 +33,10 @@ class ReportStatus(str, Enum):
 class ReportBase(BaseModel):
     """
     Esquema base con campos comunes para Report.
-    
+
     Contiene los campos que se usan en creación.
     """
-    reason: ReportReason = Field(
+    reason: str = Field(
         ...,
         description="Razón del reporte (predefinida)",
         examples=["inappropriate_content", "fraud", "spam"]
@@ -123,16 +123,30 @@ class ReportInDB(ReportBase):
     )
 
 
-class ReportRead(ReportInDB):
+class ReportRead(BaseModel):
     """
     Esquema de respuesta simple para Report.
-    
+
     Este esquema se usa para operaciones que NO necesitan cargar
     relaciones con User, Listing, etc.
-    
+
     Usado en: POST, GET responses
     """
-    pass
+    report_id: int = Field(..., description="Identificador único del reporte")
+    reporter_user_id: UUID = Field(..., description="UUID del usuario que reporta")
+    report_type: str = Field(..., description="Tipo de reporte")
+    reported_listing_id: Optional[int] = Field(None, description="ID del listing reportado")
+    reported_user_id: Optional[UUID] = Field(None, description="ID del usuario reportado")
+    reported_order_id: Optional[int] = Field(None, description="ID de la orden reportada")
+    reason: str = Field(..., description="Razón del reporte")
+    details: Optional[str] = Field(None, description="Detalles adicionales")
+    status: str = Field(..., description="Estado del reporte")
+    created_at: datetime = Field(..., description="Fecha de creación")
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        populate_by_name=True
+    )
 
 
 class ReportList(BaseModel):
