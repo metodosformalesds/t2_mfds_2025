@@ -1,8 +1,9 @@
 'use client'
 
 // --- INICIO DE CORRECCIÓN FUNCIONAL ---
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { UploadCloud, Image as ImageIcon, X } from 'lucide-react'
+import uploadService from '@/lib/api/upload'
 // --- FIN DE CORRECCIÓN FUNCIONAL ---
 
 export default function Step3_Media({
@@ -13,18 +14,81 @@ export default function Step3_Media({
 }) {
   // --- INICIO DE CORRECCIÓN FUNCIONAL ---
   const [isDragging, setIsDragging] = useState(false)
+  const [localPreviews, setLocalPreviews] = useState([]) // Previews locales de archivos
   const fileInputRef = useRef(null)
 
+  // Recrear previews cuando el componente se monta o cuando imageFiles cambia
+  useEffect(() => {
+    if (listingData.imageFiles && listingData.imageFiles.length > 0) {
+      // Crear previews de los archivos existentes
+      const previews = listingData.imageFiles.map(file => ({
+        file,
+        url: URL.createObjectURL(file),
+        status: 'pending'
+      }))
+      setLocalPreviews(previews)
+
+      // Cleanup: revocar URLs cuando el componente se desmonta
+      return () => {
+        previews.forEach(p => URL.revokeObjectURL(p.url))
+      }
+    }
+  }, []) // Solo ejecutar al montar el componente
+
   // Función principal para manejar los archivos
-  const handleFiles = files => {
+  const handleFiles = async files => {
     const imageFiles = Array.from(files).filter(file =>
       file.type.startsWith('image/')
     )
-    if (imageFiles.length > 0) {
-      updateListingData({
-        images: [...listingData.images, ...imageFiles],
-      })
+    
+    if (imageFiles.length === 0) return
+
+    // Validar archivos antes de agregar
+    const { valid, invalid } = uploadService.validateFiles(imageFiles)
+    
+    if (invalid.length > 0) {
+      console.warn('Archivos inválidos:', invalid)
+      alert(`Algunos archivos no son válidos:\n${invalid.map(i => i.reason).join('\n')}`)
     }
+
+    if (valid.length === 0) return
+
+    // Validar que no haya duplicados (por nombre y tamaño)
+    const currentFiles = listingData.imageFiles || []
+    const existingSet = new Set(
+      currentFiles.map(f => `${f.name}-${f.size}`)
+    )
+    
+    const { unique, duplicates } = valid.reduce((acc, file) => {
+      const key = `${file.name}-${file.size}`
+      if (existingSet.has(key)) {
+        acc.duplicates.push(file.name)
+      } else {
+        acc.unique.push(file)
+        existingSet.add(key)
+      }
+      return acc
+    }, { unique: [], duplicates: [] })
+
+    if (duplicates.length > 0) {
+      alert(`Las siguientes imágenes ya están seleccionadas:\n${duplicates.join('\n')}`)
+    }
+
+    if (unique.length === 0) return
+
+    // Crear previews locales inmediatamente (SIN SUBIR A S3)
+    const newPreviews = unique.map(file => ({
+      file,
+      url: URL.createObjectURL(file),
+      status: 'pending' // Pendiente de subir
+    }))
+    
+    setLocalPreviews(prev => [...prev, ...newPreviews])
+    
+    // Actualizar listingData con los archivos únicos
+    updateListingData({
+      imageFiles: [...currentFiles, ...unique],
+    })
   }
 
   // Manejadores de Drag-and-Drop
@@ -67,10 +131,28 @@ export default function Step3_Media({
   }
 
   // Manejador para eliminar una imagen
-  const handleRemoveImage = index => {
-    const newImages = [...listingData.images]
-    newImages.splice(index, 1)
-    updateListingData({ images: newImages })
+  const handleRemoveImage = async (index) => {
+    // Eliminar de previews locales
+    setLocalPreviews(prev => {
+      const newPreviews = [...prev]
+      // Revocar URL del blob para liberar memoria
+      URL.revokeObjectURL(newPreviews[index].url)
+      newPreviews.splice(index, 1)
+      return newPreviews
+    })
+    
+    // También eliminar del listingData.imageFiles
+    const currentFiles = listingData.imageFiles || []
+    const newFiles = [...currentFiles]
+    newFiles.splice(index, 1)
+    updateListingData({ imageFiles: newFiles })
+  }
+
+  // Manejador para cuando hace clic en "Siguiente"
+  const handleNext = () => {
+    // Simplemente avanzar al siguiente paso
+    // El upload se hará en Step4 antes de publicar
+    onNext()
   }
   // --- FIN DE CORRECCIÓN FUNCIONAL ---
 
@@ -107,33 +189,43 @@ export default function Step3_Media({
             Arrastra y suelta tus fotos aquí
           </span>
           <span className="mt-1 block text-xs text-gray-500">
-            o haz clic para seleccionar (Se recomiendan imágenes)
+            o haz clic para seleccionar (JPEG, PNG, WebP - máx 5MB)
           </span>
           <input
             ref={fileInputRef}
             type="file"
             multiple
-            accept="image/*"
+            accept="image/jpeg,image/jpg,image/png,image/webp"
             className="hidden"
             onChange={handleFileSelect}
           />
         </div>
 
         {/* Previsualización de Imágenes */}
-        {listingData.images.length > 0 && (
+        {localPreviews.length > 0 && (
           <div>
             <h3 className="text-lg font-semibold text-gray-800">
-              Imágenes cargadas ({listingData.images.length})
+              Imágenes ({localPreviews.length})
             </h3>
             <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {listingData.images.map((file, index) => (
-                <div key={index} className="relative aspect-square group">
+              {/* Mostrar solo previews locales */}
+              {localPreviews.map((preview, index) => (
+                <div key={`local-${index}`} className="relative aspect-square group">
                   <img
-                    src={URL.createObjectURL(file)}
-                    alt={`Previsualización ${index + 1}`}
-                    className="rounded-lg object-cover w-full h-full"
-                    onLoad={e => URL.revokeObjectURL(e.target.src)}
+                    src={preview.url}
+                    alt={`Preview ${index + 1}`}
+                    className={`rounded-lg object-cover w-full h-full ${
+                      preview.status === 'uploading' ? 'opacity-60' : ''
+                    }`}
                   />
+                  {preview.status === 'uploading' && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                      <Loader2 className="w-8 h-8 text-white animate-spin" />
+                    </div>
+                  )}
+                  <div className="absolute top-1 left-1 px-2 py-1 bg-blue-500 text-white text-xs rounded">
+                    ○ Lista para subir
+                  </div>
                   <button
                     onClick={() => handleRemoveImage(index)}
                     className="absolute top-1 right-1 p-1 bg-red-600/70 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
@@ -141,6 +233,11 @@ export default function Step3_Media({
                   >
                     <X className="w-4 h-4" />
                   </button>
+                  {index === 0 && (
+                    <div className="absolute bottom-1 left-1 px-2 py-1 bg-blue-600 text-white text-xs rounded">
+                      Portada
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -158,7 +255,7 @@ export default function Step3_Media({
             Volver
           </button>
           <button
-            onClick={onNext}
+            onClick={handleNext}
             className="px-8 py-3 bg-[#396530] text-white font-inter font-semibold rounded-lg hover:bg-green-900 dark:hover:bg-green-700 transition-colors"
           >
             Siguiente

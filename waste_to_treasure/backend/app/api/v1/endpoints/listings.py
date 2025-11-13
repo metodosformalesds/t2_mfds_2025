@@ -6,7 +6,7 @@ Endpoints de lectura son públicos, endpoints de modificación requieren autenti
 """
 import logging
 from typing import Optional, List
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_async_db, get_current_active_user
@@ -22,6 +22,7 @@ from app.schemas.listing import (
     ListingImageRead
 )
 from app.services import listing_service
+from app.services.aws_s3_service import s3_service
 
 logger = logging.getLogger(__name__)
 
@@ -399,3 +400,68 @@ async def upload_listing_images(
     )
 
     return images
+
+
+@router.post(
+    "/upload-image",
+    response_model=dict,
+    summary="Upload imagen a S3",
+    description="Sube una imagen directamente a S3 y retorna la URL. Requiere autenticación.",
+    responses={
+        200: {"description": "Imagen subida exitosamente"},
+        400: {"description": "Archivo inválido o demasiado grande"},
+        401: {"description": "No autenticado"},
+        500: {"description": "Error al subir imagen"},
+    }
+)
+async def upload_image_to_s3(
+    file: UploadFile = File(..., description="Archivo de imagen"),
+    listing_id: int = Query(..., description="ID del listing"),
+    is_primary: bool = Query(False, description="¿Es imagen principal?"),
+    current_user: User = Depends(get_current_active_user)
+) -> dict:
+    """
+    Sube una imagen a S3 y retorna la URL.
+    
+    **Requiere autenticación**
+    
+    - Tipos permitidos: JPG, JPEG, PNG, WEBP
+    - Tamaño máximo: 5MB
+    - Retorna URL pública de la imagen en S3
+    
+    **Flujo:**
+    1. Frontend selecciona imagen
+    2. Llama a este endpoint con el archivo
+    3. Backend sube a S3
+    4. Retorna URL
+    5. Frontend puede usar la URL para llamar a `POST /{listing_id}/images`
+    """
+    logger.info(
+        f"Usuario {current_user.user_id} subiendo imagen para listing {listing_id}"
+    )
+    
+    try:
+        # Upload a S3 usando el servicio
+        file_url = await s3_service.upload_listing_image(
+            file=file,
+            listing_id=listing_id,
+            is_primary=is_primary
+        )
+        
+        logger.info(f"Imagen subida exitosamente: {file_url}")
+        
+        return {
+            "success": True,
+            "url": file_url,
+            "message": "Imagen subida exitosamente"
+        }
+        
+    except HTTPException:
+        # Re-raise HTTPExceptions del servicio S3
+        raise
+    except Exception as e:
+        logger.error(f"Error inesperado al subir imagen: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error inesperado al subir imagen: {str(e)}"
+        )
