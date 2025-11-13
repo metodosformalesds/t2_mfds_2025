@@ -13,6 +13,7 @@ import {
   LayoutDashboard, // Icono para "Mi Panel"
   DollarSign, // Icono para "Mis Ventas"
   CreditCard, // Icono para "Suscripciones"
+  Shield, // Icono para "Panel Admin"
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 // --- INICIO DE MODIFICACIÓN ---
@@ -102,6 +103,15 @@ export default function NavBar() {
       label: 'Suscripciones',
     },
   ]
+
+  // --- Enlaces adicionales para administradores ---
+  const adminLinks = user?.role === 'ADMIN' ? [
+    {
+      href: '/admin',
+      icon: Shield,
+      label: 'Panel de Administración',
+    },
+  ] : []
 
   // --- Enlaces de navegación principal del sitio ---
   const siteLinks = (
@@ -221,6 +231,20 @@ export default function NavBar() {
                               {link.label}
                             </Link>
                           ))}
+                          {adminLinks.map(link => (
+                            <Link
+                              key={link.href}
+                              href={link.href}
+                              className="flex w-full items-center px-4 py-2 text-sm text-primary-600 hover:bg-primary-50 hover:text-primary-700"
+                              onClick={() => setIsProfileOpen(false)}
+                            >
+                              <link.icon
+                                className="mr-3 h-5 w-5 text-primary-500"
+                                aria-hidden="true"
+                              />
+                              {link.label}
+                            </Link>
+                          ))}
                         </div>
                         <div className="border-t border-neutral-200 py-1">
                           <button
@@ -332,6 +356,20 @@ export default function NavBar() {
                       key={link.href}
                       href={link.href}
                       className="-m-3 flex items-center rounded-lg p-3 text-base font-medium text-neutral-900 hover:bg-neutral-50"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <link.icon
+                        className="mr-3 h-6 w-6 flex-shrink-0 text-primary-500"
+                        aria-hidden="true"
+                      />
+                      {link.label}
+                    </Link>
+                  ))}
+                  {adminLinks.map(link => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className="-m-3 flex items-center rounded-lg p-3 text-base font-medium text-primary-600 hover:bg-primary-50"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       <link.icon
