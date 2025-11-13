@@ -48,13 +48,21 @@ export const adminService = {
    */
   approveListing: async (listingId, reason = 'Aprobado por moderador') => {
     try {
+      console.log('[adminService.approveListing] Iniciando aprobación')
+      console.log('[adminService.approveListing] ListingId:', listingId)
+      console.log('[adminService.approveListing] Reason:', reason)
+      
       const { data } = await apiClient.post(
         `/admin/moderation/listings/${listingId}/approve`,
         { reason }
       )
+      
+      console.log('[adminService.approveListing] Respuesta exitosa:', data)
       return data
     } catch (error) {
-      console.error(`Error al aprobar listing ${listingId}:`, error)
+      console.error('[adminService.approveListing] Error:', error)
+      console.error('[adminService.approveListing] Response:', error.response?.data)
+      console.error('[adminService.approveListing] Status:', error.response?.status)
       throw error
     }
   },
@@ -67,13 +75,21 @@ export const adminService = {
    */
   rejectListing: async (listingId, reason) => {
     try {
+      console.log('[adminService.rejectListing] Iniciando rechazo')
+      console.log('[adminService.rejectListing] ListingId:', listingId)
+      console.log('[adminService.rejectListing] Reason:', reason)
+      
       const { data } = await apiClient.post(
         `/admin/moderation/listings/${listingId}/reject`,
         { reason }
       )
+      
+      console.log('[adminService.rejectListing] Respuesta exitosa:', data)
       return data
     } catch (error) {
-      console.error(`Error al rechazar listing ${listingId}:`, error)
+      console.error('[adminService.rejectListing] Error:', error)
+      console.error('[adminService.rejectListing] Response:', error.response?.data)
+      console.error('[adminService.rejectListing] Status:', error.response?.status)
       throw error
     }
   },

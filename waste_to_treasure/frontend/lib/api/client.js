@@ -32,6 +32,9 @@ apiClient.interceptors.request.use(
     // Obtener token de localStorage (ajustar según tu implementación de auth)
     const token = localStorage.getItem('auth-token')
 
+    console.log('[API Client] Request a:', config.url)
+    console.log('[API Client] Token presente:', token ? 'SI (longitud: ' + token.length + ')' : 'NO')
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -39,6 +42,7 @@ apiClient.interceptors.request.use(
     return config
   },
   (error) => {
+    console.error('[API Client] Error en request interceptor:', error)
     return Promise.reject(error)
   }
 )
