@@ -21,19 +21,32 @@ const BoxIcon = () => (
 )
 
 export default function MaterialCard({ material }) {
-  const imageUrl = material.images && material.images.length > 0 
-    ? material.images[0].image_url 
-    : 'https://via.placeholder.com/260x160'; // Placeholder image
+  // Resolve possible image URL fields and fallbacks
+  const imageUrl =
+    material.primary_image_url ||
+    material.listing_image_url ||
+    material.imageUrl ||
+    (material.images && material.images.length > 0 && (material.images[0].image_url || material.images[0])) ||
+    '/placeholder-material.jpg'
+  const resolvedImageUrl = typeof imageUrl === 'string' ? imageUrl : String(imageUrl)
+
+  // Resolve ID fields used across different endpoints
+  const resolvedId = material.id ?? material.listing_id ?? material.listingId ?? ''
+  const href = `/materials/${resolvedId}`
+
+  const price = Number.isFinite(Number(material.price)) ? parseFloat(material.price).toFixed(2) : '0.00'
+  const available = material.available ?? material.quantity ?? 0
+  const unit = material.unit_measure ?? material.price_unit ?? material.unit ?? ''
 
   return (
     <Link
-      href={`/materials/${material.id}`}
+      href={href}
       className="flex h-full w-full min-w-[240px] flex-col rounded-lg border border-primary-500 bg-white shadow-sm transition-all hover:shadow-lg"
     >
-      {/* Imagen */}
+      {/* Imagen - Usando placeholder de gradiente como en tu diseño */}
       <div className="relative h-40 w-full overflow-hidden rounded-t-lg">
         <Image
-          src={imageUrl}
+          src={resolvedImageUrl}
           alt={material.title}
           layout="fill"
           objectFit="cover"
@@ -48,18 +61,18 @@ export default function MaterialCard({ material }) {
             {material.title}
           </h3>
           <p className="font-inter text-sm text-neutral-600">
-            Vendido por {material.user?.username || 'Vendedor anónimo'}
+            {material.seller ?? material.user?.username ?? 'Vendedor anónimo'}
           </p>
         </div>
         <div className="mt-4 flex flex-col gap-3">
           <p className="font-roboto text-lg font-medium text-primary-500">
-            ${parseFloat(material.price).toFixed(2)} MXN / {material.price_unit}
+            ${price} MXN / {unit}
           </p>
           <div className="flex items-center gap-2">
             <BoxIcon />
             <span className="font-inter text-sm text-neutral-900">
-              {material.quantity} {material.price_unit}
-              {material.quantity > 1 ? 's' : ''} disponibles
+              {available} {unit}
+              {available > 1 ? 's' : ''} disponibles
             </span>
           </div>
         </div>
