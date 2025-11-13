@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useAuthGuard } from '@/hooks/useAdminGuard' 
+import { useAuthGuard } from '@/hooks/useAdminGuard'
 import { addressService } from '@/lib/api/address'
 import { useCheckoutStore } from '@/stores/useCheckoutStore'
+import { useCartStore } from '@/stores/useCartStore'
 import CheckoutStepper from '@/components/checkout/CheckoutStepper'
 import CheckoutSummary from '@/components/checkout/CheckoutSummary'
 import AddAddressForm from '@/components/checkout/AddAddressForm'
@@ -92,34 +93,26 @@ function ShippingCard({ method, isSelected, onSelect }) {
 export default function CheckoutPage() {
   const { isAuthorized, isLoading: isAuthLoading } = useAuthGuard()
   const router = useRouter()
-  // --- INICIO DE MODIFICACIÓN ---
-  // Cargar estado desde el store
   const { setAddress, setShippingMethod, addressId, shippingMethod } = useCheckoutStore()
-  // --- FIN DE MODIFICACIÓN ---
-  
+  const { total_items, fetchCart } = useCartStore()
+
   const [step, setStep] = useState('delivery')
   const [addresses, setAddresses] = useState([])
   const [shippingMethods, setShippingMethods] = useState(mockShippingMethods)
-  
-  // --- INICIO DE MODIFICACIÓN ---
-  // El estado local se sincroniza con el store
   const [selectedAddressId, setSelectedAddressId] = useState(addressId)
   const [selectedShippingId, setSelectedShippingId] = useState(shippingMethod?.method_id || shippingMethods[0]?.method_id)
-  // --- FIN DE MODIFICACIÓN ---
-  
   const [isLoading, setIsLoading] = useState(true)
   const [isAddFormVisible, setIsAddFormVisible] = useState(false)
 
   useEffect(() => {
-    if (!isAuthorized) return 
+    if (!isAuthorized) return
 
     const loadData = async () => {
       try {
         setIsLoading(true)
         const addressData = await addressService.getMyAddresses()
-        
+
         setAddresses(addressData.items || [])
-        // Si hay un ID en el store, usarlo. Si no, usar el default/primero
         if (addressId) {
           setSelectedAddressId(addressId)
         } else {
@@ -129,13 +122,15 @@ export default function CheckoutPage() {
           }
         }
       } catch (error) {
-        console.error("Error al cargar datos de checkout:", error)
+        console.error('Error al cargar datos de checkout:', error)
       } finally {
         setIsLoading(false)
       }
     }
     loadData()
-  }, [isAuthorized, addressId]) // <-- Añadido addressId
+    // Asegurar que el carrito esté actualizado
+    fetchCart()
+  }, [isAuthorized, fetchCart])
 
   const handleAddressAdded = (newAddress) => {
     setAddresses(prev => [...prev, newAddress])
@@ -144,11 +139,21 @@ export default function CheckoutPage() {
   }
 
   const handleContinue = () => {
-    // Guardar selecciones en el store de Zustand
+    if (!selectedAddressId || !selectedShippingId) {
+      alert('Por favor selecciona una dirección y método de envío')
+      return
+    }
+
+    if (total_items === 0) {
+      alert('Tu carrito está vacío')
+      router.push('/cart')
+      return
+    }
+
     setAddress(selectedAddressId)
     const selectedMethod = shippingMethods.find(m => m.method_id === selectedShippingId)
     setShippingMethod(selectedMethod)
-    
+
     router.push('/checkout/payment')
   }
   

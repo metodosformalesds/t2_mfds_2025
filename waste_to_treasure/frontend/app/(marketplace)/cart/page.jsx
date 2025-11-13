@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useCartStore } from '@/stores/useCartStore'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
@@ -12,7 +12,8 @@ import { ShoppingCart } from 'lucide-react'
 export default function CartPage() {
   const router = useRouter()
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth()
-  const { items, total_items, fetchCart, isLoading: isCartLoading } = useCartStore()
+  const { items, total_items, fetchCart } = useCartStore()
+  const [selectedItems, setSelectedItems] = useState({})
 
   useEffect(() => {
     // Proteger la ruta del carrito
@@ -26,7 +27,28 @@ export default function CartPage() {
     }
   }, [isAuthenticated, isAuthLoading, fetchCart, router])
 
-  const isLoading = isAuthLoading || isCartLoading
+  // Inicializar todos los items como seleccionados cuando se carga el carrito
+  useEffect(() => {
+    const newSelected = {}
+    items.forEach((item) => {
+      if (!(item.cart_item_id in selectedItems)) {
+        newSelected[item.cart_item_id] = true
+      }
+    })
+    if (Object.keys(newSelected).length > 0) {
+      setSelectedItems((prev) => ({ ...prev, ...newSelected }))
+    }
+  }, [items])
+
+  const handleSelectionChange = (itemId, isChecked) => {
+    setSelectedItems((prev) => ({
+      ...prev,
+      [itemId]: isChecked,
+    }))
+  }
+
+  // Filtrar solo items seleccionados para el resumen
+  const selectedItemsList = items.filter((item) => selectedItems[item.cart_item_id])
 
   return (
     <div className="min-h-screen bg-neutral-100 py-12">
@@ -43,29 +65,28 @@ export default function CartPage() {
         </div>
 
         {/* Contenido Principal */}
-        <div className="flex flex-col items-start gap-8 lg:flex-row">
+        <div className="flex flex-col items-stretch gap-6 lg:flex-row lg:gap-4">
           
-          {/* Columna Izquierda: Items */}
-          <div className="w-full flex-1 rounded-lg bg-white p-4 shadow-2xl md:p-8">
+          {/* Columna Izquierda: Items - Expandida */}
+          <div className="flex-1 rounded-lg bg-white p-4 shadow-2xl md:p-6">
             <h2 className="border-b border-neutral-300 pb-4 font-poppins text-3xl font-semibold text-black">
               Productos en tu carrito ({total_items})
             </h2>
 
-            {isLoading && (
-              <div className="flex h-64 items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
-              </div>
-            )}
-
-            {!isLoading && items.length > 0 && (
+            {items.length > 0 && (
               <div className="divide-y divide-neutral-200">
                 {items.map((item) => (
-                  <CartItem key={item.cart_item_id} item={item} />
+                  <CartItem 
+                    key={item.cart_item_id} 
+                    item={item}
+                    isSelected={selectedItems[item.cart_item_id] || false}
+                    onSelectionChange={handleSelectionChange}
+                  />
                 ))}
               </div>
             )}
 
-            {!isLoading && items.length === 0 && (
+            {items.length === 0 && (
               <div className="flex h-64 flex-col items-center justify-center gap-4 text-neutral-500">
                 <ShoppingCart size={48} />
                 <p className="font-inter text-lg">Tu carrito está vacío.</p>
@@ -74,7 +95,7 @@ export default function CartPage() {
           </div>
 
           {/* Columna Derecha: Resumen */}
-          <OrderSummary />
+          <OrderSummary items={selectedItemsList} />
         </div>
 
         {/* Productos Relacionados */}

@@ -3,45 +3,35 @@
 import Link from 'next/link'
 import { useCartStore } from '@/stores/useCartStore'
 
-/**
- * Tarjeta de Resumen de Pedido para el proceso de Checkout.
- * @param {Object} props
- * @param {Function} props.onContinue - Función para el botón principal.
- * @param {string} props.buttonText - Texto para el botón principal (ej. "Continuar").
- * @param {string} props.backLink - URL para el enlace "Volver".
- * @param {string} props.backText - Texto para el enlace "Volver".
- * @param {boolean} [props.showTerms=false] - Mostrar texto de términos y condiciones.
- * @param {boolean} [props.isLoading=false] - Poner el botón en estado de carga.
- */
 export default function CheckoutSummary({
   onContinue,
-  buttonText = "Continuar",
+  buttonText = 'Continuar',
   backLink,
   backText,
   showTerms = false,
   isLoading = false,
+  items = [],
 }) {
-  const { subtotal } = useCartStore()
+  // Si no hay items, usar el store como fallback (para compatibilidad)
+  const { items: cartItems, total_items } = useCartStore()
+  const itemsToUse = items.length > 0 ? items : cartItems
 
-  // TODO: Estos valores (envío, IVA, comisión) deben venir del backend/store.
-  // Usamos los mocks de tu imagen 'Checkout paso 3.jpg' por ahora.
-  const shippingCost = 150.0
-  const taxCost = 132.00 // IVA(16%) mockeado en la imagen
-  const commissionCost = 45.00 // Comisión mockeada en la imagen
+  // Calcular totales basados en items
+  const subtotalNum = itemsToUse.reduce((sum, item) => {
+    const itemPrice = parseFloat(item.listing_price || 0)
+    const itemQty = parseFloat(item.quantity || 0)
+    return sum + (itemPrice * itemQty)
+  }, 0)
 
-  const subtotalNum = parseFloat(subtotal)
-  
-  // El total se calcula con los mocks de la imagen
-  const total = subtotalNum + shippingCost + commissionCost + taxCost
+  const shippingCost = itemsToUse.length > 0 ? 150.0 : 0.0
+  const total = subtotalNum + shippingCost
 
   return (
     <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-2xl lg:sticky lg:top-32">
-      {/* Titulo */}
       <h2 className="border-b border-neutral-300 pb-4 font-roboto text-[26px] font-bold text-black">
         Resumen del Pedido
       </h2>
 
-      {/* Lista de Costos */}
       <div className="space-y-3 py-6">
         <div className="flex justify-between font-inter text-2xl font-medium">
           <span className="text-black">Subtotal:</span>
@@ -51,17 +41,8 @@ export default function CheckoutSummary({
           <span className="text-black opacity-60">Envío:</span>
           <span className="text-black">${shippingCost.toFixed(2)}</span>
         </div>
-        <div className="flex justify-between font-inter text-2xl font-medium">
-          <span className="text-black opacity-60">Comisión (10%):</span>
-          <span className="text-black">${commissionCost.toFixed(2)}</span>
-        </div>
-        <div className="flex justify-between font-inter text-2xl font-medium">
-          <span className="text-black opacity-60">IVA (16%):</span>
-          <span className="text-black">${taxCost.toFixed(2)}</span>
-        </div>
       </div>
 
-      {/* Total */}
       <div className="border-t border-neutral-300 pt-6">
         <div className="flex justify-between font-inter">
           <span className="text-2xl font-medium text-black opacity-60">
@@ -76,7 +57,6 @@ export default function CheckoutSummary({
         </p>
       </div>
 
-      {/* Términos y Condiciones (Solo para Paso 3) */}
       {showTerms && (
         <div className="mt-6 rounded-lg bg-neutral-100 p-3 text-center">
           <p className="font-inter text-sm text-black">
@@ -89,16 +69,18 @@ export default function CheckoutSummary({
         </div>
       )}
 
-      {/* Botón */}
       <button
         onClick={onContinue}
-        disabled={isLoading}
-        className="mt-6 flex w-full items-center justify-center rounded-lg bg-primary-500 px-5 py-4 text-center font-inter text-xl font-semibold text-white transition hover:bg-primary-600 disabled:opacity-50"
+        disabled={isLoading || itemsToUse.length === 0}
+        className={`mt-6 flex w-full items-center justify-center rounded-lg px-5 py-4 text-center font-inter text-xl font-semibold transition ${
+          itemsToUse.length > 0 && !isLoading
+            ? 'bg-primary-500 text-white hover:bg-primary-600'
+            : 'bg-neutral-300 text-neutral-600 cursor-not-allowed'
+        }`}
       >
         {isLoading ? 'Procesando...' : buttonText}
       </button>
 
-      {/* Link para Volver */}
       {backLink && backText && (
         <div className="mt-4 text-center">
           <Link href={backLink} className="text-sm text-blue-600 hover:underline">
