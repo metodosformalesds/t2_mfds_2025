@@ -21,19 +21,36 @@ const BoxIcon = () => (
 )
 
 export default function ProductCard({ product }) {
-  const imageUrl = product.images && product.images.length > 0 
-    ? product.images[0].image_url 
-    : 'https://via.placeholder.com/260x160'; // Placeholder image
+  // Try several possible properties where a URL may be present.
+  // The backend isn't fully wired in all places, sometimes the card receives:
+  // - product.primary_image_url (string)
+  // - product.listing_image_url (string)
+  // - product.imageUrl (string)
+  // - product.images = [{ image_url: string }] or product.images = [string]
+  const imageUrl =
+    product.primary_image_url ||
+    product.listing_image_url ||
+    product.imageUrl ||
+    (product.images && product.images.length > 0 && (product.images[0].image_url || product.images[0])) ||
+    'https://via.placeholder.com/260x160'
+
+  // Ensure it's a string (Image component expects a string src)
+  const resolvedImageUrl = typeof imageUrl === 'string' ? imageUrl : String(imageUrl)
+
+  // Resolve ID from possible shapes coming from different endpoints
+  const resolvedId =
+    product.id ?? product.listing_id ?? product.listingId ?? product.listingId ?? ''
+  const href = `/products/${resolvedId}`
 
   return (
     <Link
-      href={`/products/${product.id}`}
+      href={href}
       className="flex h-full w-full min-w-[240px] flex-col rounded-lg border border-primary-500 bg-white shadow-sm transition-all hover:shadow-lg"
     >
       {/* Imagen */}
       <div className="relative h-40 w-full overflow-hidden rounded-t-lg">
         <Image
-          src={imageUrl}
+          src={resolvedImageUrl}
           alt={product.title}
           layout="fill"
           objectFit="cover"

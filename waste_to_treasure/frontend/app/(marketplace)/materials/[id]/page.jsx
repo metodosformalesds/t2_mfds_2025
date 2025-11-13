@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams, useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronRight, ArrowLeft } from 'lucide-react'
 import listingsService from '@/lib/api/listings'
@@ -19,7 +19,9 @@ import SimilarMaterials from '@/components/details/SimilarMaterials'
 export default function MaterialDetailPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const materialId = searchParams.get('id')
+  const params = useParams()
+  // Support both query param version (?id=123) and dynamic route (/materials/123)
+  const materialId = searchParams.get('id') || params?.id
 
   // State management
   const [material, setMaterial] = useState(null)
