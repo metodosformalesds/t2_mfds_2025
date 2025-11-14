@@ -48,7 +48,7 @@ function Toast({ message, type = 'info', onClose, unit = '' }) {
   return null
 }
 
-export default function CartItem({ item, isSelected, onSelectionChange }) {
+export default function CartItem({ item }) {
   const { updateItem, removeItem, fetchCart } = useCartStore()
   const [isUpdating, setIsUpdating] = useState(false)
   const [updateError, setUpdateError] = useState(null)
@@ -152,13 +152,6 @@ export default function CartItem({ item, isSelected, onSelectionChange }) {
 
   return (
     <div className="flex w-full items-center gap-4 border-b border-neutral-200 py-6 last:border-b-0 opacity-100 disabled:opacity-50" style={{ opacity: isUpdating ? 0.6 : 1 }}>
-      <input
-        type="checkbox"
-        checked={isSelected}
-        onChange={(e) => onSelectionChange(item.cart_item_id, e.target.checked)}
-        className="h-5 w-5 flex-shrink-0 rounded border-neutral-400 text-primary-500 focus:ring-primary-500"
-      />
-
       <div className="relative h-24 w-24 flex-shrink-0 md:h-36 md:w-48">
         <Image
           src={item.listing_image_url || 'https://via.placeholder.com/190x150'}

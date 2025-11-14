@@ -53,13 +53,21 @@ export default function OrderSuccessPage() {
             </p>
           </div>
 
-          {/* Enlace */}
-          <Link
-            href="/dashboard/purchases"
-            className="mt-8 font-roboto text-xl font-bold text-blue-600 hover:underline"
-          >
-            Ir a mis compras
-          </Link>
+          {/* Enlaces de Acción */}
+          <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:gap-6">
+            <Link
+              href="/dashboard/purchases"
+              className="rounded-lg bg-primary-500 px-8 py-3 font-roboto text-lg font-bold text-white shadow-lg transition-all hover:bg-primary-600"
+            >
+              Ver mis compras
+            </Link>
+            <Link
+              href="/materials"
+              className="rounded-lg border-2 border-primary-500 bg-white px-8 py-3 font-roboto text-lg font-bold text-primary-500 shadow-lg transition-all hover:bg-primary-50"
+            >
+              Seguir comprando
+            </Link>
+          </div>
         </div>
       </div>
     </div>

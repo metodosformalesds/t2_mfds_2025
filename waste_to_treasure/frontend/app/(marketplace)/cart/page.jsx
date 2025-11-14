@@ -13,7 +13,6 @@ export default function CartPage() {
   const router = useRouter()
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth()
   const { items, total_items, fetchCart } = useCartStore()
-  const [selectedItems, setSelectedItems] = useState({})
 
   useEffect(() => {
     // Proteger la ruta del carrito
@@ -26,29 +25,6 @@ export default function CartPage() {
       fetchCart()
     }
   }, [isAuthenticated, isAuthLoading, fetchCart, router])
-
-  // Inicializar todos los items como seleccionados cuando se carga el carrito
-  useEffect(() => {
-    const newSelected = {}
-    items.forEach((item) => {
-      if (!(item.cart_item_id in selectedItems)) {
-        newSelected[item.cart_item_id] = true
-      }
-    })
-    if (Object.keys(newSelected).length > 0) {
-      setSelectedItems((prev) => ({ ...prev, ...newSelected }))
-    }
-  }, [items])
-
-  const handleSelectionChange = (itemId, isChecked) => {
-    setSelectedItems((prev) => ({
-      ...prev,
-      [itemId]: isChecked,
-    }))
-  }
-
-  // Filtrar solo items seleccionados para el resumen
-  const selectedItemsList = items.filter((item) => selectedItems[item.cart_item_id])
 
   return (
     <div className="min-h-screen bg-neutral-100 py-12">
@@ -79,8 +55,6 @@ export default function CartPage() {
                   <CartItem 
                     key={item.cart_item_id} 
                     item={item}
-                    isSelected={selectedItems[item.cart_item_id] || false}
-                    onSelectionChange={handleSelectionChange}
                   />
                 ))}
               </div>
@@ -95,7 +69,7 @@ export default function CartPage() {
           </div>
 
           {/* Columna Derecha: Resumen */}
-          <OrderSummary items={selectedItemsList} />
+          <OrderSummary items={items} />
         </div>
 
         {/* Productos Relacionados */}

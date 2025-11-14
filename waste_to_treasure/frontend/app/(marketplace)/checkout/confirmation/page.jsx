@@ -29,9 +29,13 @@ export default function ConfirmationPage() {
   const [address, setAddress] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isPlacingOrder, setIsPlacingOrder] = useState(false)
+  const [isOrderComplete, setIsOrderComplete] = useState(false) // Flag para evitar redirecciones
 
   // Cargar los detalles de la dirección seleccionada
   useEffect(() => {
+    // Si la orden ya está completa, no hacer nada
+    if (isOrderComplete) return
+    
     if (isAuthorized) {
       if (!addressId || !paymentMethodId || !savedCard) { // Validar que la tarjeta exista
         console.warn("Faltan datos de checkout, redirigiendo...")
@@ -53,7 +57,7 @@ export default function ConfirmationPage() {
       }
       fetchAddress()
     }
-  }, [isAuthorized, addressId, paymentMethodId, router, savedCard])
+  }, [isAuthorized, addressId, paymentMethodId, router, savedCard, isOrderComplete])
 
   const handleConfirmAndPay = () => {
     openConfirmModal(
@@ -69,24 +73,42 @@ export default function ConfirmationPage() {
             shipping_method_id: shippingMethod?.method_id,
           })
 
-          // 2. Limpiar estados
+          // 2. Marcar orden como completa para evitar redirecciones
+          setIsOrderComplete(true)
+          
+          // 3. Limpiar estados
           clearCheckout()
           clearCart()
           
-          // 3. Redirigir a la página de éxito
-          router.push('/checkout/success')
+          // 4. Redirigir a la página de éxito
+          router.replace('/checkout/success')
 
         } catch (error) {
-          // --- INICIO DE MODIFICACIÓN (Mostrar error amigable) ---
-          // 'error.message' ahora contiene el mensaje amigable de 'orders.js'
-          console.error("Error al confirmar el pago (simple):", error.message)
-          openConfirmModal(
-            'Error en el Pago',
-            error.message, // <- Ya no concatenamos, solo mostramos el error limpio
-            () => {},
-            { danger: true, confirmText: 'Entendido' }
-          )
-          // --- FIN DE MODIFICACIÓN ---
+          console.error("Error al confirmar el pago:", error.message)
+          
+          // Detectar si el payment method está "quemado"
+          if (error.message === 'PAYMENT_METHOD_BURNED') {
+            // Limpiar la tarjeta guardada del estado
+            clearCheckout()
+            
+            openConfirmModal(
+              'Tarjeta No Válida',
+              'Esta tarjeta ya no se puede utilizar. Por favor, regresa a la página de pago y agrega una nueva tarjeta.',
+              () => {
+                // Redirigir a la página de pago
+                router.push('/checkout/payment')
+              },
+              { danger: true, confirmText: 'Ir a agregar tarjeta' }
+            )
+          } else {
+            // Error genérico
+            openConfirmModal(
+              'Error en el Pago',
+              error.message,
+              () => {},
+              { danger: true, confirmText: 'Entendido' }
+            )
+          }
         } finally {
           setIsPlacingOrder(false)
         }

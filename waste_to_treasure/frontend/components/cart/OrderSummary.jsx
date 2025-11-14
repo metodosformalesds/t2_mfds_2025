@@ -63,7 +63,7 @@ export default function OrderSummary({ items = [] }) {
             </div>
             <div className="border-t border-neutral-200 pt-2 mt-2">
               <p className="text-right font-inter text-xs text-neutral-600">
-                <span className="font-semibold text-neutral-900">Total seleccionado: </span>
+                <span className="font-semibold text-neutral-900">Subtotal productos: </span>
                 <span className="text-primary-600 font-bold">${subtotal.toFixed(2)}</span>
               </p>
             </div>
