@@ -17,7 +17,13 @@ export default function ConfirmationPage() {
   const { isAuthorized, isLoading: isAuthLoading } = useAuthGuard()
   const router = useRouter()
   const { items: cartItems, clearCart } = useCartStore()
-  const { addressId, shippingMethod, paymentMethodId, clearCheckout } = useCheckoutStore()
+  const { 
+    addressId, 
+    shippingMethod, 
+    paymentMethodId, 
+    clearCheckout,
+    savedCard 
+  } = useCheckoutStore()
   const openConfirmModal = useConfirmStore(state => state.open)
 
   const [address, setAddress] = useState(null)
@@ -27,8 +33,8 @@ export default function ConfirmationPage() {
   // Cargar los detalles de la dirección seleccionada
   useEffect(() => {
     if (isAuthorized) {
-      if (!addressId || !paymentMethodId) {
-        // Validación: si faltan datos, regresar a los pasos anteriores
+      if (!addressId || !paymentMethodId || !savedCard) { // Validar que la tarjeta exista
+        console.warn("Faltan datos de checkout, redirigiendo...")
         router.replace('/checkout')
         return
       }
@@ -47,7 +53,7 @@ export default function ConfirmationPage() {
       }
       fetchAddress()
     }
-  }, [isAuthorized, addressId, paymentMethodId, router])
+  }, [isAuthorized, addressId, paymentMethodId, router, savedCard])
 
   const handleConfirmAndPay = () => {
     openConfirmModal(
@@ -58,7 +64,7 @@ export default function ConfirmationPage() {
         try {
           // 1. Procesar el pago y crear la orden
           await ordersService.processCheckout({
-            payment_token: paymentMethodId, // (Simulado si no es un token real)
+            payment_token: paymentMethodId, 
             shipping_address_id: addressId,
             shipping_method_id: shippingMethod?.method_id,
           })
@@ -71,13 +77,16 @@ export default function ConfirmationPage() {
           router.push('/checkout/success')
 
         } catch (error) {
-          console.error("Error al confirmar el pago:", error)
+          // --- INICIO DE MODIFICACIÓN (Mostrar error amigable) ---
+          // 'error.message' ahora contiene el mensaje amigable de 'orders.js'
+          console.error("Error al confirmar el pago (simple):", error.message)
           openConfirmModal(
             'Error en el Pago',
-            `No se pudo procesar tu pedido: ${error.message}`,
+            error.message, // <- Ya no concatenamos, solo mostramos el error limpio
             () => {},
             { danger: true, confirmText: 'Entendido' }
           )
+          // --- FIN DE MODIFICACIÓN ---
         } finally {
           setIsPlacingOrder(false)
         }
@@ -146,18 +155,22 @@ export default function ConfirmationPage() {
               </div>
             </div>
 
-            {/* Tarjeta de Pago */}
+            {/* Resumen de Tarjeta */}
             <div className="rounded-lg bg-white p-6 shadow-2xl">
               <div className="flex items-start justify-between">
                 <div>
                   <h3 className="font-roboto text-2xl font-bold text-black">
-                    Pagando con {paymentMethodId === 'paypal' ? 'PayPal' : 'Tarjeta'}
+                    Método de Pago
                   </h3>
-                  <p className="mt-2 font-inter text-base text-neutral-600">
-                    {paymentMethodId?.startsWith('card_') 
-                      ? `Tarjeta terminación ${paymentMethodId.slice(-4)}`
-                      : 'Aprobación requerida'}
-                  </p>
+                  {savedCard ? (
+                    <p className="mt-2 font-inter text-base text-neutral-600">
+                      Tarjeta de crédito/débito terminación **** {savedCard.last4}
+                    </p>
+                  ) : (
+                    <p className="mt-2 font-inter text-base text-neutral-600">
+                      Tarjeta de crédito/débito seleccionada
+                    </p>
+                  )}
                 </div>
                 <Link
                   href="/checkout/payment"

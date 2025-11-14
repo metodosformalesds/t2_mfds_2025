@@ -68,7 +68,8 @@ async def process_checkout(
     
     # 3. Procesar pago con Stripe (INTEGRACIÓN REAL)
     try:
-        # Crear Payment Intent en Stripe
+        # Crear Payment Intent en Stripe (sin confirmar aún si no tenemos payment_method_id)
+        # IMPORTANTE: return_url solo se pasa cuando se confirma inmediatamente (payment_method_id presente)
         payment_intent = await stripe_service.create_payment_intent(
             amount=total_a_pagar,
             currency="mxn",
@@ -76,7 +77,8 @@ async def process_checkout(
                 "user_id": str(user.user_id),
                 "cart_items": str(len(cart.items))
             },
-            description=f"Orden de {user.full_name or user.email}"
+            description=f"Orden de {user.full_name or user.email}",
+            return_url=None  # No pasar return_url aquí porque no confirmamos inmediatamente
         )
         
         # Confirmar el pago con el token proporcionado
@@ -116,7 +118,8 @@ async def process_checkout(
             # Para payment methods normales
             confirmed_intent = await stripe_service.confirm_payment_intent(
                 payment_intent_id=payment_intent.id,
-                payment_method_id=checkout_data.payment_token
+                payment_method_id=checkout_data.payment_token,
+                return_url=checkout_data.return_url or "https://waste-to-treasure.app/checkout/success"
             )
             
             if confirmed_intent.status != "succeeded":

@@ -96,11 +96,29 @@ class CheckoutCreate(BaseModel):
         description="Token de pago generado por el cliente (ej: Stripe, PayPal)",
         examples=["tok_1PbHi9P9qA9gV3T9aBcDEfG"]
     )
+    
+    shipping_address_id: Optional[int] = Field(
+        None,
+        description="ID de la dirección de envío"
+    )
+    
+    shipping_method_id: Optional[int] = Field(
+        None,
+        description="ID del método de envío"
+    )
+    
+    return_url: Optional[str] = Field(
+        None,
+        description="URL de retorno para métodos de pago que requieren redirección (3D Secure, OXXO, etc)"
+    )
 
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
-                "payment_token": "tok_1PbHi9P9qA9gV3T9aBcDEfG"
+                "payment_token": "tok_1PbHi9P9qA9gV3T9aBcDEfG",
+                "shipping_address_id": 1,
+                "shipping_method_id": 1,
+                "return_url": "https://waste-to-treasure.com/checkout/success"
             }
         }
     )
