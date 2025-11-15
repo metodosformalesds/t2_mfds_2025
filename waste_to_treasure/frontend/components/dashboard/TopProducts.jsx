@@ -22,14 +22,14 @@ export default function TopProducts({ products = [] }) {
       <div className="space-y-4">
         {products.map((product) => (
           <div
-            key={product.listing_id}
+            key={product.id}
             className="flex items-center justify-between rounded-lg border border-neutral-200 p-4 transition-colors hover:border-primary-500"
           >
             <div className="flex items-center gap-4">
               <div className="h-16 w-16 rounded-lg bg-gradient-to-br from-purple-400 to-pink-500 overflow-hidden">
-                {product.image_url ? (
+                {product.imageUrl ? (
                   <img
-                    src={product.image_url}
+                    src={product.imageUrl}
                     alt={product.title}
                     className="w-full h-full object-cover"
                   />
@@ -42,12 +42,12 @@ export default function TopProducts({ products = [] }) {
                   {product.title}
                 </p>
                 <p className="font-inter text-sm text-neutral-600">
-                  {product.totalSales} ventas • ${product.totalRevenue.toFixed(2)} generados
+                  {product.stats}
                 </p>
               </div>
             </div>
             <p className="font-poppins text-xl font-bold text-neutral-900">
-              ${(product.totalRevenue / 1000).toFixed(1)}k
+              {product.price}
             </p>
           </div>
         ))}
