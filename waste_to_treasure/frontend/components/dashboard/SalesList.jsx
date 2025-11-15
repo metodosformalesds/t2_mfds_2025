@@ -7,9 +7,7 @@ export default function SalesList() {
   const { sales, isLoading, error, pagination, goToPage, nextPage, prevPage } = useSales();
 
   const handleViewDetails = (orderId) => {
-    console.log('Ver detalles de la venta:', orderId);
-    // TODO: Navegar a página de detalles o abrir modal
-    // router.push(`/dashboard/sales/${orderId}`);
+    window.location.href = `/dashboard/sales/${orderId}`;
   };
 
   const getStatusColor = (status) => {
@@ -111,10 +109,10 @@ export default function SalesList() {
                     {order.buyer?.full_name || order.buyer?.email || 'N/A'}
                   </td>
                   <td className="py-4 px-4 text-gray-700 font-inter">
-                    {order.items?.length || 0} producto(s)
+                    {order.order_items?.length || 0} producto(s)
                   </td>
                   <td className="py-4 px-4 text-gray-700 font-inter font-semibold">
-                    ${order.total_amount?.toFixed(2) || '0.00'}
+                    ${typeof order.total_amount === 'number' ? order.total_amount.toFixed(2) : parseFloat(order.total_amount || 0).toFixed(2)}
                   </td>
                   <td className="py-4 px-4 text-gray-500 font-inter text-sm">
                     {formatDate(order.created_at)}

@@ -486,6 +486,7 @@ def convert_to_card_response(listing: Listing) -> dict:
         "price": listing.price,
         "price_unit": listing.price_unit,
         "listing_type": listing.listing_type,
+        "status": listing.status,  # Agregado para que el frontend pueda filtrar por estado
         "primary_image_url": primary_image,
         "seller_id": listing.seller_id,
         "quantity": listing.quantity,
