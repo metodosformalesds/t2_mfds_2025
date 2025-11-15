@@ -73,6 +73,9 @@ class ProxyHeadersMiddleware(BaseHTTPMiddleware):
     Middleware para leer headers de proxy (X-Forwarded-*).
     Esto permite que FastAPI sepa el dominio y protocolo original
     cuando está detrás de API Gateway o cualquier proxy.
+    
+    También reescribe los Location headers en redirects para usar
+    el host del API Gateway en lugar de la IP interna del backend.
     """
     async def dispatch(self, request: Request, call_next):
         # Leer el protocolo original (http/https)
@@ -88,6 +91,21 @@ class ProxyHeadersMiddleware(BaseHTTPMiddleware):
             request.scope["server"] = (forwarded_host, port)
             
         response = await call_next(request)
+        
+        # Reescribir Location header en redirects (307, 308, 301, 302)
+        if response.status_code in (301, 302, 307, 308):
+            location = response.headers.get("location")
+            if location and forwarded_host:
+                # Si el Location contiene la IP interna, reemplazarla por el host del Gateway
+                if "98.95.79.84:8000" in location:
+                    scheme = forwarded_proto or "https"
+                    new_location = location.replace(
+                        "http://98.95.79.84:8000",
+                        f"{scheme}://{forwarded_host}"
+                    )
+                    response.headers["location"] = new_location
+                    logger.debug(f"Redirect reescrito: {location} -> {new_location}")
+        
         return response
 
 
@@ -102,7 +120,7 @@ logger.info("Middleware de proxy headers configurado.")
 app.add_middleware(
     TrustedHostMiddleware,
     allowed_hosts=[
-        "4vopem29wa.execute-api.us-east-1.amazonaws.com",
+        "pk5nk9n968.execute-api.us-east-1.amazonaws.com",  # API Gateway actual  
         "98.95.79.84",
         "localhost",
         "127.0.0.1",
@@ -112,16 +130,17 @@ app.add_middleware(
 logger.info("Middleware de TrustedHost configurado.")
 
 # Middleware de CORS
-# NOTA: Comentado porque API Gateway maneja CORS en producción.
-# Descomentar solo para desarrollo local sin API Gateway.
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=settings.BACKEND_CORS_ORIGINS,
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
-# logger.info(f"CORS configurado para orígenes: {settings.BACKEND_CORS_ORIGINS}")
+# IMPORTANTE: Debe estar habilitado incluso con API Gateway
+# API Gateway no puede manejar completamente CORS (especialmente OPTIONS)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.BACKEND_CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["*"],
+)
+logger.info(f"CORS configurado para orígenes: {settings.BACKEND_CORS_ORIGINS}")
 
 # Middleware de Compresión GZip
 app.add_middleware(GZipMiddleware, minimum_size=1000)
