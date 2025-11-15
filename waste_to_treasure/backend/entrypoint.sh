@@ -9,4 +9,9 @@ alembic upgrade head
 
 # Iniciar el servidor de producción (Gunicorn + Uvicorn)
 echo "INFO: Iniciando el servidor Gunicorn..."
-exec gunicorn -k uvicorn.workers.UvicornWorker -w 3 app.main:app --bind 0.0.0.0:8000
+# Nota: proxy headers manejados por ProxyHeadersMiddleware en app/main.py
+exec gunicorn -k uvicorn.workers.UvicornWorker -w 3 app.main:app \
+  --bind 0.0.0.0:8000 \
+  --access-logfile - \
+  --error-logfile - \
+  --log-level info

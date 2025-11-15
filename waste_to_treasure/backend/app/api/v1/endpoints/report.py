@@ -24,7 +24,7 @@ router = APIRouter()
 
 
 @router.post(
-    "/",
+    "",
     response_model=ReportRead,
     status_code=status.HTTP_201_CREATED,
     summary="Crear nuevo reporte",
@@ -35,6 +35,12 @@ router = APIRouter()
         401: {"description": "No autenticado"},
         404: {"description": "Entidad reportada no encontrada"},
     }
+)
+@router.post(
+    "/",
+    response_model=ReportRead,
+    status_code=status.HTTP_201_CREATED,
+    include_in_schema=False
 )
 async def create_report(
     report_data: ReportCreate,

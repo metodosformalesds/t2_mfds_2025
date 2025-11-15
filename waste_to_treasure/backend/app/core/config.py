@@ -131,7 +131,20 @@ class Settings(BaseSettings):
     # ==================================
     BACKEND_CORS_ORIGINS: List[str] = ["http://localhost:3000"]
     
-
+    @field_validator("BACKEND_CORS_ORIGINS", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, v) -> List[str]:
+        """Convierte string separado por comas o JSON en lista de URLs."""
+        if isinstance(v, list):
+            return v
+        if isinstance(v, str):
+            # Si viene como JSON array string: '["url1","url2"]'
+            if v.startswith("["):
+                import json
+                return json.loads(v)
+            # Si viene como CSV: 'url1,url2'
+            return [origin.strip() for origin in v.split(",")]
+        return v
         
     # ==================================
     # LOGGING

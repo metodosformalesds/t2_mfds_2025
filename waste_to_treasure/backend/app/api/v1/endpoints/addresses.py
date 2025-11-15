@@ -25,7 +25,7 @@ router = APIRouter()
 
 
 @router.post(
-    "/",
+    "",
     response_model=AddressRead,
     status_code=status.HTTP_201_CREATED,
     summary="Crear nueva dirección",
@@ -35,6 +35,12 @@ router = APIRouter()
         400: {"description": "Datos de entrada inválidos"},
         401: {"description": "No autenticado"},
     }
+)
+@router.post(
+    "/",
+    response_model=AddressRead,
+    status_code=status.HTTP_201_CREATED,
+    include_in_schema=False
 )
 async def create_address(
     address_data: AddressCreate,
@@ -75,7 +81,7 @@ async def create_address(
 
 
 @router.get(
-    "/",
+    "",
     response_model=AddressList,
     summary="Listar mis direcciones",
     description="Obtiene lista paginada de direcciones del usuario autenticado.",
@@ -83,6 +89,11 @@ async def create_address(
         200: {"description": "Lista de direcciones obtenida exitosamente"},
         401: {"description": "No autenticado"},
     }
+)
+@router.get(
+    "/",
+    response_model=AddressList,
+    include_in_schema=False
 )
 async def get_my_addresses(
     skip: int = Query(0, ge=0, description="Número de registros a omitir"),

@@ -27,7 +27,7 @@ router = APIRouter()
 
 
 @router.post(
-    "/",
+    "",
     response_model=OfferRead,
     status_code=status.HTTP_201_CREATED,
     summary="Enviar oferta de compra",
@@ -38,6 +38,12 @@ router = APIRouter()
         401: {"description": "No autenticado"},
         404: {"description": "Publicación no encontrada"},
     }
+)
+@router.post(
+    "/",
+    response_model=OfferRead,
+    status_code=status.HTTP_201_CREATED,
+    include_in_schema=False
 )
 async def create_offer(
     offer_in: OfferCreate,
