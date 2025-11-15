@@ -2,12 +2,19 @@
  * Muestra la tabla de categorías existentes en el admin.
  */
 export default function CategoryList({ categories, onEdit, onDelete }) {
+  if (!categories || categories.length === 0) {
+    return (
+      <div className="rounded-xl bg-white p-8 shadow-md">
+        <h2 className="mb-8 font-poppins text-3xl font-semibold text-neutral-900">
+          Categorías existentes
+        </h2>
+        <p className="text-neutral-600 font-inter">No hay categorías disponibles.</p>
+      </div>
+    )
+  }
+
   return (
     <div className="rounded-xl bg-white p-8 shadow-md">
-      <h2 className="mb-8 font-poppins text-3xl font-semibold text-neutral-900">
-        Categorías existentes
-      </h2>
-      
       {/* Contenedor de la tabla para overflow en móvil */}
       <div className="w-full overflow-x-auto">
         <table className="min-w-full table-auto">

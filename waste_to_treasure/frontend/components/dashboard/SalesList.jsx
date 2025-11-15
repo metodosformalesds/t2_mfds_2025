@@ -2,14 +2,14 @@
 
 import { useSales } from '@/hooks/useSales';
 import { DollarSign, Loader2, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 export default function SalesList() {
   const { sales, isLoading, error, pagination, goToPage, nextPage, prevPage } = useSales();
+  const { user } = useAuth();
 
   const handleViewDetails = (orderId) => {
-    console.log('Ver detalles de la venta:', orderId);
-    // TODO: Navegar a página de detalles o abrir modal
-    // router.push(`/dashboard/sales/${orderId}`);
+    window.location.href = `/dashboard/sales/${orderId}`;
   };
 
   const getStatusColor = (status) => {
@@ -102,38 +102,56 @@ export default function SalesList() {
           </thead>
           <tbody>
             {sales.length > 0 ? (
-              sales.map((order) => (
-                <tr key={order.order_id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                  <td className="py-4 px-4 text-gray-700 font-inter font-semibold">
-                    #{order.order_id}
-                  </td>
-                  <td className="py-4 px-4 text-gray-700 font-inter">
-                    {order.buyer?.full_name || order.buyer?.email || 'N/A'}
-                  </td>
-                  <td className="py-4 px-4 text-gray-700 font-inter">
-                    {order.items?.length || 0} producto(s)
-                  </td>
-                  <td className="py-4 px-4 text-gray-700 font-inter font-semibold">
-                    ${order.total_amount?.toFixed(2) || '0.00'}
-                  </td>
-                  <td className="py-4 px-4 text-gray-500 font-inter text-sm">
-                    {formatDate(order.created_at)}
-                  </td>
-                  <td className="py-4 px-4">
-                    <span className={`px-3 py-1 text-xs font-semibold rounded-full border ${getStatusColor(order.status)} font-inter`}>
-                      {getStatusLabel(order.status)}
-                    </span>
-                  </td>
-                  <td className="py-4 px-4">
-                    <button
-                      onClick={() => handleViewDetails(order.order_id)}
-                      className="px-6 py-2 bg-primary-100 text-primary-700 text-sm font-semibold rounded-full hover:bg-primary-200 transition-colors border border-primary-300 font-inter"
-                    >
-                      Ver Detalles
-                    </button>
-                  </td>
-                </tr>
-              ))
+              sales.map((order) => {
+                // Contar solo los productos del vendedor actual
+                const myItemsCount = order.order_items?.filter(item => 
+                  item.listing && item.listing.seller_id === user?.user_id
+                ).length || 0;
+
+                // Calcular el total solo de los items del vendedor
+                const myTotal = order.order_items?.reduce((sum, item) => {
+                  if (item.listing && item.listing.seller_id === user?.user_id) {
+                    const price = typeof item.price_at_purchase === 'number' 
+                      ? item.price_at_purchase 
+                      : parseFloat(item.price_at_purchase || 0);
+                    return sum + (price * item.quantity);
+                  }
+                  return sum;
+                }, 0) || 0;
+
+                return (
+                  <tr key={order.order_id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <td className="py-4 px-4 text-gray-700 font-inter font-semibold">
+                      #{order.order_id}
+                    </td>
+                    <td className="py-4 px-4 text-gray-700 font-inter">
+                      {order.buyer?.full_name || order.buyer?.email || 'N/A'}
+                    </td>
+                    <td className="py-4 px-4 text-gray-700 font-inter">
+                      {myItemsCount} producto(s)
+                    </td>
+                    <td className="py-4 px-4 text-gray-700 font-inter font-semibold">
+                      ${myTotal.toFixed(2)}
+                    </td>
+                    <td className="py-4 px-4 text-gray-500 font-inter text-sm">
+                      {formatDate(order.created_at)}
+                    </td>
+                    <td className="py-4 px-4">
+                      <span className={`px-3 py-1 text-xs font-semibold rounded-full border ${getStatusColor(order.status)} font-inter`}>
+                        {getStatusLabel(order.status)}
+                      </span>
+                    </td>
+                    <td className="py-4 px-4">
+                      <button
+                        onClick={() => handleViewDetails(order.order_id)}
+                        className="px-6 py-2 bg-primary-100 text-primary-700 text-sm font-semibold rounded-full hover:bg-primary-200 transition-colors border border-primary-300 font-inter"
+                      >
+                        Ver Detalles
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
             ) : (
               <tr>
                 <td colSpan="7" className="py-12 text-center">

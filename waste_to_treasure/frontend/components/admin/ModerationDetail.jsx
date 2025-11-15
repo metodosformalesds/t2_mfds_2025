@@ -17,6 +17,25 @@ export default function ModerationDetail({
         {item.title}
       </h2>
 
+      {/* Metadatos */}
+      <div className="mt-4 flex flex-wrap gap-4 items-center">
+        {item.category && (
+          <span className="inline-flex items-center gap-2 font-inter text-sm bg-primary-100 text-primary-700 px-3 py-1.5 rounded-full">
+            <span className="font-medium">Categoría:</span> {item.category}
+          </span>
+        )}
+        {item.price && (
+          <span className="inline-flex items-center gap-2 font-roboto text-sm bg-green-100 text-green-700 px-3 py-1.5 rounded-full font-bold">
+            <span className="font-normal">Precio:</span> ${item.price}
+          </span>
+        )}
+        {item.createdAt && (
+          <span className="inline-flex items-center gap-2 font-inter text-sm bg-neutral-100 text-neutral-700 px-3 py-1.5 rounded-full">
+            <span className="font-medium">Publicado:</span> {new Date(item.createdAt).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })}
+          </span>
+        )}
+      </div>
+
       {/* Detalles del Usuario */}
       <div className="mt-6 space-y-2">
         <div>
@@ -30,7 +49,7 @@ export default function ModerationDetail({
             Descripción:
           </h3>
           <p className="font-inter text-sm text-neutral-700">
-            “{item.description}”
+            "{item.description}"
           </p>
         </div>
       </div>
@@ -64,44 +83,36 @@ export default function ModerationDetail({
           htmlFor="rejectionReason"
           className="block font-roboto text-lg font-medium text-neutral-900"
         >
-          Razón de rechazo (si aplica):
+          Razón de rechazo (obligatoria para rechazar):
         </label>
         <textarea
           id="rejectionReason"
           value={rejectionReason}
-          onChange={(e) => {
-            console.log('[ModerationDetail] Razón actualizada:', e.target.value)
-            onReasonChange(e)
-          }}
-          placeholder="Ej: Imagen no clara, descripción incompleta"
+          onChange={(e) => onReasonChange(e.target.value)}
+          placeholder="Ej: Imagen no clara, descripción incompleta, contenido inapropiado..."
           rows={3}
-          className="mt-2 w-full rounded-xl border border-neutral-900 bg-white px-4 py-2.5 font-inter text-neutral-900/70 placeholder-neutral-900/70 focus:ring-2 focus:ring-primary-500"
+          className="mt-2 w-full rounded-xl border border-neutral-900 bg-white px-4 py-2.5 font-inter text-neutral-900/70 placeholder-neutral-900/70 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
         />
-        {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+        {error && (
+          <div className="mt-2 rounded-lg bg-red-50 border border-red-200 p-3">
+            <p className="text-sm text-red-800 font-inter">{error}</p>
+          </div>
+        )}
       </div>
 
       {/* Botones de Acción */}
       <div className="mt-6 flex gap-4">
         <button
-          onClick={() => {
-            console.log('[ModerationDetail] Botón APROBAR clickeado')
-            console.log('[ModerationDetail] Item:', item)
-            onApprove()
-          }}
-          className="rounded-lg bg-primary-500 px-6 py-3 font-inter text-base font-semibold text-white transition-colors hover:bg-primary-600"
+          onClick={onApprove}
+          className="flex-1 rounded-lg bg-primary-500 px-6 py-3 font-inter text-base font-semibold text-white transition-colors hover:bg-primary-600 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
         >
-          Aprobar
+          Aprobar publicación
         </button>
         <button
-          onClick={() => {
-            console.log('[ModerationDetail] Botón RECHAZAR clickeado')
-            console.log('[ModerationDetail] Item:', item)
-            console.log('[ModerationDetail] Razón:', rejectionReason)
-            onReject()
-          }}
-          className="rounded-lg bg-secondary-600 px-6 py-3 font-inter text-base font-semibold text-white transition-colors hover:bg-secondary-500"
+          onClick={onReject}
+          className="flex-1 rounded-lg bg-secondary-600 px-6 py-3 font-inter text-base font-semibold text-white transition-colors hover:bg-secondary-700 focus:ring-2 focus:ring-secondary-500 focus:ring-offset-2"
         >
-          Rechazar
+          Rechazar publicación
         </button>
       </div>
     </div>

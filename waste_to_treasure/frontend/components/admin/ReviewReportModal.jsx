@@ -23,10 +23,11 @@ const ContextDetail = ({ label, value }) => (
   </p>
 )
 
-const ActionButton = ({ text, color, onClick }) => (
+const ActionButton = ({ text, color, onClick, disabled = false }) => (
   <button
     onClick={onClick}
-    className={`rounded-lg px-4 py-2 text-xs font-semibold transition-colors ${color}`}
+    disabled={disabled}
+    className={`rounded-lg px-4 py-2 text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${color}`}
   >
     {text}
   </button>
@@ -129,68 +130,15 @@ export default function ReviewReportModal({
 
           <hr />
 
-          {/* Acciones */}
+          {/* Acciones principales */}
           <div className="space-y-4">
-            {/* Acciones de moderación */}
             <div>
-              <h3 className="font-roboto text-lg font-medium text-neutral-900">
-                Acciones de moderación:
+              <h3 className="font-roboto text-lg font-medium text-neutral-900 mb-3">
+                Resolución del reporte:
               </h3>
-              <div className="mt-2">
+              <div className="flex flex-wrap gap-3">
                 <ActionButton
-                  text="Quitar publicación"
-                  color="bg-red-600 text-white hover:bg-red-700"
-                  onClick={() =>
-                    handleConfirmAction(
-                      'remove_listing',
-                      'Quitar Publicación',
-                      `¿Estás seguro de que quieres quitar la publicación "${report.context.title}"?`
-                    )
-                  }
-                />
-              </div>
-            </div>
-
-            {/* Sobre el usuario */}
-            <div>
-              <h3 className="font-roboto text-lg font-medium text-neutral-900">
-                Sobre el usuario reportado:
-              </h3>
-              <div className="mt-2 flex flex-wrap gap-2">
-                <ActionButton
-                  text="Suspender cuenta"
-                  color="bg-red-600 text-white hover:bg-red-700"
-                  onClick={() =>
-                    handleConfirmAction(
-                      'suspend_user',
-                      'Suspender Usuario',
-                      `¿Estás seguro de que quieres suspender la cuenta de ${report.context.seller}?`
-                    )
-                  }
-                />
-                <ActionButton
-                  text="Enviar advertencia"
-                  color="bg-yellow-400 text-black hover:bg-yellow-500"
-                  onClick={() =>
-                    handleConfirmAction(
-                      'warn_user',
-                      'Enviar Advertencia',
-                      `¿Estás seguro de que quieres enviar una advertencia a ${report.context.seller}?`,
-                      { danger: false }
-                    )
-                  }
-                />
-              </div>
-            </div>
-
-            {/* Sobre el reporte */}
-            <div>
-              <h3 className="font-roboto text-lg font-medium text-neutral-900">
-                Sobre el reporte:
-              </h3>
-              <div className="mt-2 flex flex-wrap gap-2">
-                <ActionButton
-                  text="Marcar resuelto"
+                  text="Marcar como Resuelto"
                   color="bg-primary-500 text-white hover:bg-primary-600"
                   onClick={() =>
                     handleConfirmAction(
@@ -202,8 +150,8 @@ export default function ReviewReportModal({
                   }
                 />
                 <ActionButton
-                  text="Desestimar"
-                  color="bg-neutral-900 text-white hover:bg-neutral-700"
+                  text="Desestimar Reporte"
+                  color="bg-neutral-600 text-white hover:bg-neutral-700"
                   onClick={() =>
                     handleConfirmAction(
                       'dismiss',
@@ -215,6 +163,46 @@ export default function ReviewReportModal({
                 />
               </div>
             </div>
+
+            {/* Acciones futuras (deshabilitadas) */}
+            <details className="group">
+              <summary className="cursor-pointer font-roboto text-base font-medium text-neutral-700 hover:text-neutral-900 list-none flex items-center gap-2">
+                <span className="transition-transform group-open:rotate-90">▶</span>
+                Acciones adicionales (próximamente)
+              </summary>
+              <div className="mt-3 space-y-3 pl-6">
+                <div>
+                  <h4 className="font-roboto text-sm font-medium text-neutral-600 mb-2">
+                    Sobre la publicación:
+                  </h4>
+                  <ActionButton
+                    text="Quitar publicación"
+                    color="bg-neutral-200 text-neutral-500"
+                    disabled={true}
+                    onClick={() => {}}
+                  />
+                </div>
+                <div>
+                  <h4 className="font-roboto text-sm font-medium text-neutral-600 mb-2">
+                    Sobre el usuario:
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    <ActionButton
+                      text="Suspender cuenta"
+                      color="bg-neutral-200 text-neutral-500"
+                      disabled={true}
+                      onClick={() => {}}
+                    />
+                    <ActionButton
+                      text="Enviar advertencia"
+                      color="bg-neutral-200 text-neutral-500"
+                      disabled={true}
+                      onClick={() => {}}
+                    />
+                  </div>
+                </div>
+              </div>
+            </details>
           </div>
         </div>
       </div>

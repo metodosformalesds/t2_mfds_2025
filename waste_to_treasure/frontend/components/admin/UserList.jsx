@@ -4,13 +4,25 @@ import React from 'react'
  * Badge para el estado del usuario (ACTIVO / BLOQUEADO)
  */
 const StatusBadge = ({ status }) => {
+  const normalizedStatus = (status || 'active').toUpperCase()
   let classes = ''
-  switch (status) {
+  let displayText = normalizedStatus
+  
+  switch (normalizedStatus) {
+    case 'ACTIVE':
     case 'ACTIVO':
-      classes = 'bg-primary-500 text-white' // Verde
+      classes = 'bg-primary-500 text-white'
+      displayText = 'ACTIVO'
       break
+    case 'BLOCKED':
     case 'BLOQUEADO':
-      classes = 'bg-secondary-600 text-white' // Naranja/Marrón
+      classes = 'bg-secondary-600 text-white'
+      displayText = 'BLOQUEADO'
+      break
+    case 'PENDING':
+    case 'PENDIENTE':
+      classes = 'bg-yellow-500 text-white'
+      displayText = 'PENDIENTE'
       break
     default:
       classes = 'bg-neutral-500 text-white'
@@ -19,7 +31,7 @@ const StatusBadge = ({ status }) => {
     <span
       className={`block w-fit rounded-lg px-3 py-1 text-center text-sm font-medium ${classes}`}
     >
-      {status}
+      {displayText}
     </span>
   )
 }
@@ -28,6 +40,14 @@ const StatusBadge = ({ status }) => {
  * Muestra la tabla de usuarios existentes.
  */
 export default function UserList({ users, onView, onBlock, onUnblock }) {
+  if (!users || users.length === 0) {
+    return (
+      <div className="rounded-xl bg-white p-8 shadow-md">
+        <p className="text-neutral-600 font-inter text-center">No hay usuarios para mostrar.</p>
+      </div>
+    )
+  }
+
   return (
     // --- INICIO DE LA CORRECCIÓN DE LAYOUT ---
     // El 'card' ahora está en la página (page.jsx)
@@ -38,9 +58,6 @@ export default function UserList({ users, onView, onBlock, onUnblock }) {
         <table className="min-w-full table-auto">
           <thead>
             <tr>
-              <th className="w-1/12 px-6 py-2 text-left font-inter text-base font-semibold text-neutral-900">
-                ID
-              </th>
               <th className="w-2/12 px-0 py-2 text-left font-inter text-base font-semibold text-neutral-900">
                 Nombre
               </th>
@@ -68,52 +85,52 @@ export default function UserList({ users, onView, onBlock, onUnblock }) {
       <div className="w-full overflow-x-auto rounded-b-xl">
         <table className="min-w-full table-auto">
           <tbody className="divide-y divide-neutral-200">
-            {users.map(user => (
-              <tr key={user.id} className="hover:bg-neutral-50">
-                <td className="w-1/12 px-12 py-4  font-inter text-base text-neutral-900">
-                  {user.id}
-                </td>
-                <td className="w-2/12 px-2 py-4 font-inter text-base text-neutral-900">
-                  {user.name}
-                </td>
-                <td className="w-2/12 px-5 py-4 font-inter text-base text-neutral-900">
-                  {user.email}
-                </td>
-                <td className="w-1/12 px-8 py-4 font-inter text-base text-neutral-900">
-                  {user.role}
-                </td>
-                <td className="w-2/12 px-0 py-4 font-inter text-base text-neutral-900">
-                  {user.registerDate}
-                </td>
-                <td className="w-1/12 px-0 py-4">
-                  <StatusBadge status={user.status} />
-                </td>
-                {/* Botones ahora con flex-nowrap y flex-shrink-0 */}
-                <td className="flex w-3/12 flex-nowrap gap-2 px-4 py-4">
-                  <button
-                    onClick={() => onView(user)}
-                    className="flex-shrink-0 rounded-lg bg-primary-500 px-5 py-2 font-inter text-sm font-semibold text-white transition-colors hover:bg-primary-600"
-                  >
-                    Ver
-                  </button>
-                  {user.status === 'ACTIVO' ? (
+            {users.map(user => {
+              const userStatus = (user.status || 'active').toLowerCase()
+              return (
+                <tr key={user.id} className="hover:bg-neutral-50">
+                  <td className="w-2/12 px-2 py-4 font-inter text-base text-neutral-900">
+                    {user.name}
+                  </td>
+                  <td className="w-2/12 px-5 py-4 font-inter text-base text-neutral-900">
+                    {user.email}
+                  </td>
+                  <td className="w-1/12 px-8 py-4 font-inter text-base text-neutral-900">
+                    {user.role}
+                  </td>
+                  <td className="w-2/12 px-0 py-4 font-inter text-base text-neutral-900">
+                    {user.registeredAt}
+                  </td>
+                  <td className="w-1/12 px-0 py-4">
+                    <StatusBadge status={user.status} />
+                  </td>
+                  {/* Botones ahora con flex-nowrap y flex-shrink-0 */}
+                  <td className="flex w-3/12 flex-nowrap gap-2 px-4 py-4">
                     <button
-                      onClick={() => onBlock(user)}
-                      className="flex-shrink-0 rounded-lg bg-secondary-600 px-5 py-2 font-inter text-sm font-semibold text-white transition-colors hover:bg-secondary-500"
-                    >
-                      Bloquear
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => onUnblock(user)}
+                      onClick={() => onView(user)}
                       className="flex-shrink-0 rounded-lg bg-primary-500 px-5 py-2 font-inter text-sm font-semibold text-white transition-colors hover:bg-primary-600"
                     >
-                      Desbloquear
+                      Ver
                     </button>
-                  )}
-                </td>
-              </tr>
-            ))}
+                    {userStatus === 'active' || userStatus === 'activo' ? (
+                      <button
+                        onClick={() => onBlock(user)}
+                        className="flex-shrink-0 rounded-lg bg-secondary-600 px-5 py-2 font-inter text-sm font-semibold text-white transition-colors hover:bg-secondary-500"
+                      >
+                        Bloquear
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => onUnblock(user)}
+                        className="flex-shrink-0 rounded-lg bg-primary-500 px-5 py-2 font-inter text-sm font-semibold text-white transition-colors hover:bg-primary-600"
+                      >
+                        Desbloquear
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </div>

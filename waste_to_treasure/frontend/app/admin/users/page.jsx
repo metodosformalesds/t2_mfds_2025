@@ -1,67 +1,102 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ChevronDown, Search } from 'lucide-react'
+import { ChevronDown, Search, ChevronLeft, ChevronRight } from 'lucide-react'
 import UserList from '@/components/admin/UserList'
 import UserDetailModal from '@/components/admin/UserDetailModal'
 import { useConfirmStore } from '@/stores/useConfirmStore'
-import { usersService } from '@/lib/api/users' // 1. Importar servicio
-
-// (Datos de initialUsers SE MANTIENEN por falta de API)
-const initialUsers = [
-  // ... (datos mock sin cambios)
-]
+import { adminService } from '@/lib/api/admin'
 
 export default function AdminUsersPage() {
-  const [users, setUsers] = useState(initialUsers)
-  const [filteredUsers, setFilteredUsers] = useState(initialUsers)
+  const [users, setUsers] = useState([])
+  const [totalUsers, setTotalUsers] = useState(0)
+  const [isLoading, setIsLoading] = useState(true)
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState(null)
 
   const [searchTerm, setSearchTerm] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
+  
+  // Estado de paginación
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage] = useState(8)
 
   const openConfirmModal = useConfirmStore(state => state.open)
 
-  // 2. AVISO: Lógica de fetchAll no se puede implementar
-  useEffect(() => {
-    // const fetchUsers = async () => {
-    //   // const data = await usersService.getAll() <-- Este endpoint no existe
-    //   // setUsers(data.items)
-    // }
-    // fetchUsers()
-    
-    // Por ahora, solo filtramos los datos mock
-    let result = users
-      .filter(user =>
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-      .filter(user =>
-        roleFilter === 'all' ? true : user.role === roleFilter
-      )
-      .filter(user =>
-        statusFilter === 'all' ? true : user.status === statusFilter
-      )
-    setFilteredUsers(result)
-  }, [searchTerm, roleFilter, statusFilter, users])
-
-  // 3. Lógica de Modales (Mejorada para fetchear datos reales)
-  const handleOpenDetail = async (user) => {
+  // Cargar usuarios desde la API
+  const fetchUsers = async () => {
     try {
-      // Fetchear los detalles completos de la API
-      // Nota: La API /users/{user_id} retorna UserPublic, que es limitado.
-      // Usaremos los datos mock + el ID real por ahora.
-      // const detailedUser = await usersService.getById(user.id) 
-      // setSelectedUser({ ...user, ...detailedUser })
+      setIsLoading(true)
+      const skip = (currentPage - 1) * itemsPerPage
       
-      // Como la API de detalle es limitada, solo pasamos el mock por ahora.
-      setSelectedUser(user) 
-      setIsDetailModalOpen(true)
+      const params = {
+        limit: itemsPerPage,
+        skip: skip
+      }
+      
+      // Solo agregar filtros si tienen valores válidos
+      if (roleFilter && roleFilter !== 'all') {
+        params.role = roleFilter.toUpperCase()
+      }
+      
+      if (statusFilter && statusFilter !== 'all') {
+        params.status = statusFilter.toUpperCase()
+      }
+      
+      if (searchTerm && searchTerm.trim()) {
+        params.search = searchTerm.trim()
+      }
+      
+      const data = await adminService.getUsersList(params)
+      
+      setTotalUsers(data.total || 0)
+      
+      const formattedUsers = (data.items || []).map(user => ({
+        id: user.user_id,
+        name: user.full_name || 'Sin nombre',
+        email: user.email || 'Sin email',
+        role: (user.role || 'user').toLowerCase(),
+        status: (user.status || 'active').toLowerCase(),
+        registeredAt: user.created_at ? new Date(user.created_at).toLocaleDateString('es-MX') : 'N/A'
+      }))
+      
+      setUsers(formattedUsers)
     } catch (error) {
-      console.error("Error al cargar detalles del usuario", error)
+      console.error('Error al cargar usuarios:', error)
+      setUsers([])
+      setTotalUsers(0)
+    } finally {
+      setIsLoading(false)
     }
+  }
+
+  useEffect(() => {
+    fetchUsers()
+  }, [searchTerm, roleFilter, statusFilter, currentPage])
+
+  // Resetear a página 1 cuando cambian los filtros
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm, roleFilter, statusFilter])
+
+  // Lógica de Modales
+  const handleOpenDetail = (user) => {
+    setSelectedUser({
+      ...user,
+      stats: {
+        publications: 0,
+        transactions: 0,
+        memberSince: user.registeredAt,
+        warnings: 0
+      },
+      incidents: []
+    })
+    setIsDetailModalOpen(true)
+    
+    // TODO: Implementar carga de estadísticas cuando el backend tenga el endpoint
+    // const stats = await adminService.getUserDetailedStats(user.id)
+    // setSelectedUser(prev => ({ ...prev, stats }))
   }
 
   const handleCloseDetail = () => {
@@ -69,20 +104,20 @@ export default function AdminUsersPage() {
     setSelectedUser(null)
   }
 
-  // 4. Lógica de Acciones (CONECTADA A API)
+  // Lógica de Acciones (CONECTADA A API)
   const setUserStatus = async (userId, newStatus) => {
     try {
       console.log(`Cambiando estado de ${userId} a ${newStatus}`)
-      // ¡Llamada a la API!
-      const updatedUser = await usersService.updateUser(userId, { status: newStatus })
       
-      // Actualizar estado local
-      setUsers(
-        users.map(u => (u.id === userId ? { ...u, status: updatedUser.status } : u))
-      )
+      // Llamada a la API
+      const updatedUser = await usersService.updateUser(userId, { 
+        status: newStatus.toUpperCase() 
+      })
+      
+      // Recargar la lista
+      await fetchUsers()
     } catch (error) {
       console.error("Error al actualizar estado de usuario", error)
-      // TODO: Mostrar error
     }
   }
 
@@ -90,7 +125,7 @@ export default function AdminUsersPage() {
     openConfirmModal(
       'Bloquear Usuario',
       `¿Estás seguro de que quieres bloquear a ${user.name}? El usuario no podrá iniciar sesión.`,
-      () => setUserStatus(user.id, 'BLOCKED'), // 'BLOCKED' según UserStatusEnum
+      () => setUserStatus(user.id, 'BLOCKED'),
       { danger: true }
     )
   }
@@ -99,32 +134,147 @@ export default function AdminUsersPage() {
     openConfirmModal(
       'Desbloquear Usuario',
       `¿Estás seguro de que quieres desbloquear a ${user.name}? El usuario recuperará el acceso a su cuenta.`,
-      () => setUserStatus(user.id, 'ACTIVE'), // 'ACTIVE' según UserStatusEnum
+      () => setUserStatus(user.id, 'ACTIVE'),
       { danger: false }
+    )
+  }
+
+  // Calcular información de paginación
+  const totalPages = Math.ceil(totalUsers / itemsPerPage)
+  const startItem = totalUsers > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0
+  const endItem = Math.min(currentPage * itemsPerPage, totalUsers)
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-neutral-900 font-medium">Cargando Usuarios...</p>
+        </div>
+      </div>
     )
   }
 
   return (
     <>
-      <h1 className="font-poppins text-5xl font-bold text-primary-500">
+      <h1 className="font-poppins text-3xl sm:text-4xl lg:text-5xl font-bold text-primary-500">
         Gestión de usuarios
       </h1>
-      <p className="mt-4 text-red-600 font-semibold">
-        Nota: La lista de usuarios es estática (mock). La API no provee un endpoint
-        para listar todos los usuarios. Las acciones (Bloquear/Desbloquear) sí
-        están conectadas a la API.
-      </p>
 
-      {/* ... (JSX de filtros sin cambios) ... */}
+      {/* Filtros y búsqueda */}
+      <div className="mt-6 sm:mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-400" />
+          <input
+            type="text"
+            placeholder="Buscar por nombre o email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full rounded-lg border border-neutral-300 py-2 pl-10 pr-4 font-inter text-sm focus:border-primary-500 focus:outline-none"
+          />
+        </div>
+
+        <div className="flex gap-3">
+          <div className="relative">
+            <select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              className="appearance-none rounded-lg border border-neutral-300 bg-white py-2 pl-4 pr-10 font-inter text-sm focus:border-primary-500 focus:outline-none"
+            >
+              <option value="all">Todos los roles</option>
+              <option value="user">Usuario</option>
+              <option value="admin">Administrador</option>
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500" />
+          </div>
+
+          <div className="relative">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="appearance-none rounded-lg border border-neutral-300 bg-white py-2 pl-4 pr-10 font-inter text-sm focus:border-primary-500 focus:outline-none"
+            >
+              <option value="all">Todos los estados</option>
+              <option value="active">Activo</option>
+              <option value="blocked">Bloqueado</option>
+              <option value="pending">Pendiente</option>
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500" />
+          </div>
+        </div>
+      </div>
       
-      <div className="mt-8 rounded-xl bg-white shadow-md overflow-hidden">
+      <div className="mt-6 sm:mt-8 rounded-xl bg-white shadow-md overflow-hidden overflow-x-auto">
         <UserList
-          users={filteredUsers}
+          users={users}
           onView={handleOpenDetail}
           onBlock={handleBlockUser}
           onUnblock={handleUnblockUser}
         />
       </div>
+
+      {/* Paginación */}
+      {totalUsers > 0 && (
+        <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 px-4">
+          {/* Información de registros */}
+          <div className="text-sm text-neutral-600 font-inter">
+            Mostrando <span className="font-semibold text-neutral-900">{startItem}</span> a{' '}
+            <span className="font-semibold text-neutral-900">{endItem}</span> de{' '}
+            <span className="font-semibold text-neutral-900">{totalUsers}</span> usuarios
+          </div>
+
+          {/* Controles de paginación */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="flex items-center gap-1 px-4 py-2 rounded-lg border border-neutral-300 bg-white font-inter text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Anterior
+            </button>
+
+            {/* Números de página */}
+            <div className="flex items-center gap-1">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum
+                if (totalPages <= 5) {
+                  pageNum = i + 1
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i
+                } else {
+                  pageNum = currentPage - 2 + i
+                }
+
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`px-3 py-2 rounded-lg font-inter text-sm font-medium transition-colors ${
+                      currentPage === pageNum
+                        ? 'bg-primary-500 text-white'
+                        : 'bg-white border border-neutral-300 text-neutral-700 hover:bg-neutral-50'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                )
+              })}
+            </div>
+
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+              className="flex items-center gap-1 px-4 py-2 rounded-lg border border-neutral-300 bg-white font-inter text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white"
+            >
+              Siguiente
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       <UserDetailModal
         isOpen={isDetailModalOpen}

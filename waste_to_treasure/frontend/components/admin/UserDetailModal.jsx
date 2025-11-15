@@ -36,6 +36,17 @@ export default function UserDetailModal({
 
   if (!isOpen || !user) return null
 
+  const stats = user.stats || {
+    publications: 0,
+    transactions: 0,
+    memberSince: user.registeredAt || 'N/A',
+    warnings: 0
+  }
+  
+  const incidents = user.incidents || []
+  const displayName = user.name || 'Sin nombre'
+  const displayEmail = user.email || 'Sin email'
+
   const handleBlock = () => {
     onClose() // Cierra el modal de detalles
     onBlock(user) // Llama a la función de bloqueo (que abre el modal de confirmación)
@@ -50,7 +61,7 @@ export default function UserDetailModal({
   const handleWarn = () => {
     openConfirmModal(
       'Enviar Advertencia',
-      `¿Estás seguro de que quieres enviar una advertencia a ${user.name}?`,
+      `¿Estás seguro de que quieres enviar una advertencia a ${displayName}?`,
       () => console.log('Advirtiendo a', user.id),
       false // No es una acción peligrosa
     )
@@ -59,7 +70,7 @@ export default function UserDetailModal({
   const handleResetPassword = () => {
     openConfirmModal(
       'Resetear Contraseña',
-      `¿Estás seguro de que quieres forzar un reseteo de contraseña para ${user.name}? El usuario recibirá un email.`,
+      `¿Estás seguro de que quieres forzar un reseteo de contraseña para ${displayName}? El usuario recibirá un email.`,
       () => console.log('Reseteando contraseña de', user.id),
       false // No es una acción peligrosa
     )
@@ -85,21 +96,21 @@ export default function UserDetailModal({
         {/* Info y Badges */}
         <div className="mb-4">
           <h3 className="font-roboto text-lg font-medium text-neutral-900">
-            {user.name}
+            {displayName}
           </h3>
-          <p className="font-inter text-base text-neutral-700">{user.email}</p>
+          <p className="font-inter text-base text-neutral-700">{displayEmail}</p>
           <div className="mt-2 flex gap-2">
             <span
               className={`inline-block rounded-lg px-3 py-1 text-xs font-semibold ${
-                user.status === 'ACTIVO'
+                user.status?.toUpperCase() === 'ACTIVE' || user.status?.toUpperCase() === 'ACTIVO'
                   ? 'bg-primary-500 text-white'
                   : 'bg-secondary-600 text-white'
               }`}
             >
-              {user.status}
+              {user.status?.toUpperCase() === 'ACTIVE' ? 'ACTIVO' : user.status?.toUpperCase() === 'BLOCKED' ? 'BLOQUEADO' : user.status}
             </span>
             <span className="inline-block rounded-lg bg-neutral-900 px-3 py-1 text-xs font-semibold text-white">
-              {user.role}
+              {user.role?.toUpperCase()}
             </span>
           </div>
         </div>
@@ -111,19 +122,19 @@ export default function UserDetailModal({
             <div className="flex gap-4">
               <StatCard
                 title="Publicaciones"
-                value={user.stats.publications}
+                value={stats.publications}
               />
               <StatCard
                 title="Transacciones"
-                value={user.stats.transactions}
+                value={stats.transactions}
               />
             </div>
             <div className="flex gap-4">
               <StatCard
                 title="Miembro desde"
-                value={user.stats.memberSince}
+                value={stats.memberSince}
               />
-              <StatCard title="Advertencias" value={user.stats.warnings} />
+              <StatCard title="Advertencias" value={stats.warnings} />
             </div>
           </div>
 
@@ -133,8 +144,8 @@ export default function UserDetailModal({
               Historial de incidencias
             </h3>
             <div className="mt-2 h-48 max-h-48 space-y-2 overflow-y-auto rounded-lg bg-neutral-100 p-3">
-              {user.incidents.length > 0 ? (
-                user.incidents.map(incident => (
+              {incidents.length > 0 ? (
+                incidents.map(incident => (
                   <div
                     key={incident.id}
                     className="rounded bg-white p-2 text-sm text-neutral-700 shadow-sm"
@@ -159,7 +170,7 @@ export default function UserDetailModal({
             Acciones de moderación:
           </h3>
           <div className="mt-2 flex flex-wrap gap-2">
-            {user.status === 'ACTIVO' ? (
+            {user.status?.toLowerCase() === 'active' || user.status?.toLowerCase() === 'activo' ? (
               <ActionButton
                 text="Bloquear usuario"
                 color="bg-red-600 text-white hover:bg-red-700"

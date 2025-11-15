@@ -6,12 +6,13 @@ import listingsService from '@/lib/api/listings'
 import { Loader2, RefreshCw } from 'lucide-react'
 
 // Componente para la Fila de la Tabla
-function PublicationRow({ pub, onEdit, onDeactivate }) {
+function PublicationRow({ pub, onEdit, onDeactivate, showActions }) {
   const getStatusBadge = (status) => {
     const badges = {
       ACTIVE: { text: 'Activo', class: 'bg-green-100 text-green-700' },
       PENDING: { text: 'Pendiente', class: 'bg-yellow-100 text-yellow-700' },
       REJECTED: { text: 'Rechazado', class: 'bg-red-100 text-red-700' },
+      INACTIVE: { text: 'Inactivo', class: 'bg-gray-100 text-gray-700' },
       SOLD: { text: 'Vendido', class: 'bg-blue-100 text-blue-700' }
     }
     return badges[status] || { text: status, class: 'bg-gray-100 text-gray-700' }
@@ -38,26 +39,26 @@ function PublicationRow({ pub, onEdit, onDeactivate }) {
         {pub.listing_type === 'PRODUCT' ? 'Producto' : 'Material'}
       </td>
       <td className="py-4 px-2 font-inter text-sm text-[#596171]">
-        {pub.quantity}
+        {pub.available_quantity || pub.quantity || 0}
       </td>
-      <td className="py-4 px-2">
-        <div className="flex items-center gap-2">
-          <button 
-            onClick={() => onEdit(pub.listing_id)}
-            className="rounded-lg border border-primary-500 bg-primary-500/20 px-4 py-1.5 font-inter text-sm font-semibold text-primary-500 transition-colors hover:bg-primary-500/30"
-          >
-            Editar
-          </button>
-          {pub.status === 'ACTIVE' && (
+      {showActions && (
+        <td className="py-4 px-2">
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => onEdit(pub.listing_id)}
+              className="rounded-lg border border-primary-500 bg-primary-500/20 px-4 py-1.5 font-inter text-sm font-semibold text-primary-500 transition-colors hover:bg-primary-500/30"
+            >
+              Editar
+            </button>
             <button 
               onClick={() => onDeactivate(pub.listing_id)}
               className="rounded-lg border border-red-500 bg-red-500/20 px-4 py-1.5 font-inter text-sm font-semibold text-red-500 transition-colors hover:bg-red-500/30"
             >
               Desactivar
             </button>
-          )}
-        </div>
-      </td>
+          </div>
+        </td>
+      )}
     </tr>
   )
 }
@@ -92,7 +93,7 @@ export default function PublicationsList() {
   const statusMap = {
     active: ['ACTIVE', 'SOLD'],
     pending: ['PENDING'],
-    inactive: ['REJECTED', 'DELETED']
+    inactive: ['REJECTED', 'DELETED', 'INACTIVE']
   }
 
   // Función para cargar publicaciones
@@ -101,18 +102,8 @@ export default function PublicationsList() {
     setError(null)
 
     try {
-      console.log('[PublicationsList] Iniciando carga de publicaciones...')
       const response = await listingsService.getMyListings({ page_size: 100 })
-      console.log('[PublicationsList] Respuesta completa de API:', response)
-      
       const listings = response.items || []
-      console.log('[PublicationsList] Total de listings encontrados:', listings.length)
-      console.log('[PublicationsList] Listings cargados:', listings)
-      
-      // Log detallado de cada listing
-      listings.forEach((l, i) => {
-        console.log(`  ${i + 1}. ${l.title} - Status: ${l.status} - ID: ${l.listing_id}`)
-      })
       
       setAllListings(listings)
 
@@ -120,22 +111,18 @@ export default function PublicationsList() {
       const newCounts = {
         active: listings.filter(l => ['ACTIVE', 'SOLD'].includes(l.status)).length,
         pending: listings.filter(l => l.status === 'PENDING').length,
-        inactive: listings.filter(l => ['REJECTED', 'DELETED'].includes(l.status)).length
+        inactive: listings.filter(l => ['REJECTED', 'DELETED', 'INACTIVE'].includes(l.status)).length
       }
-      console.log('[PublicationsList] Contadores calculados:', newCounts)
       setCounts(newCounts)
 
       // Filtrar por tab activo
       const filtered = listings.filter(l => 
         statusMap[activeTab].includes(l.status)
       )
-      console.log(`[PublicationsList] Tab activo: "${activeTab}", Filtrados: ${filtered.length}`)
-      console.log('[PublicationsList] Estados buscados:', statusMap[activeTab])
       setPublications(filtered)
 
     } catch (err) {
-      console.error('[PublicationsList] Error al cargar publicaciones:', err)
-      console.error('[PublicationsList] Detalles del error:', err.response?.data || err.message)
+      console.error('Error al cargar publicaciones:', err)
       setError('Error al cargar tus publicaciones')
     } finally {
       setIsLoading(false)
@@ -149,19 +136,20 @@ export default function PublicationsList() {
 
   // Filtrar cuando cambie el tab activo
   useEffect(() => {
-    console.log(`[PublicationsList] Tab cambió a: "${activeTab}"`)
-    console.log(`[PublicationsList] Total listings disponibles: ${allListings.length}`)
+    if (allListings.length === 0) {
+      setPublications([])
+      return
+    }
+    
     const filtered = allListings.filter(l => 
       statusMap[activeTab].includes(l.status)
     )
-    console.log(`[PublicationsList] Listings filtrados para "${activeTab}": ${filtered.length}`)
     setPublications(filtered)
   }, [activeTab, allListings])
 
   const handleEdit = (listingId) => {
     // TODO: Implementar navegación a página de edición
-    console.log('Editar listing:', listingId)
-    alert(`Función de editar en desarrollo. ID: ${listingId}`)
+    window.location.href = `/dashboard/publicaciones/${listingId}/editar`;
   }
 
   const handleDeactivate = async (listingId) => {
@@ -256,9 +244,11 @@ export default function PublicationsList() {
                 <th className="w-1/5 py-3 px-2 font-inter text-xs font-semibold uppercase text-[#353A43]">
                   Stock
                 </th>
-                <th className="w-1/5 py-3 px-2 font-inter text-xs font-semibold uppercase text-[#353A43]">
-                  Acciones
-                </th>
+                {activeTab === 'active' && (
+                  <th className="w-1/5 py-3 px-2 font-inter text-xs font-semibold uppercase text-[#353A43]">
+                    Acciones
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -269,12 +259,13 @@ export default function PublicationsList() {
                     pub={pub}
                     onEdit={handleEdit}
                     onDeactivate={handleDeactivate}
+                    showActions={activeTab === 'active'}
                   />
                 ))
               ) : (
                 <tr>
                   <td
-                    colSpan="5"
+                    colSpan={activeTab === 'active' ? "5" : "4"}
                     className="py-12 text-center font-inter text-neutral-600"
                   >
                     No hay publicaciones en esta categoría.
