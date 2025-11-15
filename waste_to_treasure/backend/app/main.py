@@ -58,6 +58,9 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     docs_url=f"{settings.API_V1_STR}/docs",
     redoc_url=f"{settings.API_V1_STR}/redoc",
+    # Deshabilitar redirects automáticos para trailing slashes
+    # Esto evita 307 redirects que API Gateway no maneja bien
+    redirect_slashes=False,
 )
 
 

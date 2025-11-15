@@ -7,8 +7,8 @@
   "scripts": {},
   "env": {
     "NEXT_PUBLIC_API_URL": {
-      "description": "URL del API Gateway de AWS (NO usar Elastic IP directamente)",
-      "value": "https://4vopem29wa.execute-api.us-east-1.amazonaws.com",
+      "description": "URL del API Gateway de AWS con /api/v1 (NO usar Elastic IP directamente)",
+      "value": "https://4vopem29wa.execute-api.us-east-1.amazonaws.com/api/v1",
       "required": true
     },
     "NEXT_PUBLIC_AWS_REGION": {
