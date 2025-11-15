@@ -2,15 +2,19 @@
  * Cliente HTTP configurado con Axios para comunicación con el backend.
  *
  * Configuración centralizada de:
- * - Base URL del backend
+ * - Base URL del backend (vía API Gateway en producción)
  * - Interceptors de autenticación
  * - Manejo global de errores
+ * 
+ * IMPORTANTE: En producción, API_BASE_URL debe apuntar al API Gateway,
+ * NO directamente a la Elastic IP del backend.
  */
 
 import axios from 'axios'
 
 // Base URL del backend desde variables de entorno
-// Next.js usa NEXT_PUBLIC_ prefix para variables expuestas al cliente
+// DESARROLLO: http://localhost:8000/api/v1
+// PRODUCCIÓN: https://4vopem29wa.execute-api.us-east-1.amazonaws.com (API Gateway)
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
 /**
@@ -85,6 +89,13 @@ apiClient.interceptors.response.use(
       // El servidor respondió con un código de error
       const { status, data } = error.response
 
+      console.error('[API Client] Error Response:', {
+        status,
+        url: error.config?.url,
+        method: error.config?.method,
+        data: data
+      })
+
       switch (status) {
         case 401:
           // No autenticado - limpiar tokens y silent fail si es esperado
@@ -94,9 +105,11 @@ apiClient.interceptors.response.use(
           // Solo redirigir si estamos en una página que requiere auth
           // Las páginas públicas pueden manejar el 401 sin redirect
           if (typeof window !== 'undefined') {
-            const publicRoutes = ['/', '/login', '/register', '/marketplace']
+            const publicRoutes = ['/', '/login', '/register', '/marketplace', '/about']
             const currentPath = window.location.pathname
-            const isPublicRoute = publicRoutes.some(route => currentPath.startsWith(route))
+            const isPublicRoute = publicRoutes.some(route => 
+              currentPath === route || currentPath.startsWith(route + '/')
+            )
             
             if (!isPublicRoute) {
               console.log('Redirigiendo a login desde ruta protegida:', currentPath)
@@ -106,31 +119,49 @@ apiClient.interceptors.response.use(
           break
 
         case 403:
-          console.error('Sin permisos para acceder a este recurso')
+          console.error('❌ Sin permisos para acceder a este recurso')
           break
 
         case 404:
-          console.error('Recurso no encontrado')
+          console.error('❌ Recurso no encontrado:', error.config?.url)
           break
 
         case 422:
           // Error de validación
-          console.error('Error de validación:', data.detail || data.errors)
+          console.error('❌ Error de validación:', data.detail || data.errors)
           break
 
         case 500:
-          console.error('Error interno del servidor')
+          console.error('❌ Error interno del servidor')
+          console.error('   URL:', error.config?.url)
+          console.error('   Método:', error.config?.method)
+          console.error('   Detalles:', data)
+          break
+
+        case 502:
+        case 503:
+        case 504:
+          console.error('❌ Error de API Gateway o Backend no disponible')
+          console.error('   Verifica que:')
+          console.error('   1. El backend esté corriendo en EC2')
+          console.error('   2. API Gateway esté configurado correctamente')
+          console.error('   3. El Security Group permita tráfico en puerto 8000')
           break
 
         default:
-          console.error('Error en la petición:', data.detail || error.message)
+          console.error('❌ Error en la petición:', data.detail || error.message)
       }
     } else if (error.request) {
       // La petición fue hecha pero no hubo respuesta
-      console.error('No se pudo conectar con el servidor. Verifica tu conexión.')
+      console.error('❌ No se pudo conectar con el servidor.')
+      console.error('   API URL configurada:', API_BASE_URL)
+      console.error('   Verifica:')
+      console.error('   1. La variable NEXT_PUBLIC_API_URL en Amplify')
+      console.error('   2. Que apunte al API Gateway (no a localhost ni Elastic IP)')
+      console.error('   3. Tu conexión a internet')
     } else {
       // Algo pasó al configurar la petición
-      console.error('Error al configurar la petición:', error.message)
+      console.error('❌ Error al configurar la petición:', error.message)
     }
 
     return Promise.reject(error)
