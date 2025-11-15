@@ -31,13 +31,18 @@ router = APIRouter()
 # ============================================================================
 
 @router.get(
-    "/",
+    "",
     response_model=FAQItemList,
     summary="Listar FAQs (público)",
     description="Obtiene lista paginada de preguntas frecuentes activas.",
     responses={
         200: {"description": "Lista obtenida exitosamente"},
     }
+)
+@router.get(
+    "/",
+    response_model=FAQItemList,
+    include_in_schema=False
 )
 async def get_faqs_public(
     skip: int = Query(0, ge=0, description="Número de registros a omitir"),

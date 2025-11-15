@@ -17,10 +17,15 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 @router.get(
-    "/",
+    "",
     response_model=PlanList,
     summary="Listar planes disponibles",
     description="Obtiene una lista de todos los planes de suscripción (SaaS) disponibles en la plataforma."
+)
+@router.get(
+    "/",
+    response_model=PlanList,
+    include_in_schema=False
 )
 async def get_available_plans(
     db: Annotated[AsyncSession, Depends(get_async_db)]

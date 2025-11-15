@@ -26,13 +26,18 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 @router.get(
-    "/",
+    "",
     response_model=LegalDocumentSummaryList,
     summary="Listar documentos legales (público)",
     description="Obtiene lista de documentos legales activos disponibles públicamente.",
     responses={
         200: {"description": "Lista obtenida exitosamente"},
     }
+)
+@router.get(
+    "/",
+    response_model=LegalDocumentSummaryList,
+    include_in_schema=False
 )
 async def get_legal_documents_public(
     db: AsyncSession = Depends(get_async_db)

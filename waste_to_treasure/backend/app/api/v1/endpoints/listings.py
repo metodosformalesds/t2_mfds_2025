@@ -30,7 +30,7 @@ router = APIRouter()
 
 
 @router.post(
-    "/",
+    "",
     response_model=ListingRead,
     status_code=status.HTTP_201_CREATED,
     summary="Crear nueva publicación",
@@ -40,6 +40,12 @@ router = APIRouter()
         400: {"description": "Datos de entrada inválidos"},
         401: {"description": "No autenticado"},
     }
+)
+@router.post(
+    "/",
+    response_model=ListingRead,
+    status_code=status.HTTP_201_CREATED,
+    include_in_schema=False
 )
 async def create_listing(
     listing_in: ListingCreate,
