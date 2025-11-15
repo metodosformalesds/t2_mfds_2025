@@ -1,23 +1,22 @@
 import { create } from 'zustand'
 import { cartService } from '@/lib/api/cart'
 
-/**
- * Store de Zustand para manejar el estado del carrito de compras.
- */
 export const useCartStore = create((set, get) => ({
   items: [],
   total_items: 0,
   subtotal: '0.00',
   estimated_commission: '0.00',
   estimated_total: '0.00',
-  isLoading: true,
+  isLoading: false,
   error: null,
 
-  // Setea el estado del carrito
   _setCartState: (data) => {
+    // Contar items únicos (diferentes productos), no la suma de cantidades
+    const uniqueItemsCount = (data.items || []).length
+    
     set({
       items: data.items || [],
-      total_items: data.total_items || 0,
+      total_items: uniqueItemsCount,
       subtotal: data.subtotal || '0.00',
       estimated_commission: data.estimated_commission || '0.00',
       estimated_total: data.estimated_total || '0.00',
@@ -26,61 +25,62 @@ export const useCartStore = create((set, get) => ({
     })
   },
 
-  // Acción para cargar el carrito desde la API
   fetchCart: async () => {
     set({ isLoading: true, error: null })
     try {
       const data = await cartService.getCart()
       get()._setCartState(data)
+      return data
     } catch (error) {
       set({ isLoading: false, error: 'No se pudo cargar el carrito' })
+      throw error
     }
   },
 
-  // Acción para agregar un item
   addItem: async (listingId, quantity) => {
-    set({ isLoading: true })
+    set({ isLoading: true, error: null })
     try {
       const data = await cartService.addItem(listingId, quantity)
       get()._setCartState(data)
+      return data
     } catch (error) {
       set({ isLoading: false, error: 'Error al agregar el item' })
+      throw error
     }
   },
 
-  // Acción para actualizar un item
   updateItem: async (cartItemId, quantity) => {
-    set({ isLoading: true })
+    set({ isLoading: true, error: null })
     try {
       const data = await cartService.updateItem(cartItemId, quantity)
       get()._setCartState(data)
+      return data
     } catch (error) {
       set({ isLoading: false, error: 'Error al actualizar el item' })
+      throw error
     }
   },
 
-  // Acción para eliminar un item
   removeItem: async (cartItemId) => {
-    set({ isLoading: true })
+    set({ isLoading: true, error: null })
     try {
       const data = await cartService.removeItem(cartItemId)
       get()._setCartState(data)
+      return data
     } catch (error) {
       set({ isLoading: false, error: 'Error al eliminar el item' })
+      throw error
     }
   },
-  
-  // --- INICIO DE MODIFICACIÓN ---
-  // Acción para vaciar el carrito (después de una compra)
+
   clearCart: async () => {
-    set({ isLoading: true })
+    set({ isLoading: true, error: null })
     try {
-      // Llama a la API para vaciar el carrito en el backend
       const data = await cartService.clearCart()
-      get()._setCartState(data) // Setea el estado vacío
+      get()._setCartState(data)
+      return data
     } catch (error) {
-      console.error("Error al limpiar el carrito:", error)
-      // Aunque falle la API, limpiamos el frontend
+      console.error('Error al limpiar el carrito:', error)
       set({
         items: [],
         total_items: 0,
@@ -90,7 +90,19 @@ export const useCartStore = create((set, get) => ({
         isLoading: false,
         error: 'Error al limpiar el carrito',
       })
+      throw error
     }
-  }
-  // --- FIN DE MODIFICACIÓN ---
+  },
+
+  resetCart: () => {
+    set({
+      items: [],
+      total_items: 0,
+      subtotal: '0.00',
+      estimated_commission: '0.00',
+      estimated_total: '0.00',
+      isLoading: false,
+      error: null,
+    })
+  },
 }))

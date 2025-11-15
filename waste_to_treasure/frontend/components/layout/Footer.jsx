@@ -88,9 +88,6 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="hover:text-white">
-                  Contacto
-                </Link>
               </li>
             </ul>
           </div>
@@ -101,9 +98,6 @@ export default function Footer() {
           <div className="flex flex-col-reverse items-center justify-between gap-4 sm:flex-row">
             <p>&copy; 2025 Waste-To-Treasure. Todos los derechos reservados.</p>
             <div className="flex gap-6">
-              <Link href="/legal/privacy" className="hover:text-white">
-                Aviso de privacidad
-              </Link>
               <Link href="/legal/terms" className="hover:text-white">
                 Términos de servicio
               </Link>

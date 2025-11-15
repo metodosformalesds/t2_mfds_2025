@@ -17,18 +17,28 @@ export default function ConfirmationPage() {
   const { isAuthorized, isLoading: isAuthLoading } = useAuthGuard()
   const router = useRouter()
   const { items: cartItems, clearCart } = useCartStore()
-  const { addressId, shippingMethod, paymentMethodId, clearCheckout } = useCheckoutStore()
+  const { 
+    addressId, 
+    shippingMethod, 
+    paymentMethodId, 
+    clearCheckout,
+    savedCard 
+  } = useCheckoutStore()
   const openConfirmModal = useConfirmStore(state => state.open)
 
   const [address, setAddress] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isPlacingOrder, setIsPlacingOrder] = useState(false)
+  const [isOrderComplete, setIsOrderComplete] = useState(false) // Flag para evitar redirecciones
 
   // Cargar los detalles de la dirección seleccionada
   useEffect(() => {
+    // Si la orden ya está completa, no hacer nada
+    if (isOrderComplete) return
+    
     if (isAuthorized) {
-      if (!addressId || !paymentMethodId) {
-        // Validación: si faltan datos, regresar a los pasos anteriores
+      if (!addressId || !paymentMethodId || !savedCard) { // Validar que la tarjeta exista
+        console.warn("Faltan datos de checkout, redirigiendo...")
         router.replace('/checkout')
         return
       }
@@ -47,7 +57,7 @@ export default function ConfirmationPage() {
       }
       fetchAddress()
     }
-  }, [isAuthorized, addressId, paymentMethodId, router])
+  }, [isAuthorized, addressId, paymentMethodId, router, savedCard, isOrderComplete])
 
   const handleConfirmAndPay = () => {
     openConfirmModal(
@@ -58,26 +68,47 @@ export default function ConfirmationPage() {
         try {
           // 1. Procesar el pago y crear la orden
           await ordersService.processCheckout({
-            payment_token: paymentMethodId, // (Simulado si no es un token real)
+            payment_token: paymentMethodId, 
             shipping_address_id: addressId,
             shipping_method_id: shippingMethod?.method_id,
           })
 
-          // 2. Limpiar estados
+          // 2. Marcar orden como completa para evitar redirecciones
+          setIsOrderComplete(true)
+          
+          // 3. Limpiar estados
           clearCheckout()
           clearCart()
           
-          // 3. Redirigir a la página de éxito
-          router.push('/checkout/success')
+          // 4. Redirigir a la página de éxito
+          router.replace('/checkout/success')
 
         } catch (error) {
-          console.error("Error al confirmar el pago:", error)
-          openConfirmModal(
-            'Error en el Pago',
-            `No se pudo procesar tu pedido: ${error.message}`,
-            () => {},
-            { danger: true, confirmText: 'Entendido' }
-          )
+          console.error("Error al confirmar el pago:", error.message)
+          
+          // Detectar si el payment method está "quemado"
+          if (error.message === 'PAYMENT_METHOD_BURNED') {
+            // Limpiar la tarjeta guardada del estado
+            clearCheckout()
+            
+            openConfirmModal(
+              'Tarjeta No Válida',
+              'Esta tarjeta ya no se puede utilizar. Por favor, regresa a la página de pago y agrega una nueva tarjeta.',
+              () => {
+                // Redirigir a la página de pago
+                router.push('/checkout/payment')
+              },
+              { danger: true, confirmText: 'Ir a agregar tarjeta' }
+            )
+          } else {
+            // Error genérico
+            openConfirmModal(
+              'Error en el Pago',
+              error.message,
+              () => {},
+              { danger: true, confirmText: 'Entendido' }
+            )
+          }
         } finally {
           setIsPlacingOrder(false)
         }
@@ -146,18 +177,22 @@ export default function ConfirmationPage() {
               </div>
             </div>
 
-            {/* Tarjeta de Pago */}
+            {/* Resumen de Tarjeta */}
             <div className="rounded-lg bg-white p-6 shadow-2xl">
               <div className="flex items-start justify-between">
                 <div>
                   <h3 className="font-roboto text-2xl font-bold text-black">
-                    Pagando con {paymentMethodId === 'paypal' ? 'PayPal' : 'Tarjeta'}
+                    Método de Pago
                   </h3>
-                  <p className="mt-2 font-inter text-base text-neutral-600">
-                    {paymentMethodId?.startsWith('card_') 
-                      ? `Tarjeta terminación ${paymentMethodId.slice(-4)}`
-                      : 'Aprobación requerida'}
-                  </p>
+                  {savedCard ? (
+                    <p className="mt-2 font-inter text-base text-neutral-600">
+                      Tarjeta de crédito/débito terminación **** {savedCard.last4}
+                    </p>
+                  ) : (
+                    <p className="mt-2 font-inter text-base text-neutral-600">
+                      Tarjeta de crédito/débito seleccionada
+                    </p>
+                  )}
                 </div>
                 <Link
                   href="/checkout/payment"

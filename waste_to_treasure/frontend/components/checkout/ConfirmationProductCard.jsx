@@ -5,9 +5,9 @@ import { Radio } from 'lucide-react'
 
 export default function ConfirmationProductCard({ item, shippingMethod }) {
   return (
-    <div className="flex flex-col gap-4 rounded-lg bg-neutral-100 p-4 shadow-md md:flex-row md:items-center">
+    <div className="flex flex-col gap-0 rounded-lg bg-neutral-100 p-4 shadow-md md:flex-row md:items-center">
       {/* Imagen y Cantidad */}
-      <div className="flex-shrink-0 md:w-1/3">
+      <div className="flex-shrink-0 md:w-1/3 ml-4">
         <div className="relative h-32 w-full md:w-32">
           <Image
             src={item.listing_image_url || 'https://via.placeholder.com/150'}
@@ -17,21 +17,21 @@ export default function ConfirmationProductCard({ item, shippingMethod }) {
             className="rounded-lg"
           />
         </div>
-        <p className="mt-2 text-center font-inter text-sm font-semibold text-neutral-700">
+        <p className="mt-2 text-left font-inter text-sm font-semibold text-neutral-700">
           Cantidad: {item.quantity}
         </p>
       </div>
 
       {/* Detalles del Producto */}
       <div className="flex-1 space-y-1">
-        <h3 className="font-roboto text-2xl font-bold text-black">
+        <h3 className="font-roboto text-1xl font-bold text-black">
           {item.listing_title}
         </h3>
-        <p className="font-inter text-base font-medium text-neutral-600">
+        <p className="font-inter text-base font-sm text-neutral-600">
           {/* TODO: La API del carrito no provee el nombre del vendedor */}
           Vendido por: {item.seller_name || 'Vendedor'}
         </p>
-        <p className="font-inter text-base font-medium text-neutral-600">
+        <p className="font-inter text-base font-sm text-neutral-600">
           ${parseFloat(item.listing_price).toFixed(2)}
         </p>
       </div>

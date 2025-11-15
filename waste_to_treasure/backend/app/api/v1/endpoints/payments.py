@@ -331,6 +331,27 @@ async def process_payment(
         
         # Obtener o crear customer
         customer = await payment_service.get_or_create_stripe_customer(db, user)
+
+        # FIX: Asociar el método de pago al customer para poder reutilizarlo.
+        # Stripe requiere esto para usar un PaymentMethod más de una vez.
+        # Esta llamada es idempotente, no falla si ya está asociado al mismo customer.
+        try:
+            if payment_request.payment_method_id:
+                await stripe_service.attach_payment_method(
+                    customer_id=customer.gateway_customer_id,
+                    payment_method_id=payment_request.payment_method_id
+                )
+        except StripeError as e:
+            # Si el método de pago ya está asociado a OTRO customer, Stripe da error.
+            # Lo ignoramos para que el create_payment_intent falle con un mensaje más claro.
+            if "already been attached" in str(e):
+                logger.warning(
+                    f"Intento de asociar un PaymentMethod ya usado por otro customer. "
+                    f"PM: {payment_request.payment_method_id}, Customer: {customer.gateway_customer_id}"
+                )
+            else:
+                # Relanzar otros errores de Stripe que sí son problemáticos
+                raise
         
         # Crear Payment Intent
         payment_intent = await stripe_service.create_payment_intent(
@@ -342,7 +363,8 @@ async def process_payment(
                 "order_id": str(order.order_id),
                 "user_id": str(user.user_id)
             },
-            description=f"Orden #{order.order_id}"
+            description=f"Orden #{order.order_id}",
+            return_url=payment_request.return_url  # Pasar return_url si se proporciona
         )
         
         logger.info(

@@ -5,6 +5,7 @@ import { useSearchParams, useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronRight, ArrowLeft } from 'lucide-react'
 import listingsService from '@/lib/api/listings'
+import { useCartStore } from '@/stores/useCartStore'
 import ImageGallery from '@/components/details/ImageGallery'
 import PricingCard from '@/components/details/PricingCard'
 import SellerCard from '@/components/details/SellerCard'
@@ -12,24 +13,20 @@ import SpecificationsTable from '@/components/details/SpecificationsTable'
 import ReviewsSection from '@/components/details/ReviewsSection'
 import SimilarMaterials from '@/components/details/SimilarMaterials'
 
-/**
- * Material Details Page (Query Params Version)
- * URL: /materials/detail?id=123
- */
 export default function MaterialDetailPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const params = useParams()
-  // Support both query param version (?id=123) and dynamic route (/materials/123)
   const materialId = searchParams.get('id') || params?.id
 
-  // State management
+  const { addItem } = useCartStore()
   const [material, setMaterial] = useState(null)
   const [similarMaterials, setSimilarMaterials] = useState([])
   const [reviews, setReviews] = useState([])
   const [reviewStats, setReviewStats] = useState({ average_rating: 0, total_reviews: 0 })
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [addToCartMessage, setAddToCartMessage] = useState(null)
 
   /**
    * Fetch material data from API
@@ -79,8 +76,16 @@ export default function MaterialDetailPage() {
    * Handle add to cart
    */
   const handleAddToCart = async (listingId, quantity) => {
-    console.log('Agregar al carrito:', { listingId, quantity })
-    alert(`Agregado al carrito: ${quantity} unidades`)
+    try {
+      setAddToCartMessage(null)
+      await addItem(listingId, quantity)
+      setAddToCartMessage({ type: 'success', text: `${quantity} unidad(es) agregada(s) al carrito` })
+      setTimeout(() => setAddToCartMessage(null), 3000)
+    } catch (err) {
+      console.error('Error al agregar al carrito:', err)
+      setAddToCartMessage({ type: 'error', text: 'Error al agregar al carrito. Intenta de nuevo.' })
+      setTimeout(() => setAddToCartMessage(null), 3000)
+    }
   }
 
   /**
@@ -120,6 +125,17 @@ export default function MaterialDetailPage() {
 
   return (
     <div className="min-h-screen bg-neutral-100">
+      {/* Toast Messages */}
+      {addToCartMessage && (
+        <div
+          className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-lg font-inter text-white transition-all ${
+            addToCartMessage.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+          }`}
+        >
+          {addToCartMessage.text}
+        </div>
+      )}
+
       {/* Breadcrumb */}
       <div className="bg-white px-4 py-4 sm:px-6 lg:px-[220px]">
         <nav className="flex items-center gap-2 font-inter text-sm text-neutral-600">
