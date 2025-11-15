@@ -31,9 +31,15 @@ export default function AdminDashboardPage() {
   }, [])
 
   const kpiData = [
-    { title: 'Nuevos usuarios (24h)', value: stats?.new_users_24h || 'N/A' },
-    { title: 'Transacciones (24h)', value: stats?.transactions_24h || 'N/A' },
-    { title: 'Ingresos por comisión (mes)', value: `$${(stats?.total_revenue || 0).toFixed(2)}` },
+    { title: 'Total de usuarios', value: stats?.total_users || 0 },
+    { title: 'Usuarios activos', value: stats?.active_users || 0 },
+    { 
+      title: 'Ingresos totales', 
+      value: `$${Number(stats?.total_revenue || 0).toLocaleString('es-MX', { 
+        minimumFractionDigits: 2, 
+        maximumFractionDigits: 2 
+      })}` 
+    },
     { title: 'Publicaciones totales', value: stats?.total_listings || 0 },
   ]
 
@@ -45,16 +51,16 @@ export default function AdminDashboardPage() {
       linkHref: '/admin/moderation',
     },
     {
-      title: 'Reportes de usuario pendientes',
+      title: 'Reportes pendientes',
       value: stats?.pending_reports || 0,
-      linkText: 'Revisar reportes de usuario',
+      linkText: 'Revisar reportes',
       linkHref: '/admin/reports',
     },
     {
-      title: 'Usuarios Totales',
-      value: stats?.total_users || 0,
-      linkText: 'Gestionar usuarios',
-      linkHref: '/admin/users',
+      title: 'Publicaciones aprobadas',
+      value: stats?.approved_listings || 0,
+      linkText: 'Ver publicaciones activas',
+      linkHref: '/admin/moderation',
     },
   ]
   

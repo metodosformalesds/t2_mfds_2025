@@ -61,7 +61,12 @@ apiClient.interceptors.request.use(
     // Obtener token fresco de Cognito en cada request
     const token = await getFreshToken()
 
-    console.log('[API Client] Request a:', config.url)
+    console.log('[API Client] ======= REQUEST DEBUG =======')
+    console.log('[API Client] Base URL:', config.baseURL)
+    console.log('[API Client] Request URL:', config.url)
+    console.log('[API Client] URL completa:', `${config.baseURL}${config.url}`)
+    console.log('[API Client] Method:', config.method)
+    console.log('[API Client] Params:', config.params)
     console.log('[API Client] Token presente:', token ? 'SI (longitud: ' + token.length + ')' : 'NO')
 
     if (token) {
@@ -128,7 +133,14 @@ apiClient.interceptors.response.use(
 
         case 422:
           // Error de validación
-          console.error('❌ Error de validación:', data.detail || data.errors)
+          console.error('❌ Error de validación en:', error.config?.url)
+          console.error('   Parámetros enviados:', error.config?.params)
+          console.error('   Detalles:', data.detail || data.errors)
+          if (data.detail && Array.isArray(data.detail)) {
+            data.detail.forEach(err => {
+              console.error(`   - ${err.loc?.join('.')}: ${err.msg}`)
+            })
+          }
           break
 
         case 500:

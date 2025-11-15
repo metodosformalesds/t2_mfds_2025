@@ -9,6 +9,7 @@ from datetime import datetime
 from uuid import UUID
 from pydantic import BaseModel, Field, ConfigDict
 from enum import Enum
+from app.models.user import UserRoleEnum, UserStatusEnum
 
 
 class ModerationStatus(str, Enum):
@@ -24,6 +25,45 @@ class ReportStatus(str, Enum):
     UNDER_REVIEW = "under_review"
     RESOLVED = "resolved"
     DISMISSED = "dismissed"
+
+
+# ==========================================
+# USER MANAGEMENT SCHEMAS
+# ==========================================
+
+class UserAdminListItem(BaseModel):
+    """
+    Esquema para listar usuarios en panel administrativo.
+    
+    Usado en: GET /api/v1/admin/users
+    """
+    user_id: UUID = Field(..., description="ID del usuario")
+    email: str = Field(..., description="Email del usuario")
+    full_name: Optional[str] = Field(None, description="Nombre completo")
+    role: UserRoleEnum = Field(..., description="Rol del usuario")
+    status: UserStatusEnum = Field(..., description="Estado del usuario")
+    created_at: datetime = Field(..., description="Fecha de registro")
+    
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UserAdminList(BaseModel):
+    """
+    Esquema de respuesta paginada para lista de usuarios.
+    
+    Usado en: GET /api/v1/admin/users
+    """
+    items: List[UserAdminListItem] = Field(..., description="Lista de usuarios")
+    total: int = Field(..., ge=0, description="Total de usuarios")
+    page: int = Field(..., ge=1, description="Página actual")
+    page_size: int = Field(..., ge=1, le=100, description="Items por página")
+    
+    model_config = ConfigDict(from_attributes=True)
+
+
+# ==========================================
+# DASHBOARD SCHEMAS
+# ==========================================
 
 class StatsDashboard(BaseModel):
     """

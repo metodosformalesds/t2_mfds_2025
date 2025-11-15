@@ -19,7 +19,7 @@ export default function CreateCategoryForm({ onSubmit }) {
       onSubmit={handleSubmit}
       className="flex flex-col gap-5 rounded-xl bg-white p-8 shadow-md"
     >
-      <h2 className="font-poppins text-3xl font-semibold text-neutral-900">
+      <h2 className="font-poppins text-2xl font-semibold text-neutral-900">
         Crear nueva categoría
       </h2>
 
