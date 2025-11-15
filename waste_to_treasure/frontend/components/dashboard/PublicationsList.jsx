@@ -12,7 +12,7 @@ function PublicationRow({ pub, onEdit, onDeactivate }) {
       ACTIVE: { text: 'Activo', class: 'bg-green-100 text-green-700' },
       PENDING: { text: 'Pendiente', class: 'bg-yellow-100 text-yellow-700' },
       REJECTED: { text: 'Rechazado', class: 'bg-red-100 text-red-700' },
-      SOLD: { text: 'Vendido', class: 'bg-blue-100 text-blue-700' }
+      INACTIVE: { text: 'Inactivo', class: 'bg-gray-100 text-gray-700' },
     }
     return badges[status] || { text: status, class: 'bg-gray-100 text-gray-700' }
   }
@@ -83,16 +83,16 @@ function TabButton({ label, count, isActive, onClick }) {
 export default function PublicationsList() {
   const [activeTab, setActiveTab] = useState('active')
   const [publications, setPublications] = useState([])
-  const [allListings, setAllListings] = useState([]) // Guardar todos los listings
+  const [allListings, setAllListings] = useState([])
   const [counts, setCounts] = useState({ active: 0, pending: 0, inactive: 0 })
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  // Mapeo de tabs a estados del backend
+  // Mapeo correcto según tu backend (ListingStatusEnum)
   const statusMap = {
-    active: ['ACTIVE', 'SOLD'],
-    pending: ['PENDING'],
-    inactive: ['REJECTED', 'DELETED']
+    active: ['ACTIVE'],           // Solo ACTIVE
+    pending: ['PENDING'],         // Solo PENDING
+    inactive: ['REJECTED', 'INACTIVE']  // REJECTED e INACTIVE
   }
 
   // Función para cargar publicaciones
@@ -107,7 +107,6 @@ export default function PublicationsList() {
       
       const listings = response.items || []
       console.log('[PublicationsList] Total de listings encontrados:', listings.length)
-      console.log('[PublicationsList] Listings cargados:', listings)
       
       // Log detallado de cada listing
       listings.forEach((l, i) => {
@@ -118,9 +117,9 @@ export default function PublicationsList() {
 
       // Calcular contadores por estado
       const newCounts = {
-        active: listings.filter(l => ['ACTIVE', 'SOLD'].includes(l.status)).length,
+        active: listings.filter(l => l.status === 'ACTIVE').length,
         pending: listings.filter(l => l.status === 'PENDING').length,
-        inactive: listings.filter(l => ['REJECTED', 'DELETED'].includes(l.status)).length
+        inactive: listings.filter(l => ['REJECTED', 'INACTIVE'].includes(l.status)).length
       }
       console.log('[PublicationsList] Contadores calculados:', newCounts)
       setCounts(newCounts)
@@ -130,13 +129,11 @@ export default function PublicationsList() {
         statusMap[activeTab].includes(l.status)
       )
       console.log(`[PublicationsList] Tab activo: "${activeTab}", Filtrados: ${filtered.length}`)
-      console.log('[PublicationsList] Estados buscados:', statusMap[activeTab])
       setPublications(filtered)
 
     } catch (err) {
       console.error('[PublicationsList] Error al cargar publicaciones:', err)
-      console.error('[PublicationsList] Detalles del error:', err.response?.data || err.message)
-      setError('Error al cargar tus publicaciones')
+      setError('Error al cargar tus publicaciones. Verifica tu conexión.')
     } finally {
       setIsLoading(false)
     }
@@ -149,19 +146,15 @@ export default function PublicationsList() {
 
   // Filtrar cuando cambie el tab activo
   useEffect(() => {
-    console.log(`[PublicationsList] Tab cambió a: "${activeTab}"`)
-    console.log(`[PublicationsList] Total listings disponibles: ${allListings.length}`)
     const filtered = allListings.filter(l => 
       statusMap[activeTab].includes(l.status)
     )
-    console.log(`[PublicationsList] Listings filtrados para "${activeTab}": ${filtered.length}`)
     setPublications(filtered)
   }, [activeTab, allListings])
 
   const handleEdit = (listingId) => {
-    // TODO: Implementar navegación a página de edición
-    console.log('Editar listing:', listingId)
-    alert(`Función de editar en desarrollo. ID: ${listingId}`)
+    // Navegar a la página de edición
+    window.location.href = `/dashboard/publicaciones/${listingId}/editar`
   }
 
   const handleDeactivate = async (listingId) => {
@@ -171,10 +164,7 @@ export default function PublicationsList() {
 
     try {
       await listingsService.delete(listingId)
-      
-      // Recargar todas las publicaciones
       await fetchPublications()
-
       alert('Publicación desactivada exitosamente')
     } catch (err) {
       console.error('Error al desactivar:', err)
@@ -238,14 +228,20 @@ export default function PublicationsList() {
           </div>
         ) : error ? (
           <div className="py-12 text-center">
-            <p className="font-inter text-red-600">{error}</p>
+            <p className="font-inter text-red-600 mb-4">{error}</p>
+            <button
+              onClick={fetchPublications}
+              className="text-primary-500 hover:underline font-inter"
+            >
+              Reintentar
+            </button>
           </div>
         ) : (
           <table className="w-full min-w-[700px] table-auto text-left">
             <thead>
               <tr className="border-b border-neutral-200">
                 <th className="w-2/5 py-3 px-2 font-inter text-xs font-semibold uppercase text-[#353A43]">
-                  Publicaciones
+                  Publicación
                 </th>
                 <th className="w-1/5 py-3 px-2 font-inter text-xs font-semibold uppercase text-[#353A43]">
                   Precio
@@ -277,7 +273,9 @@ export default function PublicationsList() {
                     colSpan="5"
                     className="py-12 text-center font-inter text-neutral-600"
                   >
-                    No hay publicaciones en esta categoría.
+                    {activeTab === 'active' && 'No tienes publicaciones activas.'}
+                    {activeTab === 'pending' && 'No tienes publicaciones pendientes de aprobación.'}
+                    {activeTab === 'inactive' && 'No tienes publicaciones inactivas o rechazadas.'}
                   </td>
                 </tr>
               )}
@@ -285,6 +283,13 @@ export default function PublicationsList() {
           </table>
         )}
       </div>
+
+      {/* Info adicional */}
+      {!isLoading && !error && allListings.length > 0 && (
+        <div className="mt-4 text-sm text-gray-500 font-inter">
+          Total: {allListings.length} publicaciones
+        </div>
+      )}
     </div>
   )
 }
