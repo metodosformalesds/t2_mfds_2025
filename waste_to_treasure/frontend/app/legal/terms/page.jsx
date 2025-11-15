@@ -139,9 +139,9 @@ export default function TermsPage() {
           <div className="text-center mt-12">
             <p className="text-gray-600 font-inter">
               ¿Tienes preguntas sobre estos términos?{' '}
-              <a href="mailto:legal@wastetotreasure.com" className="text-primary-600 hover:underline font-semibold">
+              <Link href="/contact" className="text-primary-600 hover:underline font-semibold">
                 Contáctanos
-              </a>
+              </Link>
             </p>
           </div>
         </div>

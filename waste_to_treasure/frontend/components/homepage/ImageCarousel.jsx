@@ -70,7 +70,7 @@ export default function ImageCarousel({ items = [] }) {
             alt={`Foto de collage ${index + 1}`}
             width={500}
             height={500}
-            className={`absolute w-[450px] h-[450px] rounded-lg object-cover transition-all duration-1000 ease-in-out rotate-3
+            className={`absolute w-[450px] h-[450px] rounded-lg object-cover transition-all duration-1000 ease-in-out
               ${
                 index === currentIndex
                   ? 'opacity-100 scale-100' // Imagen visible

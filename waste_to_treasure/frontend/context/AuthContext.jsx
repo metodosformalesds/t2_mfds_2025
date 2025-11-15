@@ -35,18 +35,29 @@ export function AuthProvider({ children }) {
             role: backendUser.role || 'USER',
           });
         } catch (error) {
-          console.error('Error fetching user profile from backend:', error);
-          // Fallback to Cognito data only
-          setUser({
-            ...cognitoUser,
-            name: cognitoUser.attributes?.given_name || 'Usuario',
-            email: cognitoUser.attributes?.email,
-            role: 'USER', // Default role
-          });
+          // Si el backend falla (ej. 401), caer silenciosamente en páginas públicas
+          console.warn('No se pudo obtener perfil del backend:', error.message || error);
+          
+          // Fallback to Cognito data only si hay un usuario válido en Cognito
+          if (cognitoUser && cognitoUser.attributes) {
+            setUser({
+              ...cognitoUser,
+              name: cognitoUser.attributes?.given_name || 'Usuario',
+              email: cognitoUser.attributes?.email,
+              role: 'USER', // Default role
+            });
+          } else {
+            // Si ni siquiera Cognito tiene usuario, marcar como no autenticado
+            setIsAuthenticated(false);
+            setUser(null);
+          }
         }
+      } else {
+        // Usuario no autenticado - esto es normal en páginas públicas
+        setUser(null);
       }
     } catch (error) {
-      console.error('Error checking auth status:', error);
+      console.warn('Error checking auth status:', error.message || error);
       setIsAuthenticated(false);
       setUser(null);
     } finally {
