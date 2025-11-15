@@ -9,15 +9,13 @@ import { signUp, resendConfirmationCode } from '@/lib/auth/cognito';
 export default function RegisterPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
+    name: '',
     email: '',
-    phonenumber: '',
     password: '',
+    confirmPassword: '',
   });
-  const [countryCode, setCountryCode] = useState('+52');
-  const [sendSmsIfAvailable, setSendSmsIfAvailable] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
@@ -28,17 +26,25 @@ export default function RegisterPage() {
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
+    
+    // Validar coincidencia de contraseñas en tiempo real
+    if (name === 'confirmPassword' || name === 'password') {
+      const passwordValue = name === 'password' ? value : formData.password;
+      const confirmValue = name === 'confirmPassword' ? value : formData.confirmPassword;
+      
+      if (confirmValue && passwordValue !== confirmValue) {
+        setErrors(prev => ({ ...prev, confirmPassword: 'Las contraseñas no coinciden' }));
+      } else if (confirmValue && passwordValue === confirmValue) {
+        setErrors(prev => ({ ...prev, confirmPassword: '' }));
+      }
+    }
   };
 
   const validateForm = () => {
     const newErrors = {};
     
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = 'El nombre es requerido';
-    }
-    
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = 'El apellido es requerido';
+    if (!formData.name.trim()) {
+      newErrors.name = 'El nombre completo es requerido';
     }
     
     if (!formData.email.trim()) {
@@ -46,14 +52,6 @@ export default function RegisterPage() {
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Correo electrónico inválido';
     }
-
-    if (!formData.phonenumber.trim()) {
-      newErrors.phonenumber = 'El número de teléfono es requerido';
-    } else if (!/^\+?\d{7,15}$/.test(formData.phonenumber)) {
-      // Permitimos formato E.164 (+521234567890) o solo dígitos (7-15)
-      newErrors.phonenumber = 'Número inválido. Usa formato E.164 (ej. +521234567890) o solo dígitos (sin espacios)';
-    }
-        
     
     if (!formData.password) {
       newErrors.password = 'La contraseña es requerida';
@@ -63,6 +61,13 @@ export default function RegisterPage() {
       newErrors.password = 'Debe contener mayúsculas, minúsculas y números';
     }
     
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = 'Debes confirmar la contraseña';
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Las contraseñas no coinciden exactamente';
+      newErrors.password = newErrors.password || 'Las contraseñas deben ser idénticas';
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -70,45 +75,29 @@ export default function RegisterPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      console.log('Validación fallida');
+      return;
+    }
+    
+    // Verificación adicional de seguridad antes de enviar
+    if (formData.password !== formData.confirmPassword) {
+      setErrors({ 
+        confirmPassword: 'Las contraseñas no coinciden',
+        submit: 'Por favor verifica que las contraseñas sean idénticas'
+      });
+      return;
+    }
     
     setIsLoading(true);
     setErrors({});
     
     try {
-      // Normalizar teléfono a E.164 si es necesario
-      let phoneToSend = formData.phonenumber.trim();
-      const defaultCC = process.env.NEXT_PUBLIC_DEFAULT_PHONE_COUNTRY_CODE || '';
-
-      if (!phoneToSend.startsWith('+')) {
-        // Solo dígitos ingresados
-        if (/^\d{7,15}$/.test(phoneToSend)) {
-          // Use selector first, otherwise fallback to NEXT_PUBLIC_DEFAULT_PHONE_COUNTRY_CODE
-          const ccFromSelector = countryCode || '';
-          if (ccFromSelector) {
-            const cc = ccFromSelector.startsWith('+') ? ccFromSelector : `+${ccFromSelector}`;
-            phoneToSend = `${cc}${phoneToSend}`;
-          } else if (defaultCC) {
-            const cc = defaultCC.startsWith('+') ? defaultCC : `+${defaultCC}`;
-            phoneToSend = `${cc}${phoneToSend}`;
-          } else {
-            setErrors({ phonenumber: 'Incluye el código de país (ej. +52) o configura NEXT_PUBLIC_DEFAULT_PHONE_COUNTRY_CODE en .env' });
-            setIsLoading(false);
-            return;
-          }
-        }
-      }
-
-      // Log final phone for testing/validation
-      console.log('Normalized phone to send (E.164):', phoneToSend);
-
-      // Registrar usuario en AWS Cognito (incluyendo phone_number si aplica)
+      // Registrar usuario en AWS Cognito con los atributos requeridos
       const result = await signUp({
         email: formData.email,
         password: formData.password,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        phoneNumber: phoneToSend,
+        name: formData.name,
       });
 
       console.log('Registration successful:', result);
@@ -116,18 +105,6 @@ export default function RegisterPage() {
       // Guardar email temporalmente para la página de verificación
       if (typeof window !== 'undefined') {
         sessionStorage.setItem('pendingVerificationEmail', formData.email);
-        if (phoneToSend) sessionStorage.setItem('pendingVerificationPhone', phoneToSend);
-        if (sendSmsIfAvailable) sessionStorage.setItem('verificationRequestedViaSms', 'true');
-      }
-
-      // Si el usuario pidió envío por SMS, intentar forzar el re-envío (Cognito decide canal)
-      if (sendSmsIfAvailable) {
-        try {
-          await resendConfirmationCode(formData.email);
-          console.log('Resend confirmation code requested');
-        } catch (err) {
-          console.warn('No se pudo solicitar reenvío de confirmación por SMS/email:', err);
-        }
       }
 
       // Redirigir a página de verificación de email
@@ -220,39 +197,21 @@ export default function RegisterPage() {
 
         {/* Registration Form */}
         <form onSubmit={handleSubmit} className="space-y-3 mb-6">
-          {/* First Name */}
+          {/* Full Name */}
           <div>
             <input
               type="text"
-              name="firstName"
-              value={formData.firstName}
+              name="name"
+              value={formData.name}
               onChange={handleChange}
-              placeholder="Nombre"
+              placeholder="Nombre completo"
               className={`w-full h-[50px] px-4 border rounded-xl text-lg focus:outline-none focus:ring-2 focus:ring-[#396539] transition-all ${
-                errors.firstName ? 'border-red-500' : 'border-[#666666]'
+                errors.name ? 'border-red-500' : 'border-[#666666]'
               }`}
               disabled={isLoading}
             />
-            {errors.firstName && (
-              <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
-            )}
-          </div>
-
-          {/* Last Name */}
-          <div>
-            <input
-              type="text"
-              name="lastName"
-              value={formData.lastName}
-              onChange={handleChange}
-              placeholder="Apellido"
-              className={`w-full h-[50px] px-4 border rounded-xl text-lg focus:outline-none focus:ring-2 focus:ring-[#396539] transition-all ${
-                errors.lastName ? 'border-red-500' : 'border-[#666666]'
-              }`}
-              disabled={isLoading}
-            />
-            {errors.lastName && (
-              <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
+            {errors.name && (
+              <p className="text-red-500 text-sm mt-1">{errors.name}</p>
             )}
           </div>
 
@@ -273,52 +232,6 @@ export default function RegisterPage() {
               <p className="text-red-500 text-sm mt-1">{errors.email}</p>
             )}
           </div>
-
-          {/* Phone Number */}
-            <div>
-              <div className="flex gap-3 items-center">
-                <select
-                  aria-label="Código de país"
-                  value={countryCode}
-                  onChange={(e) => setCountryCode(e.target.value)}
-                  className="h-[50px] px-3 rounded-xl border border-[#666666] bg-white text-sm"
-                >
-                  <option value="+52">🇲🇽 +52</option>
-                  <option value="+1">🇺🇸 +1</option>
-                  <option value="+34">🇪🇸 +34</option>
-                  <option value="+54">🇦🇷 +54</option>
-                  <option value="+57">🇨🇴 +57</option>
-                  <option value="+44">🇬🇧 +44</option>
-                </select>
-
-                <input
-                  type="tel"
-                  name="phonenumber"
-                  value={formData.phonenumber}
-                  onChange={handleChange}
-                  placeholder="Número de teléfono"
-                  className={`flex-1 h-[50px] px-4 border rounded-xl text-lg focus:outline-none focus:ring-2 focus:ring-[#396539] transition-all ${
-                    errors.phonenumber ? 'border-red-500' : 'border-[#666666]'
-                  }`}
-                  disabled={isLoading}
-                />
-              </div>
-
-              <p className="text-xs text-gray-500 mt-2">Incluye o selecciona el código de país. Si ingresas un número con + al inicio el selector se ignorará.</p>
-              {errors.phonenumber && (
-                <p className="text-red-500 text-sm mt-1">{errors.phonenumber}</p>
-              )}
-
-              <label className="flex items-center gap-2 mt-3 text-sm">
-                <input
-                  type="checkbox"
-                  checked={sendSmsIfAvailable}
-                  onChange={(e) => setSendSmsIfAvailable(e.target.checked)}
-                  className="w-4 h-4 rounded"
-                />
-                <span>Solicitar código por SMS si está disponible</span>
-              </label>
-            </div>
 
           {/* Password */}
           <div className="relative">
@@ -347,6 +260,43 @@ export default function RegisterPage() {
             </button>
             {errors.password && (
               <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+            )}
+          </div>
+
+          {/* Confirm Password */}
+          <div className="relative">
+            <input
+              type={showConfirmPassword ? 'text' : 'password'}
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              placeholder="Confirmar contraseña"
+              className={`w-full h-[50px] px-4 pr-32 border rounded-xl text-lg focus:outline-none focus:ring-2 transition-all ${
+                errors.confirmPassword 
+                  ? 'border-red-500 focus:ring-red-500' 
+                  : formData.confirmPassword && formData.password === formData.confirmPassword
+                  ? 'border-green-500 focus:ring-green-500'
+                  : 'border-[#666666] focus:ring-[#396539]'
+              }`}
+              disabled={isLoading}
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 text-[rgba(0,0,0,0.75)] hover:text-black transition-colors"
+            >
+              {showConfirmPassword ? (
+                <EyeOff className="w-5 h-5" />
+              ) : (
+                <Eye className="w-5 h-5" />
+              )}
+              <span className="text-sm">{showConfirmPassword ? 'Ocultar' : 'Mostrar'}</span>
+            </button>
+            {errors.confirmPassword && (
+              <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
+            )}
+            {!errors.confirmPassword && formData.confirmPassword && formData.password === formData.confirmPassword && (
+              <p className="text-green-600 text-sm mt-1">✓ Las contraseñas coinciden</p>
             )}
           </div>
 

@@ -18,15 +18,10 @@ if (typeof window !== 'undefined') {
  * @param {Object} userData - Datos del usuario
  * @param {string} userData.email - Email del usuario
  * @param {string} userData.password - Contraseña
- * @param {string} userData.firstName - Nombre
- * @param {string} userData.lastName - Apellido
+ * @param {string} userData.name - Nombre completo del usuario
  * @returns {Promise<Object>} Resultado del registro
  */
-/**
- * Registrar un nuevo usuario en Cognito
- * Ahora acepta opcionalmente `phoneNumber` en formato E.164 (ej. +521234567890)
- */
-export const signUp = async ({ email, password, firstName, lastName, phoneNumber }) => {
+export const signUp = async ({ email, password, name }) => {
   return new Promise((resolve, reject) => {
     if (!userPool) {
       reject(new Error('Cognito User Pool no está configurado'));
@@ -35,14 +30,8 @@ export const signUp = async ({ email, password, firstName, lastName, phoneNumber
 
     const attributeList = [
       new CognitoUserAttribute({ Name: 'email', Value: email }),
-      new CognitoUserAttribute({ Name: 'given_name', Value: firstName }),
-      new CognitoUserAttribute({ Name: 'family_name', Value: lastName }),
+      new CognitoUserAttribute({ Name: 'name', Value: name }),
     ];
-
-    // Incluir teléfono si se proporciona (debe estar en formato E.164)
-    if (phoneNumber) {
-      attributeList.push(new CognitoUserAttribute({ Name: 'phone_number', Value: phoneNumber }));
-    }
 
     userPool.signUp(
       email,
