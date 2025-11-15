@@ -60,9 +60,9 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     docs_url=f"{settings.API_V1_STR}/docs",
     redoc_url=f"{settings.API_V1_STR}/redoc",
-    # Habilitar redirects para trailing slashes
-    # ProxyHeadersMiddleware reescribe los Location headers correctamente
-    redirect_slashes=True,
+    # CRÍTICO: Deshabilitar redirects para evitar exposición de IP interna
+    # Los routers deben definir rutas sin trailing slash
+    redirect_slashes=False,
 )
 
 

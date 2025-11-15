@@ -83,14 +83,20 @@ async def create_listing(
     return listing
 
 
+# Definir endpoint con y sin trailing slash para evitar redirects 307
 @router.get(
-    "/",
+    "",  # Sin trailing slash
     response_model=ListingListResponse,
     summary="Listar publicaciones públicas",
     description="Obtiene lista paginada de publicaciones activas con filtros opcionales.",
     responses={
         200: {"description": "Lista de publicaciones obtenida exitosamente"},
     }
+)
+@router.get(
+    "/",  # Con trailing slash (alias)
+    response_model=ListingListResponse,
+    include_in_schema=False,  # No duplicar en docs
 )
 async def list_public_listings(
     db: AsyncSession = Depends(get_async_db),
