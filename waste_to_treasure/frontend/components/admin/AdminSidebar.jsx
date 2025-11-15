@@ -53,14 +53,13 @@ export default function AdminSidebar({ isOpen, onClose }) {
   return (
     <aside
       className={`
-        fixed top-4 left-4 bottom-4 z-50 flex w-[300px] flex-shrink-0 flex-col 
+        fixed top-4 left-4 bottom-4 z-50 w-[300px] flex-shrink-0 flex-col 
         bg-gradient-to-b from-neutral-900 to-neutral-800 text-white 
         transition-transform duration-300 ease-in-out 
         rounded-2xl shadow-2xl border border-white/10
-        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+        ${isOpen ? 'flex translate-x-0' : 'hidden -translate-x-full'}
         lg:flex lg:static lg:translate-x-0 lg:top-0 lg:left-0 lg:bottom-0 
         lg:ml-12 lg:my-4 lg:mr-1 lg:rounded-3xl
-        hidden
       `}
     >
       {/* Encabezado del Sidebar */}
