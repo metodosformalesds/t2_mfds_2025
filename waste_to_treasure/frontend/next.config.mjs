@@ -2,9 +2,6 @@
 const nextConfig = {
   // NO usar output: 'export' - Para que Amplify Gen 1 detecte Next.js SSR
   // El administrador debe recrear la app seleccionando "Next.js - SSR"
-  env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
-  },
   // Configuración de imágenes
   images: {
     unoptimized: true,
