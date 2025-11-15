@@ -70,11 +70,16 @@ export default function ForgotPasswordPage() {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[611px] p-8 md:p-10 relative z-10">
         {/* Logo */}
         <div className="flex justify-center mb-6">
-          <img 
-            src="https://www.figma.com/api/mcp/asset/18d60029-5bae-40c2-93da-26c7bc87e664" 
-            alt="Waste to Treasure Logo" 
-            className="w-28 h-24 object-contain"
-          />
+          <Link
+            href={'/'}
+            className="flex-shrink-0"
+          >
+            <img 
+              src="images/LogoFondoBlanco.webp" 
+              alt="Waste to Treasure Logo" 
+              className="w-28 h-24 object-contain"
+            />
+          </Link>
         </div>
 
         {/* Title */}

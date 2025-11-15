@@ -176,7 +176,8 @@ class StripeService:
         customer_id: Optional[str] = None,
         payment_method_id: Optional[str] = None,
         metadata: Optional[Dict[str, str]] = None,
-        description: Optional[str] = None
+        description: Optional[str] = None,
+        return_url: Optional[str] = None
     ) -> stripe.PaymentIntent:
         """
         Crea un Payment Intent para procesar pago.
@@ -188,12 +189,15 @@ class StripeService:
             payment_method_id: ID del método de pago a usar.
             metadata: Metadata adicional (order_id, etc).
             description: Descripción del pago.
+            return_url: URL de retorno para métodos de pago que requieren redirección (3D Secure, etc).
             
         Returns:
             PaymentIntent de Stripe.
             
         Note:
             Stripe trabaja con centavos, así que 1500.00 MXN = 150000 centavos.
+            Se configura automatic_payment_methods para permitir múltiples métodos de pago
+            sin requerir redirección innecesaria (allow_redirects='never').
         """
         try:
             # convertir monto a centavos
@@ -203,15 +207,30 @@ class StripeService:
                 "amount": amount_cents,
                 "currency": currency.lower(),
                 "metadata": metadata or {},
-                "description": description
+                "description": description,
+                # Configurar métodos de pago automáticos
+                # allow_redirects='never' significa que solo acepta métodos que NO requieren redirección
+                "automatic_payment_methods": {
+                    "enabled": True,
+                    "allow_redirects": "never"
+                }
             }
 
             if customer_id:
                 params['customer'] = customer_id
+                # Si se proporciona un método de pago con un customer,
+                # indicamos a Stripe que queremos guardar esta tarjeta para uso futuro.
+                if payment_method_id:
+                    params['setup_future_usage'] = 'on_session'
+            
             if payment_method_id:
                 params['payment_method'] = payment_method_id
                 params['confirm'] = True  # Confirmar inmediatamente
-                params['return_url'] = None  # sin redirección hasta completar el frontend
+                
+                # IMPORTANTE: return_url SOLO se puede pasar cuando confirm=True
+                # Stripe requiere esto para métodos que necesitan redirección (3D Secure, etc)
+                if return_url:
+                    params['return_url'] = return_url
 
             payment_intent = stripe.PaymentIntent.create(**params)
 
@@ -229,7 +248,8 @@ class StripeService:
     async def confirm_payment_intent(
         self,
         payment_intent_id: str,
-        payment_method_id: Optional[str] = None
+        payment_method_id: Optional[str] = None,
+        return_url: Optional[str] = None
     ) -> stripe.PaymentIntent:
         """
         Confirma un Payment Intent.
@@ -237,6 +257,7 @@ class StripeService:
         Args:
             payment_intent_id: ID del Payment Intent.
             payment_method_id: ID del método de pago (si no se especificó antes).
+            return_url: URL de retorno para métodos que requieren redirección (3D Secure, etc).
             
         Returns:
             PaymentIntent confirmado.
@@ -245,6 +266,10 @@ class StripeService:
             params = {}
             if payment_method_id:
                 params["payment_method"] = payment_method_id
+            
+            # return_url se puede pasar al confirmar
+            if return_url:
+                params["return_url"] = return_url
             
             payment_intent = stripe.PaymentIntent.confirm(
                 payment_intent_id,

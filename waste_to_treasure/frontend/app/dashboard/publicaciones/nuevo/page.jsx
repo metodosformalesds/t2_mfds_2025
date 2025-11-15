@@ -7,6 +7,7 @@ import Step1_Type from '@/components/dashboard/Step1_Type'
 import Step2_Info from '@/components/dashboard/Step2_Info'
 import Step3_Media from '@/components/dashboard/Step3_Media'
 import Step4_Review from '@/components/dashboard/Step4_Review'
+import listingsService from '@/lib/api/listings'
 // --- INICIO DE CORRECCIÓN ---
 // Importamos el modal de éxito que ya habíamos creado
 import SuccessModal from '@/components/dashboard/SuccessModal'
@@ -42,12 +43,63 @@ export default function PublishItemPage() {
   }
 
   // --- INICIO DE CORRECCIÓN ---
-  // Esta función se llama DESPUÉS de confirmar el Modal 1 (de confirmación)
-  const handlePublish = () => {
-    console.log('Publicando en la API...', listingData)
-    // TODO: Aquí se haría la llamada real a la API para guardar los datos.
-    // Simulamos que la API respondió con éxito:
-    setShowSuccessModal(true) // <-- ¡AQUÍ SE MUESTRA EL MODAL DE ÉXITO!
+  // Esta función crea el listing SIN imágenes primero, retorna el listing creado
+  const handlePublish = async (imageUrls = []) => {
+    try {
+      console.log('[handlePublish] Publicando en la API...', listingData)
+      console.log('[handlePublish] URLs de imágenes a incluir:', imageUrls)
+
+      // Preparar datos para el backend (solo campos que acepta el schema ListingCreate)
+      const payload = {
+        listing_type: listingData.type, // 'PRODUCT' o 'MATERIAL'
+        title: listingData.title,
+        description: listingData.description,
+        price: parseFloat(listingData.price),
+        price_unit: listingData.unit || 'unidad', // Unidad de precio
+        quantity: parseInt(listingData.quantity),
+        category_id: parseInt(listingData.category_id),
+        origin_description: listingData.origin_description || null,
+        location_address_id: listingData.location_address_id || null,
+        images: imageUrls // URLs de S3 ya subidas
+      }
+
+      console.log('[handlePublish] Payload a enviar:', payload)
+
+      // Llamar a la API para crear el listing
+      const createdListing = await listingsService.create(payload)
+
+      console.log('[handlePublish] Listing creado exitosamente:', createdListing)
+      
+      // NO mostrar modal de éxito aquí - Step4 lo hará después de subir imágenes
+      // setShowSuccessModal(true)
+      
+      // Retornar el listing creado para que Step4 pueda usar el ID
+      return createdListing
+
+    } catch (error) {
+      console.error('[handlePublish] Error al publicar listing:', error)
+      console.error('[handlePublish] Error completo:', JSON.stringify(error.response?.data, null, 2))
+      
+      // Construir mensaje de error detallado
+      let errorMessage = 'Error desconocido'
+      
+      if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+        // Errores de validación de Pydantic
+        const validationErrors = error.response.data.errors.map(err => {
+          const field = err.loc[err.loc.length - 1] // Último elemento es el campo
+          return `${field}: ${err.msg}`
+        }).join('\n')
+        
+        errorMessage = `Errores de validación:\n${validationErrors}`
+      } else if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+      
+      alert(`Error al publicar:\n\n${errorMessage}`)
+      throw error // Re-lanzar para que Step4 lo maneje
+    }
   }
 
   // Esta función se llama desde el Modal 2 (de éxito)
@@ -101,6 +153,7 @@ export default function PublishItemPage() {
             listingData={listingData}
             setStep={setStep}
             updateListingData={updateListingData}
+            onSuccess={() => setShowSuccessModal(true)} // ✅ Mostrar modal después de todo
           />
         )
       default:

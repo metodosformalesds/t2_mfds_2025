@@ -2,11 +2,12 @@
 
 // --- INICIO DE CORRECCIÓN FUNCIONAL ---
 import { useState, useEffect } from 'react'
+import uploadService from '@/lib/api/upload'
+import listingsService from '@/lib/api/listings'
 // --- FIN DE CORRECCIÓN FUNCIONAL ---
-import Image from 'next/image'
 import { useConfirmStore } from '@/stores/useConfirmStore'
 // --- INICIO DE CORRECCIÓN FUNCIONAL ---
-import { Edit2, Camera, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Edit2, Camera, X, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
 // --- FIN DE CORRECCIÓN FUNCIONAL ---
 
 // --- INICIO DE CORRECCIÓN FUNCIONAL ---
@@ -45,7 +46,8 @@ function PublicationSummary({ listingData, setStep }) {
   const {
     title,
     price,
-    images,
+    imageUrls, // URLs de S3 (si ya se subieron)
+    imageFiles, // Archivos locales (si aún no se subieron)
     location,
     type,
     category,
@@ -54,23 +56,34 @@ function PublicationSummary({ listingData, setStep }) {
     condition,
   } = listingData
 
-  const [imageUrls, setImageUrls] = useState([])
   const [mainImageIndex, setMainImageIndex] = useState(0)
   const [showLightbox, setShowLightbox] = useState(false)
+  const [localPreviews, setLocalPreviews] = useState([])
 
-  // Crear y limpiar Object URLs para las previsualizaciones
+  // Crear previews locales de los archivos si no hay URLs de S3
   useEffect(() => {
-    const urls = images.map(file => URL.createObjectURL(file))
-    setImageUrls(urls)
-    setMainImageIndex(0) // Resetear al cambiar las imágenes
-
-    return () => {
-      urls.forEach(url => URL.revokeObjectURL(url))
+    if (imageFiles && imageFiles.length > 0 && (!imageUrls || imageUrls.length === 0)) {
+      const previews = imageFiles.map(file => URL.createObjectURL(file))
+      setLocalPreviews(previews)
+      
+      return () => {
+        // Limpiar URLs de blob al desmontar
+        previews.forEach(url => URL.revokeObjectURL(url))
+      }
+    } else {
+      setLocalPreviews([])
     }
-  }, [images])
+  }, [imageFiles, imageUrls])
 
+  // Resetear índice cuando cambien las imágenes
+  useEffect(() => {
+    setMainImageIndex(0)
+  }, [imageUrls, localPreviews])
+
+  // Usar URLs de S3 si existen, sino usar previews locales
+  const images = imageUrls && imageUrls.length > 0 ? imageUrls : localPreviews
   const mainImageUrl =
-    imageUrls[mainImageIndex] ||
+    images[mainImageIndex] ||
     'https://via.placeholder.com/300x300.png?text=Sin+Imagen'
 
   const openLightbox = index => {
@@ -81,8 +94,8 @@ function PublicationSummary({ listingData, setStep }) {
   const changeLightboxImage = direction => {
     setMainImageIndex(prev => {
       const newIndex = prev + direction
-      if (newIndex < 0) return imageUrls.length - 1
-      if (newIndex >= imageUrls.length) return 0
+      if (newIndex < 0) return images.length - 1
+      if (newIndex >= images.length) return 0
       return newIndex
     })
   }
@@ -94,33 +107,33 @@ function PublicationSummary({ listingData, setStep }) {
         <div className="flex-shrink-0 lg:w-2/5">
           {/* Imagen Principal */}
           <div className="relative aspect-square w-full">
-            <Image
+            <img
               src={mainImageUrl}
               alt={title || 'Vista previa'}
-              layout="fill"
-              objectFit="cover"
-              className="rounded-lg cursor-pointer"
+              className="rounded-lg cursor-pointer w-full h-full object-cover"
               onClick={() => openLightbox(mainImageIndex)}
+              onError={(e) => {
+                console.error('Error cargando imagen:', mainImageUrl)
+                e.target.src = 'https://via.placeholder.com/300x300.png?text=Error+cargando'
+              }}
             />
-            {imageUrls.length > 0 && (
+            {images.length > 0 && (
               <div className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-black/50 px-3 py-1 text-xs font-semibold text-white">
                 <Camera size={14} />
                 <span>
-                  {mainImageIndex + 1} / {imageUrls.length}
+                  {mainImageIndex + 1} / {images.length}
                 </span>
               </div>
             )}
           </div>
           {/* Thumbnails */}
-          {imageUrls.length > 1 && (
+          {images.length > 1 && (
             <div className="mt-2 flex gap-2 overflow-x-auto p-1">
-              {imageUrls.map((url, index) => (
-                <Image
+              {images.map((url, index) => (
+                <img
                   key={index}
                   src={url}
                   alt={`Thumbnail ${index + 1}`}
-                  width={60}
-                  height={60}
                   className={`h-16 w-16 rounded-md object-cover cursor-pointer border-2 transition-all ${
                     mainImageIndex === index
                       ? 'border-primary-500'
@@ -201,13 +214,13 @@ function PublicationSummary({ listingData, setStep }) {
           <button
             className="absolute left-4 top-1/2 -translate-y-1/2 z-10 p-2 text-white/70 hover:text-white disabled:opacity-30"
             onClick={(e) => { e.stopPropagation(); changeLightboxImage(-1); }}
-            disabled={imageUrls.length <= 1}
+            disabled={images.length <= 1}
           >
             <ChevronLeft size={40} />
           </button>
           
           <img
-            src={imageUrls[mainImageIndex]}
+            src={images[mainImageIndex]}
             alt="Vista previa"
             className="max-h-full max-w-full object-contain"
             onClick={e => e.stopPropagation()} // Evitar que el clic en la imagen cierre el modal
@@ -216,7 +229,7 @@ function PublicationSummary({ listingData, setStep }) {
           <button
             className="absolute right-4 top-1/2 -translate-y-1/2 z-10 p-2 text-white/70 hover:text-white disabled:opacity-30"
             onClick={(e) => { e.stopPropagation(); changeLightboxImage(1); }}
-            disabled={imageUrls.length <= 1}
+            disabled={images.length <= 1}
           >
             <ChevronRight size={40} />
           </button>
@@ -235,9 +248,12 @@ export default function Step4_Review({
   onBack,
   listingData,
   setStep,
-  updateListingData, // <-- Prop importada
+  updateListingData,
+  onSuccess, // ✅ Callback para mostrar modal de éxito
 }) {
   const openConfirmModal = useConfirmStore(state => state.open)
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState('')
 
   const handlePublishClick = () => {
     // --- INICIO DE CORRECCIÓN FUNCIONAL ---
@@ -262,8 +278,67 @@ export default function Step4_Review({
     )
   }
 
-  const handleConfirmPublish = () => {
-    onPublish()
+  const handleConfirmPublish = async () => {
+    // NUEVO FLUJO: Crear listing primero (sin imágenes), luego subir imágenes con el ID real
+    try {
+      setIsUploading(true)
+      
+      // Si hay archivos locales, subirlos DESPUÉS de crear el listing
+      if (listingData.imageFiles && listingData.imageFiles.length > 0) {
+        setUploadProgress('Creando publicación...')
+        
+        // 1. Crear el listing primero SIN imágenes
+        const createdListing = await onPublish([]) // Array vacío de imágenes
+        
+        if (!createdListing || !createdListing.listing_id) {
+          throw new Error('No se pudo obtener el listing_id del listing creado')
+        }
+        
+        console.log('[Step4] Listing creado con ID:', createdListing.listing_id)
+        
+        // 2. Ahora subir imágenes con el listing_id REAL
+        setUploadProgress(`Subiendo ${listingData.imageFiles.length} imagen(es) a S3...`)
+        
+        const uploadedUrls = await uploadService.uploadMultipleImages(
+          listingData.imageFiles,
+          createdListing.listing_id, // ✅ ID real del listing
+          0 // Primera imagen es la principal
+        )
+
+        console.log('[Step4] URLs subidas a S3:', uploadedUrls)
+        
+        // 3. Agregar las imágenes al listing usando el endpoint
+        setUploadProgress('Asociando imágenes al listing...')
+        await listingsService.addImages(createdListing.listing_id, uploadedUrls)
+        
+        console.log('[Step4] Imágenes asociadas correctamente al listing')
+        
+        setUploadProgress('¡Publicación completada!')
+        setTimeout(() => {
+          setIsUploading(false)
+          setUploadProgress('')
+          // Mostrar modal de éxito DESPUÉS de completar todo
+          if (onSuccess) onSuccess()
+        }, 800)
+        
+      } else {
+        // No hay imágenes, solo crear el listing
+        setUploadProgress('Creando publicación...')
+        await onPublish([])
+        setTimeout(() => {
+          setIsUploading(false)
+          setUploadProgress('')
+          // Mostrar modal de éxito
+          if (onSuccess) onSuccess()
+        }, 500)
+      }
+    } catch (error) {
+      console.error('[Step4] Error en el flujo de publicación:', error)
+      const errorMsg = error.response?.data?.detail || error.message || 'Error desconocido'
+      alert(`Error al publicar: ${errorMsg}`)
+      setIsUploading(false)
+      setUploadProgress('')
+    }
   }
 
   // Manejador para el input de ubicación
@@ -292,18 +367,28 @@ export default function Step4_Review({
 
         <hr className="border-t border-neutral-300" />
 
+        {/* Mostrar progreso de upload si está subiendo */}
+        {isUploading && (
+          <div className="flex items-center justify-center gap-2 p-4 bg-blue-50 rounded-lg">
+            <Loader2 className="w-5 h-5 animate-spin text-primary-500" />
+            <span className="text-sm font-semibold text-neutral-700">{uploadProgress}</span>
+          </div>
+        )}
+
         <div className="flex justify-between">
           <button
             onClick={onBack}
-            className="rounded-lg bg-neutral-200 px-6 py-3 font-inter text-base font-semibold text-neutral-900 transition-colors hover:bg-neutral-300"
+            disabled={isUploading}
+            className="rounded-lg bg-neutral-200 px-6 py-3 font-inter text-base font-semibold text-neutral-900 transition-colors hover:bg-neutral-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Antes
           </button>
           <button
-            onClick={handlePublishClick} // Llama al Modal 1
-            className="rounded-lg bg-primary-500 px-6 py-3 font-inter text-base font-semibold text-white transition-colors hover:bg-primary-600"
+            onClick={handlePublishClick}
+            disabled={isUploading}
+            className="rounded-lg bg-primary-500 px-6 py-3 font-inter text-base font-semibold text-white transition-colors hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Publicar
+            {isUploading ? 'Subiendo imágenes...' : 'Publicar'}
           </button>
         </div>
       </div>

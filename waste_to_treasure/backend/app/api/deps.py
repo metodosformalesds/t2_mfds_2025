@@ -112,17 +112,12 @@ async def get_current_user_with_jit(
         
         try:
             # Extraer nombre completo del token de Cognito
-            # Cognito puede incluir 'given_name' y 'family_name' en algunos casos
-            given_name = payload.get("given_name", "")
-            family_name = payload.get("family_name", "")
+            # Cognito usa 'name' como atributo para nombre completo
+            full_name = payload.get("name", "")
             
-            # Combinar nombres o usar email como fallback
-            if given_name and family_name:
-                full_name = f"{given_name} {family_name}"
-            elif given_name:
-                full_name = given_name
-            else:
-                full_name = email.split("@")[0]  # Fallback: usar parte local del email
+            # Si no hay nombre, usar parte local del email como fallback
+            if not full_name:
+                full_name = email.split("@")[0]
             
             # Crear nuevo usuario
             new_user = User(

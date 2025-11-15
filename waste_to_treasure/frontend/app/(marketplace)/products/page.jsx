@@ -8,82 +8,6 @@ import ProductCard from '@/components/marketplace/ProductCard'
 import Pagination from '@/components/marketplace/Pagination'
 import listingsService from '@/lib/api/listings'
 
-// Mock data for products - Used as fallback if API fails
-const mockProducts = [
-  {
-    id: 1,
-    title: 'Mesa de madera artesanal',
-    seller: 'Tiendita el venao',
-    price: 950.0,
-    available: 15,
-    imageUrl: 'https://th.bing.com/th/id/R.7bb37e8a014b68ab774be2620c16ccae?rik=8FDwJuvB2NO0Vg&pid=ImgRaw&r=0',
-  },
-  {
-    id: 2,
-    title: 'Mesa de madera artesanal',
-    seller: 'Tiendita el venao',
-    price: 950.0,
-    available: 15,
-    imageUrl: 'https://www.xlsemanal.com/wp-content/uploads/sites/3/2018/10/plasticos-toxicos.jpg',
-  },
-  {
-    id: 3,
-    title: 'Mesa de madera artesanal',
-    seller: 'Tiendita el venao',
-    price: 950.0,
-    available: 15,
-    imageUrl: 'https://th.bing.com/th/id/R.7bb37e8a014b68ab774be2620c16ccae?rik=8FDwJuvB2NO0Vg&pid=ImgRaw&r=0',
-  },
-  {
-    id: 4,
-    title: 'Mesa de madera artesanal',
-    seller: 'Tiendita el venao',
-    price: 950.0,
-    available: 15,
-    imageUrl: 'https://www.xlsemanal.com/wp-content/uploads/sites/3/2018/10/plasticos-toxicos.jpg',
-  },
-  {
-    id: 5,
-    title: 'Mesa de madera artesanal',
-    seller: 'Tiendita el venao',
-    price: 950.0,
-    available: 15,
-    imageUrl: 'https://th.bing.com/th/id/R.7bb37e8a014b68ab774be2620c16ccae?rik=8FDwJuvB2NO0Vg&pid=ImgRaw&r=0',
-  },
-  {
-    id: 6,
-    title: 'Mesa de madera artesanal',
-    seller: 'Tiendita el venao',
-    price: 950.0,
-    available: 15,
-    imageUrl: 'https://www.xlsemanal.com/wp-content/uploads/sites/3/2018/10/plasticos-toxicos.jpg',
-  },
-  {
-    id: 7,
-    title: 'Mesa de madera artesanal',
-    seller: 'Tiendita el venao',
-    price: 950.0,
-    available: 15,
-    imageUrl: 'https://th.bing.com/th/id/R.7bb37e8a014b68ab774be2620c16ccae?rik=8FDwJuvB2NO0Vg&pid=ImgRaw&r=0',
-  },
-  {
-    id: 8,
-    title: 'Mesa de madera artesanal',
-    seller: 'Tiendita el venao',
-    price: 950.0,
-    available: 15,
-    imageUrl: 'https://www.xlsemanal.com/wp-content/uploads/sites/3/2018/10/plasticos-toxicos.jpg',
-  },
-  {
-    id: 9,
-    title: 'Mesa de madera artesanal',
-    seller: 'Tiendita el venao',
-    price: 950.0,
-    available: 15,
-    imageUrl: 'https://th.bing.com/th/id/R.7bb37e8a014b68ab774be2620c16ccae?rik=8FDwJuvB2NO0Vg&pid=ImgRaw&r=0',
-  },
-]
-
 export default function ProductsPage() {
   // Estados de UI
   const [currentPage, setCurrentPage] = useState(1)
@@ -149,17 +73,26 @@ export default function ProductsPage() {
       // Llamar a la API
       const response = await listingsService.getAll(params)
 
+      console.log('[Products] Respuesta completa de API:', response)
+      console.log('[Products] Total items:', response.items?.length || 0)
+      
+      // Log detallado del primer producto para ver estructura
+      if (response.items && response.items.length > 0) {
+        console.log('[Products] Primer producto completo:', response.items[0])
+        console.log('[Products] primary_image_url:', response.items[0].primary_image_url)
+      }
+
       // Actualizar estados con la respuesta
       setProducts(response.items || [])
       setTotalProducts(response.total || 0)
       setTotalPages(Math.ceil(response.total / pageSize) || 1)
     } catch (err) {
       console.error('Error al cargar productos:', err)
-      setError('Error al cargar productos. Usando datos de ejemplo.')
-      // Fallback a datos mock en caso de error
-      setProducts(mockProducts)
-      setTotalProducts(mockProducts.length)
-      setTotalPages(2)
+      console.error('Detalles del error:', err.response?.data || err.message)
+      setError('Error al cargar productos. Por favor, intenta de nuevo.')
+      setProducts([])
+      setTotalProducts(0)
+      setTotalPages(1)
     } finally {
       setIsLoading(false)
     }
@@ -265,19 +198,26 @@ export default function ProductsPage() {
           ) : (
             /* Products Grid */
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
-              {products.map((product) => (
-                <ProductCard
-                  key={product.listing_id}
-                  product={{
-                    id: product.listing_id,
-                    title: product.title,
-                    seller: product.seller_id, // TODO: Obtener nombre del vendedor
-                    price: parseFloat(product.price),
-                    available: product.quantity,
-                    imageUrl: product.primary_image_url || '/placeholder-product.jpg',
-                  }}
-                />
-              ))}
+              {products.map((product) => {
+                // El backend devuelve primary_image_url directamente en el ListingCardRead
+                const imageUrl = product.primary_image_url || '/images/placeholder-product.jpg'
+                
+                console.log(`[Product ${product.listing_id}] primary_image_url:`, product.primary_image_url)
+
+                return (
+                  <ProductCard
+                    key={product.listing_id}
+                    product={{
+                      id: product.listing_id,
+                      title: product.title,
+                      seller: product.seller_id,
+                      price: parseFloat(product.price),
+                      available: product.quantity,
+                      imageUrl: imageUrl,
+                    }}
+                  />
+                )
+              })}
             </div>
           )}
 

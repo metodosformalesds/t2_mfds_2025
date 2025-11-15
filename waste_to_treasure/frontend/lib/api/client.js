@@ -25,12 +25,40 @@ const apiClient = axios.create({
 })
 
 /**
+ * Obtener token fresco de Cognito
+ * Esta función debe ser llamada antes de cada request para asegurar que el token esté actualizado
+ */
+const getFreshToken = async () => {
+  try {
+    // Importación dinámica para evitar problemas con SSR
+    const { getAuthToken } = await import('@/lib/auth/cognito')
+    const token = await getAuthToken()
+    
+    // Actualizar localStorage si hay un token válido
+    if (token) {
+      localStorage.setItem('auth-token', token)
+    } else {
+      localStorage.removeItem('auth-token')
+    }
+    
+    return token
+  } catch (error) {
+    console.error('[API Client] Error obteniendo token:', error)
+    // Si hay error, intentar usar el token de localStorage como fallback
+    return localStorage.getItem('auth-token')
+  }
+}
+
+/**
  * Interceptor de request - Agrega token de autenticación si existe
  */
 apiClient.interceptors.request.use(
-  (config) => {
-    // Obtener token de localStorage (ajustar según tu implementación de auth)
-    const token = localStorage.getItem('auth-token')
+  async (config) => {
+    // Obtener token fresco de Cognito en cada request
+    const token = await getFreshToken()
+
+    console.log('[API Client] Request a:', config.url)
+    console.log('[API Client] Token presente:', token ? 'SI (longitud: ' + token.length + ')' : 'NO')
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
@@ -39,6 +67,7 @@ apiClient.interceptors.request.use(
     return config
   },
   (error) => {
+    console.error('[API Client] Error en request interceptor:', error)
     return Promise.reject(error)
   }
 )
@@ -58,10 +87,22 @@ apiClient.interceptors.response.use(
 
       switch (status) {
         case 401:
-          // No autenticado - redirigir a login
-          console.error('No autenticado. Redirigiendo a login...')
+          // No autenticado - limpiar tokens y silent fail si es esperado
+          console.warn('⚠️ No autenticado - sesión expirada o no iniciada')
           localStorage.removeItem('auth-token')
-          // window.location.href = '/login' // Descomentar si necesitas redirect automático
+          
+          // Solo redirigir si estamos en una página que requiere auth
+          // Las páginas públicas pueden manejar el 401 sin redirect
+          if (typeof window !== 'undefined') {
+            const publicRoutes = ['/', '/login', '/register', '/marketplace']
+            const currentPath = window.location.pathname
+            const isPublicRoute = publicRoutes.some(route => currentPath.startsWith(route))
+            
+            if (!isPublicRoute) {
+              console.log('Redirigiendo a login desde ruta protegida:', currentPath)
+              window.location.href = '/login'
+            }
+          }
           break
 
         case 403:

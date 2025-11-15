@@ -55,7 +55,8 @@ class ListingBase(BaseModel):
 class ListingCreate(ListingBase):
     """Schema para crear una nueva publicación."""
     
-    # No incluimos images aquí, se subirán por separado
+    # URLs de imágenes ya subidas a S3 (opcional)
+    images: Optional[List[str]] = Field(None, description="URLs de imágenes en S3")
     
     @field_validator('listing_type')
     def validate_listing_type(cls, v):

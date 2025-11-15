@@ -6,11 +6,10 @@
  * Data comes from listing description and origin_description from backend
  */
 export default function SpecificationsTable({ listing }) {
-  // Build specifications from backend listing data
   const specifications = [
     {
       label: 'Categoría',
-      value: listing?.category_id ? `ID: ${listing.category_id}` : 'N/A',
+      value: listing?.category?.name || listing?.category_name || 'N/A',
     },
     {
       label: 'Tipo',

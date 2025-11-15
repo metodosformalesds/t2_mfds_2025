@@ -73,6 +73,20 @@ async def create_listing(
     await db.commit()
     await db.refresh(db_listing)
     
+    # Si se proporcionaron URLs de imágenes, crearlas
+    if listing_data.images and len(listing_data.images) > 0:
+        logger.info(f"Agregando {len(listing_data.images)} imágenes al listing {db_listing.listing_id}")
+        for idx, image_url in enumerate(listing_data.images):
+            db_image = ListingImage(
+                listing_id=db_listing.listing_id,
+                image_url=image_url,
+                is_primary=(idx == 0)  # La primera imagen es la principal
+            )
+            db.add(db_image)
+        
+        await db.commit()
+        logger.info(f"Imágenes agregadas correctamente al listing {db_listing.listing_id}")
+    
     # Cargar las relaciones explícitamente para evitar lazy loading
     stmt = (
         select(Listing)

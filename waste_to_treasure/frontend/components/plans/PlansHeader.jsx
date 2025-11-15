@@ -50,6 +50,7 @@ const plans = [
     buttonText: 'CONTACTAR VENTAS',
     buttonVariant: 'primary',
     isPopular: false,
+    buttonHref: '/contact',
     features: [
       { text: 'Todo lo incluido en Pro', included: true, bold: true },
       { text: 'Reportes de impacto ambiental', included: true },

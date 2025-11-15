@@ -45,8 +45,7 @@ class CognitoService:
         updated = await cognito_service.update_user_attributes(
             user_id=UUID("550e8400..."),
             attributes={
-                "given_name": "Juan",
-                "family_name": "Pérez"
+                "name": "Juan Pérez"
             }
         )
         ```
@@ -88,8 +87,7 @@ class CognitoService:
             #     "sub": "550e8400-e29b-41d4-a716-446655440000",
             #     "email": "usuario@example.com",
             #     "email_verified": "true",
-            #     "given_name": "Juan",
-            #     "family_name": "Pérez"
+            #     "name": "Juan Pérez"
             # }
             ```
         """
@@ -136,8 +134,7 @@ class CognitoService:
             user_id: UUID del usuario.
             attributes: Diccionario con atributos a actualizar.
                 Atributos permitidos:
-                - given_name: Nombre
-                - family_name: Apellido
+                - name: Nombre completo
                 - phone_number: Teléfono (formato E.164: +521234567890)
                 - custom:role: Rol personalizado
                 
@@ -149,8 +146,7 @@ class CognitoService:
             updated = await cognito_service.update_user_attributes(
                 user_id=UUID("550e8400..."),
                 attributes={
-                    "given_name": "Juan Carlos",
-                    "family_name": "Pérez López",
+                    "name": "Juan Carlos Pérez López",
                     "phone_number": "+5215512345678"
                 }
             )

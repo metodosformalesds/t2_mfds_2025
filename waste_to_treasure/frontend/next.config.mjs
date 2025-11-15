@@ -3,25 +3,33 @@ const nextConfig = {
   // NO usar output: 'export' - Para que Amplify Gen 1 detecte Next.js SSR
   // El administrador debe recrear la app seleccionando "Next.js - SSR"
   
-  // Deshabilitar optimización de imágenes
+  // Configuración de imágenes
   images: {
     unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'waste-to-treasure-images.s3.us-east-2.amazonaws.com',
+        hostname: 'w2t-fastapi-assets-12345.s3.us-east-1.amazonaws.com',
+        pathname: '/images/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'w2t-fastapi-assets-12345.s3.amazonaws.com',
+        pathname: '/images/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
         pathname: '/**',
       },
       {
         protocol: 'https',
-        hostname: '*.amazonaws.com',
-        pathname: '/**',
+        hostname: '*.s3.*.amazonaws.com',
       },
-      ...(process.env.NODE_ENV === 'development' ? [{
+      {
         protocol: 'https',
-        hostname: '**',
-        pathname: '/**',
-      }] : []),
+        hostname: '*.s3.amazonaws.com',
+      },
     ],
   },
   

@@ -1,12 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState } from 'react'; // 1. Importar useContext
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
 import { signIn } from '@/lib/auth/cognito';
+import { useAuth } from '@/context/AuthContext'; // 2. Importar el Contexto
+import Link from 'next/link'
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login } = useAuth(); // 3. Obtener la función login del contexto
+  
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -57,11 +61,22 @@ export default function LoginPage() {
         localStorage.removeItem('userEmail');
       }
 
-      console.log('Login exitoso:', result);
+      console.log('Login en Cognito exitoso:', result);
       
       // --- MODIFICADO ---
-      // Redirigir a /materials en lugar de /
-      window.location.href = '/materials';
+      // 4. Llamar a la función login del contexto.
+      // Esta función (actualizada en AuthContext.jsx) ahora
+      // llama a checkAuthStatus(), que fetchea /users/me
+      // y obtiene el rol de la BD.
+      const updatedUser = await login();
+      
+      // 5. Redirigir según el rol
+      // Asumimos que `updatedUser` (del AuthContext) tiene el 'role'
+      if (updatedUser && updatedUser.role === 'ADMIN') {
+        window.location.href = '/admin';
+      } else {
+        window.location.href = '/materials'; // Redirección estándar
+      }
       // --- FIN DE MODIFICACIÓN ---
 
     } catch (err) {
@@ -127,13 +142,17 @@ export default function LoginPage() {
 
       {/* Login Card */}
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[611px] p-8 md:p-10 relative z-10">
-        {/* Logo */}
         <div className="flex justify-center mb-6">
-          <img 
-            src="https://www.figma.com/api/mcp/asset/18d60029-5bae-40c2-93da-26c7bc87e664" 
-            alt="Waste to Treasure Logo" 
-            className="w-28 h-24 object-contain"
-          />
+          <Link
+            href={'/'}
+            className="flex-shrink-0"
+          >
+            <img 
+              src="images/LogoFondoBlanco.webp" 
+              alt="Waste to Treasure Logo" 
+              className="w-28 h-24 object-contain"
+            />
+          </Link>
         </div>
 
         {/* Title */}

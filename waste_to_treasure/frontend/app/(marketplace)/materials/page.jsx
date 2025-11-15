@@ -8,109 +8,6 @@ import MaterialCard from '@/components/marketplace/MaterialCard'
 import Pagination from '@/components/marketplace/Pagination'
 import listingsService from '@/lib/api/listings'
 
-// Mock data for materials - Used as fallback if API fails
-const mockMaterials = [
-  {
-    id: 1,
-    title: 'Plástico triturado HDPE',
-    seller: 'Maquiladora XXX',
-    price: 950.0,
-    unit: 'KG',
-    available: 1,
-    unit_measure: 'Tonelada',
-    isResidue: true,
-    imageUrl: 'https://th.bing.com/th/id/R.7bb37e8a014b68ab774be2620c16ccae?rik=8FDwJuvB2NO0Vg&pid=ImgRaw&r=0',
-  },
-  {
-    id: 2,
-    title: 'Plástico triturado HDPE',
-    seller: 'Maquiladora XXX',
-    price: 950.0,
-    unit: 'KG',
-    available: 1,
-    unit_measure: 'Tonelada',
-    isResidue: true,
-    imageUrl: 'https://www.xlsemanal.com/wp-content/uploads/sites/3/2018/10/plasticos-toxicos.jpg',
-  },
-  {
-    id: 3,
-    title: 'Plástico triturado HDPE',
-    seller: 'Maquiladora XXX',
-    price: 950.0,
-    unit: 'KG',
-    available: 1,
-    unit_measure: 'Tonelada',
-    isResidue: true,
-    imageUrl: 'https://th.bing.com/th/id/R.7bb37e8a014b68ab774be2620c16ccae?rik=8FDwJuvB2NO0Vg&pid=ImgRaw&r=0',
-  },
-  {
-    id: 4,
-    title: 'Plástico triturado HDPE',
-    seller: 'Maquiladora XXX',
-    price: 950.0,
-    unit: 'KG',
-    available: 1,
-    unit_measure: 'Tonelada',
-    isResidue: true,
-    imageUrl: 'https://www.xlsemanal.com/wp-content/uploads/sites/3/2018/10/plasticos-toxicos.jpg',
-  },
-  {
-    id: 5,
-    title: 'Plástico triturado HDPE',
-    seller: 'Maquiladora XXX',
-    price: 950.0,
-    unit: 'KG',
-    available: 1,
-    unit_measure: 'Tonelada',
-    isResidue: true,
-    imageUrl: 'https://th.bing.com/th/id/R.7bb37e8a014b68ab774be2620c16ccae?rik=8FDwJuvB2NO0Vg&pid=ImgRaw&r=0',
-  },
-  {
-    id: 6,
-    title: 'Plástico triturado HDPE',
-    seller: 'Maquiladora XXX',
-    price: 950.0,
-    unit: 'KG',
-    available: 1,
-    unit_measure: 'Tonelada',
-    isResidue: true,
-    imageUrl: 'https://www.xlsemanal.com/wp-content/uploads/sites/3/2018/10/plasticos-toxicos.jpg',
-  },
-  {
-    id: 7,
-    title: 'Plástico triturado HDPE',
-    seller: 'Maquiladora XXX',
-    price: 950.0,
-    unit: 'KG',
-    available: 1,
-    unit_measure: 'Tonelada',
-    isResidue: true,
-    imageUrl: 'https://th.bing.com/th/id/R.7bb37e8a014b68ab774be2620c16ccae?rik=8FDwJuvB2NO0Vg&pid=ImgRaw&r=0',
-  },
-  {
-    id: 8,
-    title: 'Plástico triturado HDPE',
-    seller: 'Maquiladora XXX',
-    price: 950.0,
-    unit: 'KG',
-    available: 1,
-    unit_measure: 'Tonelada',
-    isResidue: true,
-    imageUrl: 'https://www.xlsemanal.com/wp-content/uploads/sites/3/2018/10/plasticos-toxicos.jpg',
-  },
-  {
-    id: 9,
-    title: 'Plástico triturado HDPE',
-    seller: 'Maquiladora XXX',
-    price: 950.0,
-    unit: 'KG',
-    available: 1,
-    unit_measure: 'Tonelada',
-    isResidue: true,
-    imageUrl: 'https://th.bing.com/th/id/R.7bb37e8a014b68ab774be2620c16ccae?rik=8FDwJuvB2NO0Vg&pid=ImgRaw&r=0',
-  },
-]
-
 export default function MaterialsPage() {
   // Estados de UI
   const [currentPage, setCurrentPage] = useState(1)
@@ -176,17 +73,26 @@ export default function MaterialsPage() {
       // Llamar a la API
       const response = await listingsService.getAll(params)
 
+      console.log('[Materials] Respuesta completa de API:', response)
+      console.log('[Materials] Total items:', response.items?.length || 0)
+      
+      // Log detallado del primer material para ver estructura
+      if (response.items && response.items.length > 0) {
+        console.log('[Materials] Primer material completo:', response.items[0])
+        console.log('[Materials] primary_image_url:', response.items[0].primary_image_url)
+      }
+
       // Actualizar estados con la respuesta
       setMaterials(response.items || [])
       setTotalMaterials(response.total || 0)
       setTotalPages(Math.ceil(response.total / pageSize) || 1)
     } catch (err) {
       console.error('Error al cargar materiales:', err)
-      setError('Error al cargar materiales. Usando datos de ejemplo.')
-      // Fallback a datos mock en caso de error
-      setMaterials(mockMaterials)
-      setTotalMaterials(mockMaterials.length)
-      setTotalPages(2)
+      console.error('Detalles del error:', err.response?.data || err.message)
+      setError('Error al cargar materiales. Por favor, intenta de nuevo.')
+      setMaterials([])
+      setTotalMaterials(0)
+      setTotalPages(1)
     } finally {
       setIsLoading(false)
     }
@@ -291,22 +197,29 @@ export default function MaterialsPage() {
           ) : (
             /* Materials Grid */
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
-              {materials.map((material) => (
-                <MaterialCard
-                  key={material.listing_id}
-                  material={{
-                    id: material.listing_id,
-                    title: material.title,
-                    seller: material.seller_id, // TODO: Obtener nombre del vendedor
-                    price: parseFloat(material.price),
-                    unit: material.price_unit || 'unidad',
-                    available: material.quantity,
-                    unit_measure: material.price_unit || 'unidad',
-                    isResidue: material.listing_type === 'MATERIAL',
-                    imageUrl: material.primary_image_url || '/placeholder-material.jpg',
-                  }}
-                />
-              ))}
+              {materials.map((material) => {
+                // El backend devuelve primary_image_url directamente en el ListingCardRead
+                const imageUrl = material.primary_image_url || '/images/placeholder-material.jpg'
+                
+                console.log(`[Material ${material.listing_id}] primary_image_url:`, material.primary_image_url)
+
+                return (
+                  <MaterialCard
+                    key={material.listing_id}
+                    material={{
+                      id: material.listing_id,
+                      title: material.title,
+                      seller: material.seller_id,
+                      price: parseFloat(material.price),
+                      unit: material.price_unit || 'unidad',
+                      available: material.quantity,
+                      unit_measure: material.price_unit || 'unidad',
+                      isResidue: material.listing_type === 'MATERIAL',
+                      imageUrl: imageUrl,
+                    }}
+                  />
+                )
+              })}
             </div>
           )}
 

@@ -3,8 +3,7 @@ import { Check, X } from 'lucide-react'
 
 export default function PricingCard({ plan, isAnnual }) {
   const price = isAnnual ? plan.priceAnnual : plan.priceMonthly
-  const buttonHref =
-    plan.name === 'Empresarial' ? '/contact' : '/register'
+  const buttonHref = plan.buttonHref || '/register'
 
   const primaryButtonClasses = 'bg-primary-600 text-white hover:bg-primary-700'
   const outlineButtonClasses =

@@ -23,11 +23,14 @@ export default function GlobalConfirmModal({
   if (!isOpen) return null
 
   const handleConfirm = () => {
+    console.log('[GlobalConfirmModal] handleConfirm ejecutado')
+    console.log('[GlobalConfirmModal] onConfirm tipo:', typeof onConfirm)
     onConfirm()
     close()
   }
 
   const handleCancel = () => {
+    console.log('[GlobalConfirmModal] handleCancel ejecutado')
     onCancel()
     close()
   }
