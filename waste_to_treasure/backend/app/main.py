@@ -12,8 +12,10 @@ from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.api.v1.router import router as api_router_v1
 from app.core.config import get_settings
@@ -64,8 +66,50 @@ app = FastAPI(
 )
 
 
+# 3.1. Middleware para Proxy Headers (IMPORTANTE)
+# ================================================
+class ProxyHeadersMiddleware(BaseHTTPMiddleware):
+    """
+    Middleware para leer headers de proxy (X-Forwarded-*).
+    Esto permite que FastAPI sepa el dominio y protocolo original
+    cuando está detrás de API Gateway o cualquier proxy.
+    """
+    async def dispatch(self, request: Request, call_next):
+        # Leer el protocolo original (http/https)
+        forwarded_proto = request.headers.get("x-forwarded-proto")
+        if forwarded_proto:
+            request.scope["scheme"] = forwarded_proto
+        
+        # Leer el host original (dominio del API Gateway)
+        forwarded_host = request.headers.get("x-forwarded-host")
+        if forwarded_host:
+            # Determinar puerto basado en protocolo
+            port = 443 if forwarded_proto == "https" else 80
+            request.scope["server"] = (forwarded_host, port)
+            
+        response = await call_next(request)
+        return response
+
+
 # 4. Middlewares
 # ================
+
+# Middleware de Proxy Headers (debe ir primero)
+app.add_middleware(ProxyHeadersMiddleware)
+logger.info("Middleware de proxy headers configurado.")
+
+# Middleware de TrustedHost
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=[
+        "4vopem29wa.execute-api.us-east-1.amazonaws.com",
+        "98.95.79.84",
+        "localhost",
+        "127.0.0.1",
+        "*"  # En producción, especificar hosts exactos
+    ]
+)
+logger.info("Middleware de TrustedHost configurado.")
 
 # Middleware de CORS
 # NOTA: Comentado porque API Gateway maneja CORS en producción.
