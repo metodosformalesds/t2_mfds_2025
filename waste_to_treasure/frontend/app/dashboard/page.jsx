@@ -83,8 +83,8 @@ export default function DashboardPage() {
           .map(l => ({
             id: l.listing_id,
             title: l.title,
-            stats: `${l.available_quantity || 0} unidades disponibles`,
-            price: `$${l.price?.toFixed(2) || '0.00'}`,
+            stats: `${l.quantity || 0} unidades disponibles`,
+            price: `$${parseFloat(l.price || 0).toFixed(2)}`,
             imageUrl: l.images?.[0]?.image_url || 'https://via.placeholder.com/100x100.png?text=No+Image',
           }))
 
