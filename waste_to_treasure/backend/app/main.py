@@ -68,14 +68,16 @@ app = FastAPI(
 # ================
 
 # Middleware de CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.BACKEND_CORS_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-logger.info(f"CORS configurado para orígenes: {settings.BACKEND_CORS_ORIGINS}")
+# NOTA: Comentado porque API Gateway maneja CORS en producción.
+# Descomentar solo para desarrollo local sin API Gateway.
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=settings.BACKEND_CORS_ORIGINS,
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
+# logger.info(f"CORS configurado para orígenes: {settings.BACKEND_CORS_ORIGINS}")
 
 # Middleware de Compresión GZip
 app.add_middleware(GZipMiddleware, minimum_size=1000)
