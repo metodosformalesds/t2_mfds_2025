@@ -21,8 +21,8 @@ export default function SubscriptionCard() {
   };
 
   const handleViewPlans = () => {
-    // Navegar a la página de planes
-    router.push('/plans');
+    // Navegar a la página de selección de planes del flujo de suscripción
+    router.push('/dashboard/subscription/select');
   };
 
   const handleCancelSubscription = async () => {
@@ -111,10 +111,10 @@ export default function SubscriptionCard() {
           <div className="mt-6 p-8 border-2 border-dashed border-gray-300 rounded-lg text-center">
             <CreditCard className="w-16 h-16 mx-auto text-gray-400 mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 mb-2 font-poppins">
-              No tienes una suscripción activa
+              Este es tu plan actual
             </h3>
             <p className="text-gray-600 mb-6 font-inter">
-              Suscríbete a un plan para acceder a funciones premium
+              Actualmente tienes acceso al plan gratuito. Suscríbete para desbloquear funciones premium
             </p>
             <button
               onClick={handleViewPlans}
@@ -141,7 +141,7 @@ export default function SubscriptionCard() {
                   <div className="flex items-center gap-2 text-gray-600 mb-2">
                     <Calendar className="w-4 h-4" />
                     <p className="text-sm font-inter">
-                      Tu suscripción se renueva el {formatDate(subscription.end_date)}
+                      Tu suscripción se renueva el {formatDate(subscription.next_billing_date)}
                     </p>
                   </div>
                 )}
@@ -178,17 +178,10 @@ export default function SubscriptionCard() {
               <>
                 <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t">
                   <button
-                    onClick={handleManageBilling}
-                    className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors font-inter"
-                  >
-                    Administrar Facturación
-                  </button>
-
-                  <button
                     onClick={handleViewPlans}
                     className="flex-1 px-6 py-3 bg-primary-500 text-white font-semibold rounded-lg hover:bg-primary-600 transition-colors font-inter"
                   >
-                    Ver Todos los Planes
+                    Ver Otros Planes
                   </button>
                 </div>
 

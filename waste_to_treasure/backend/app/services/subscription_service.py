@@ -9,7 +9,7 @@ Implementa la lógica de negocio para:
 """
 import logging
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -62,18 +62,24 @@ class SubscriptionService:
         if not plan:
             raise HTTPException(status_code=404, detail="Plan no encontrado")
 
-        # 2. Cancelar suscripción activa anterior (si existe)
+        # 2. Verificar si existe una suscripción previa con el mismo plan
+        existing_sub_result = await db.execute(
+            select(Subscription).where(
+                Subscription.user_id == user.user_id,
+                Subscription.plan_id == plan_id
+            )
+        )
+        existing_sub_same_plan = existing_sub_result.scalar_one_or_none()
+
+        # 3. Cancelar cualquier suscripción activa de otros planes
         active_sub = await self.get_active_subscription(db, user)
-        if active_sub:
-            logger.info(f"Cancelando suscripción anterior {active_sub.gateway_sub_id} para usuario {user.user_id}")
+        if active_sub and active_sub.plan_id != plan_id:
+            logger.info(f"Cancelando suscripción de otro plan {active_sub.gateway_sub_id} para usuario {user.user_id}")
             # (SIMULADO) Llamar a Stripe para cancelar la sub anterior
             # payment_service.cancel_gateway_subscription(active_sub.gateway_sub_id)
-            active_sub.status = SubscriptionStatus.INACTIVE 
-            # O CANCELLED, dependiendo de la lógica de negocio
+            active_sub.status = SubscriptionStatus.CANCELLED
 
-        # 3. (SIMULADO) Procesar pago con Stripe
-        # En un caso real, aquí se llamaría a Stripe para crear
-        # una suscripción y un cliente, asociando el token de pago.
+        # 4. (SIMULADO) Procesar pago con Stripe
         if not payment_token.startswith("tok_"):
             raise HTTPException(status_code=400, detail="Token de pago inválido (simulación)")
         
@@ -81,8 +87,8 @@ class SubscriptionService:
         simulated_gateway_sub_id = f"sub_sim_{uuid.uuid4().hex[:12]}"
         logger.info(f"Suscripción (simulada) creada en pasarela: {simulated_gateway_sub_id}")
 
-        # 4. Calcular fechas
-        start_date = datetime.now(datetime.UTC)
+        # 5. Calcular fechas
+        start_date = datetime.now(timezone.utc)
         if plan.billing_cycle == BillingCycle.MONTHLY:
             next_billing_date = start_date + timedelta(days=30)
         elif plan.billing_cycle == BillingCycle.QUARTERLY:
@@ -92,24 +98,36 @@ class SubscriptionService:
         else:
             next_billing_date = start_date + timedelta(days=30) # Fallback
 
-        # 5. Crear la nueva suscripción en la BD
-        new_subscription = Subscription(
-            user_id=user.user_id,
-            plan_id=plan.plan_id,
-            status=SubscriptionStatus.ACTIVE,
-            start_date=start_date,
-            next_billing_date=next_billing_date,
-            gateway_sub_id=simulated_gateway_sub_id
-        )
-        db.add(new_subscription)
-        
-        await db.commit() # Comitear la transacción
-        await db.refresh(new_subscription)
-        
-        # Cargar el plan para la respuesta
-        await db.refresh(new_subscription, attribute_names=["plan"])
-        
-        return new_subscription
+        # 6. Si existe una suscripción con el mismo plan, actualizarla
+        if existing_sub_same_plan:
+            logger.info(f"Reactivando suscripción existente {existing_sub_same_plan.subscription_id} para usuario {user.user_id}")
+            existing_sub_same_plan.status = SubscriptionStatus.ACTIVE
+            existing_sub_same_plan.start_date = start_date
+            existing_sub_same_plan.next_billing_date = next_billing_date
+            existing_sub_same_plan.gateway_sub_id = simulated_gateway_sub_id
+            
+            await db.commit()
+            await db.refresh(existing_sub_same_plan)
+            await db.refresh(existing_sub_same_plan, attribute_names=["plan"])
+            
+            return existing_sub_same_plan
+        else:
+            # 7. Crear una nueva suscripción si no existe una con el mismo plan
+            new_subscription = Subscription(
+                user_id=user.user_id,
+                plan_id=plan.plan_id,
+                status=SubscriptionStatus.ACTIVE,
+                start_date=start_date,
+                next_billing_date=next_billing_date,
+                gateway_sub_id=simulated_gateway_sub_id
+            )
+            db.add(new_subscription)
+            
+            await db.commit()
+            await db.refresh(new_subscription)
+            await db.refresh(new_subscription, attribute_names=["plan"])
+            
+            return new_subscription
 
     async def cancel_subscription(
         self,

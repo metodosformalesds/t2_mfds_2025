@@ -1,33 +1,44 @@
+'use client'
+
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Check, X } from 'lucide-react'
+import { useAuth } from '@/context/AuthContext'
 
 export default function PricingCard({ plan, isAnnual }) {
+  const router = useRouter()
+  const { user } = useAuth()
   const price = isAnnual ? plan.priceAnnual : plan.priceMonthly
-  const buttonHref = plan.buttonHref || '/register'
+  
+  // Si el usuario está autenticado y no es el plan gratuito, ir al flujo de suscripción
+  const shouldUseSubscriptionFlow = user && plan.priceMonthly > 0
+  const buttonHref = shouldUseSubscriptionFlow 
+    ? '/dashboard/subscription/select' 
+    : (plan.buttonHref || '/register')
 
   const primaryButtonClasses = 'bg-primary-600 text-white hover:bg-primary-700'
   const outlineButtonClasses =
     'border-2 border-primary-500 text-primary-500 hover:bg-primary-500 hover:text-white'
 
   const cardBorderClasses = plan.isPopular
-    ? 'border-2 border-primary-500' // Borde verde para "Pro"
-    : 'border border-neutral-200' // Borde gris suave para los demás
+    ? 'border-2 border-primary-500'
+    : 'border border-neutral-200'
 
   const currentButtonClasses =
     plan.buttonVariant === 'primary' ? primaryButtonClasses : outlineButtonClasses
 
+  const handleClick = (e) => {
+    // Para planes de pago cuando el usuario está autenticado
+    if (shouldUseSubscriptionFlow) {
+      e.preventDefault()
+      router.push(buttonHref)
+    }
+  }
+
   return (
-    // --- INICIO DE LA CORRECCIÓN ---
-    // 1. Agregamos 'h-full' para que la tarjeta se estire
-    // 2. Mantenemos 'flex flex-col' para el layout interno
-    // --- FIN DE LA CORRECCIÓN ---
     <div
       className={`relative flex h-full flex-col rounded-lg bg-white p-8 shadow-xl ${cardBorderClasses}`}
     >
-      {/* --- INICIO DE LA CORRECCIÓN ---
-        3. Quitamos 'flex-grow' de aquí para que el header no se estire
-        --- FIN DE LA CORRECCIÓN ---
-      */}
       <div className="text-center">
         <h3 className="font-poppins text-3xl font-semibold text-neutral-900">
           {plan.name}
@@ -57,18 +68,12 @@ export default function PricingCard({ plan, isAnnual }) {
       {/* Botón */}
       <Link
         href={buttonHref}
+        onClick={handleClick}
         className={`w-full rounded-lg px-4 py-3.5 text-center text-xl font-semibold transition-colors ${currentButtonClasses}`}
       >
-        {plan.buttonText}
+        {shouldUseSubscriptionFlow ? 'Suscribirse' : plan.buttonText}
       </Link>
 
-      {/* --- INICIO DE LA CORRECCIÓN ---
-        4. Agregamos 'flex-grow' aquí. Esto empuja la lista de características
-           hacia abajo, y si la tarjeta es más alta que su contenido
-           (como en Básico y Empresarial), el espacio en blanco se añadirá
-           automáticamente DESPUÉS de la lista de features.
-        --- FIN DE LA CORRECCIÓN ---
-      */}
       <ul className="mt-8 flex-grow space-y-4">
         {plan.features.map(feature => (
           <li key={feature.text} className="flex items-start gap-4">

@@ -26,7 +26,7 @@ export const metadata = {
     'Plataforma de marketplace para materiales reciclados y productos sustentables',
   keywords: 'reciclaje, economía circular, materiales, productos sustentables',
   icons: {
-    icon: 'images/LogoNoFondo.ico',
+    icon: 'icons/LogoNoFondo.ico',
   },
 }
 
