@@ -53,7 +53,7 @@ export default function ContactPage() {
 
       <main className="min-h-screen bg-gray-50">
         {/* Hero Section */}
-        <div className="bg-gradient-to-br from-[#396539] to-[#294730] text-white py-16">
+        <div className="bg-primary-500 text-white py-16">
           <div className="max-w-4xl mx-auto px-4 text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 font-poppins">
               Contáctanos
@@ -273,7 +273,7 @@ export default function ContactPage() {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full bg-primary-600 text-white px-6 py-4 rounded-lg font-semibold hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-inter"
+                      className="w-full bg-primary-500 text-white px-6 py-4 rounded-lg font-semibold hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-inter"
                     >
                       {isSubmitting ? (
                         <>
@@ -294,7 +294,7 @@ export default function ContactPage() {
           </div>
 
           {/* Sección adicional */}
-          <div className="mt-16 bg-gradient-to-r from-primary-500 to-green-500 rounded-xl p-8 text-center text-white">
+          <div className="mt-16 bg-primary-500 rounded-xl p-8 text-center text-white">
             <h2 className="text-2xl md:text-3xl font-bold mb-4 font-poppins">
               ¿Prefieres explorar nuestros planes primero?
             </h2>

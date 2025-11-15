@@ -32,6 +32,22 @@ export const useCartStore = create((set, get) => ({
       get()._setCartState(data)
       return data
     } catch (error) {
+      // Si es 401, es porque no hay sesión - resetear carrito silenciosamente
+      if (error.response?.status === 401) {
+        console.log('No hay sesión activa - carrito vacío')
+        set({
+          items: [],
+          total_items: 0,
+          subtotal: '0.00',
+          estimated_commission: '0.00',
+          estimated_total: '0.00',
+          isLoading: false,
+          error: null, // No mostrar error en páginas públicas
+        })
+        return null
+      }
+      
+      // Otros errores sí deben mostrarse
       set({ isLoading: false, error: 'No se pudo cargar el carrito' })
       throw error
     }

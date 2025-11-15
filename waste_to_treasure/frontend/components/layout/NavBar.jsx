@@ -162,10 +162,171 @@ export default function NavBar() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full bg-white shadow-md">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          {/* Columna Izquierda (Logo) - Redirige a /marketplace si está logueado */}
-          <div className="flex flex-1 justify-start">
+      {/* Header con fondo difuminado */}
+      <header className="navbar-header sticky top-0 z-50 w-full">
+        {/* Fondo con blur */}
+        <div className="navbar-backdrop" />
+        
+        {/* Contenedor principal con padding superior para las islas */}
+        <div className="relative mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+          
+          {/* VERSIÓN ESCRITORIO - Islands Layout */}
+          <div className="hidden md:flex md:items-center md:justify-between md:gap-6">
+            
+            {/* ISLAND 1: Logo */}
+            <div className="navbar-island flex items-center">
+              <Link
+                href={isAuthenticated ? '/materials' : '/'}
+                className="flex-shrink-0 transition-transform hover:scale-105"
+              >
+                <Image
+                  src="/images/LogoFondoBlanco.webp"
+                  alt="Waste to Treasure Logo"
+                  width={80}
+                  height={62}
+                  className="h-14 w-auto"
+                />
+              </Link>
+            </div>
+
+            {/* ISLAND 2: Navegación Central */}
+            <nav className="navbar-island flex items-center gap-1">
+              <Link
+                href="/materials"
+                className="navbar-navlink group relative px-5 py-2.5 font-inter text-sm font-medium text-neutral-900 transition-all hover:text-primary-500"
+              >
+                <span className="relative z-10">Materiales</span>
+                <div className="absolute inset-0 rounded-lg bg-primary-500/0 transition-all group-hover:bg-primary-500/5" />
+              </Link>
+              <Link
+                href="/products"
+                className="navbar-navlink group relative px-5 py-2.5 font-inter text-sm font-medium text-neutral-900 transition-all hover:text-primary-500"
+              >
+                <span className="relative z-10">Productos</span>
+                <div className="absolute inset-0 rounded-lg bg-primary-500/0 transition-all group-hover:bg-primary-500/5" />
+              </Link>
+              <Link
+                href="/plans"
+                className="navbar-navlink group relative px-5 py-2.5 font-inter text-sm font-medium text-neutral-900 transition-all hover:text-primary-500"
+              >
+                <span className="relative z-10">Planes</span>
+                <div className="absolute inset-0 rounded-lg bg-primary-500/0 transition-all group-hover:bg-primary-500/5" />
+              </Link>
+            </nav>
+
+            {/* ISLAND 3: Acciones de Usuario */}
+            <div className="navbar-island flex items-center gap-2">
+              {isAuthenticated ? (
+                <>
+                  {/* Carrito */}
+                  <Link
+                    href="/cart"
+                    aria-label="Carrito de compras"
+                    className="navbar-action-btn group relative"
+                  >
+                    <ShoppingCart className="h-5 w-5 text-neutral-700 transition-colors group-hover:text-primary-500" />
+                    {total_items > 0 && (
+                      <span className="navbar-badge">
+                        {total_items}
+                      </span>
+                    )}
+                  </Link>
+
+                  {/* Menú de Perfil */}
+                  <div className="relative">
+                    <button
+                      ref={profileToggleRef}
+                      onClick={() => setIsProfileOpen(prev => !prev)}
+                      className="navbar-action-btn group"
+                      aria-label="Abrir menú de usuario"
+                    >
+                      <User className="h-5 w-5 text-neutral-700 transition-colors group-hover:text-primary-500" />
+                    </button>
+
+                    {/* Menú Desplegable */}
+                    {isProfileOpen && (
+                      <div
+                        ref={profileMenuRef}
+                        className="navbar-dropdown-wrapper"
+                      >
+                        <div className="navbar-dropdown">
+                          <div className="navbar-dropdown-header">
+                            <p className="truncate text-sm font-semibold text-neutral-900">
+                              ¡Hola, {user?.name}!
+                            </p>
+                          </div>
+                          <div className="py-1">
+                            {userLinks.map(link => (
+                              <Link
+                                key={link.href}
+                                href={link.href}
+                                className="navbar-dropdown-item group flex items-center px-4 py-2.5 text-sm text-neutral-700 transition-all hover:bg-neutral-50 hover:text-neutral-900"
+                                onClick={() => setIsProfileOpen(false)}
+                              >
+                                <link.icon
+                                  className="mr-3 h-4 w-4 text-neutral-400 transition-colors group-hover:text-primary-500"
+                                  aria-hidden="true"
+                                />
+                                <span className="font-medium">{link.label}</span>
+                              </Link>
+                            ))}
+                            {adminLinks.map(link => (
+                              <Link
+                                key={link.href}
+                                href={link.href}
+                                className="navbar-dropdown-item group flex items-center px-4 py-2.5 text-sm text-primary-600 transition-all hover:bg-primary-50 hover:text-primary-700"
+                                onClick={() => setIsProfileOpen(false)}
+                              >
+                                <link.icon
+                                  className="mr-3 h-4 w-4 text-primary-500"
+                                  aria-hidden="true"
+                                />
+                                <span className="font-semibold">{link.label}</span>
+                              </Link>
+                            ))}
+                          </div>
+                          <div className="border-t border-neutral-100 py-1">
+                            <button
+                              onClick={() => {
+                                logout()
+                                setIsProfileOpen(false)
+                              }}
+                              className="navbar-dropdown-item group flex w-full items-center px-4 py-2.5 text-left text-sm text-red-600 transition-all hover:bg-red-50 hover:text-red-700"
+                            >
+                              <LogOut
+                                className="mr-3 h-4 w-4"
+                                aria-hidden="true"
+                              />
+                              <span className="font-medium">Cerrar sesión</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Botones para usuarios no autenticados */}
+                  <Link
+                    href="/login"
+                    className="navbar-auth-outline whitespace-nowrap"
+                  >
+                    Iniciar sesión
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="navbar-auth-solid whitespace-nowrap"
+                  >
+                    Regístrate
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* VERSIÓN MÓVIL */}
+          <div className="flex items-center justify-between md:hidden">
             <Link
               href={isAuthenticated ? '/materials' : '/'}
               className="flex-shrink-0"
@@ -175,132 +336,21 @@ export default function NavBar() {
                 alt="Waste to Treasure Logo"
                 width={80}
                 height={62}
-                className="h-16 w-auto"
+                className="h-14 w-auto"
               />
             </Link>
-          </div>
 
-          {/* Columna Central (Navegación) - AHORA SIEMPRE VISIBLE */}
-          <nav className="hidden flex-1 justify-center gap-8 md:flex">
-            {siteLinks}
-          </nav>
-
-          {/* Columna Derecha (Acciones de Escritorio) - Oculta en móvil */}
-          <div className="hidden flex-1 items-center justify-end gap-4 md:flex">
-            {isAuthenticated ? (
-              <>
-                {/* --- INICIO DE MODIFICACIÓN --- */}
-                <CartIcon />
-                {/* --- FIN DE MODIFICACIÓN --- */}
-
-                {/* --- Menú de Perfil --- */}
-                <div className="relative">
-                  <button
-                    ref={profileToggleRef}
-                    onClick={() => setIsProfileOpen(prev => !prev)}
-                    className="rounded-full p-2 text-neutral-900 hover:bg-neutral-100"
-                    aria-label="Abrir menú de usuario"
-                  >
-                    <User className="h-6 w-6 text-primary-500" />
-                  </button>
-
-                  {/* --- Contenido del Menú Desplegable de Perfil --- */}
-                  {isProfileOpen && (
-                    <div
-                      ref={profileMenuRef}
-                      className="absolute right-0 mt-2 w-64 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
-                    >
-                      <div className="py-1">
-                        <div className="border-b border-neutral-200 px-4 py-3">
-                          <p className="truncate text-sm font-medium text-neutral-900">
-                            ¡Hola!, {user?.name}
-                          </p>
-                        </div>
-                        <div className="py-1">
-                          {userLinks.map(link => (
-                            <Link
-                              key={link.href}
-                              href={link.href}
-                              className="flex w-full items-center px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900"
-                              onClick={() => setIsProfileOpen(false)}
-                            >
-                              <link.icon
-                                className="mr-3 h-5 w-5 text-neutral-500"
-                                aria-hidden="true"
-                              />
-                              {link.label}
-                            </Link>
-                          ))}
-                          {adminLinks.map(link => (
-                            <Link
-                              key={link.href}
-                              href={link.href}
-                              className="flex w-full items-center px-4 py-2 text-sm text-primary-600 hover:bg-primary-50 hover:text-primary-700"
-                              onClick={() => setIsProfileOpen(false)}
-                            >
-                              <link.icon
-                                className="mr-3 h-5 w-5 text-primary-500"
-                                aria-hidden="true"
-                              />
-                              {link.label}
-                            </Link>
-                          ))}
-                        </div>
-                        <div className="border-t border-neutral-200 py-1">
-                          <button
-                            onClick={() => {
-                              logout()
-                              setIsProfileOpen(false)
-                            }}
-                            className="flex w-full items-center px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 hover:text-red-700"
-                          >
-                            <LogOut
-                              className="mr-3 h-5 w-5"
-                              aria-hidden="true"
-                            />
-                            Cerrar sesión
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </>
-            ) : (
-              <>
-                {/* --- Botones de No Autenticado (Escritorio) --- */}
-                <Link
-                  href="/login"
-                  className="rounded-lg border-2 border-primary-500 px-5 py-2 text-base font-semibold text-primary-500 transition-colors hover:bg-primary-500/10"
-                >
-                  Iniciar sesión
-                </Link>
-                <Link
-                  href="/register"
-                  className="rounded-lg bg-primary-500 px-5 py-2.5 text-base font-semibold text-white transition-colors hover:bg-primary-600"
-                >
-                  Regístrate
-                </Link>
-                {/* --- INICIO DE MODIFICACIÓN --- */}
-                <CartIcon />
-                {/* --- FIN DE MODIFICACIÓN --- */}
-              </>
-            )}
-          </div>
-
-          {/* --- Botón de Menú Móvil --- */}
-          <div className="flex flex-1 items-center justify-end md:hidden">
-            {/* --- INICIO DE MODIFICACIÓN --- */}
-            <CartIcon isMobile />
-            {/* --- FIN DE MODIFICACIÓN --- */}
-            <button
-              ref={mobileToggleRef}
-              onClick={() => setIsMobileMenuOpen(prev => !prev)}
-              className="ml-2 inline-flex items-center justify-center rounded-md p-2 text-neutral-900 hover:bg-neutral-100"
-              aria-label="Abrir menú principal"
-            >
-              <Menu className="h-6 w-6" />
-            </button>
+            <div className="flex items-center gap-2">
+              <CartIcon isMobile />
+              <button
+                ref={mobileToggleRef}
+                onClick={() => setIsMobileMenuOpen(prev => !prev)}
+                className="inline-flex items-center justify-center rounded-lg p-2 text-neutral-900 hover:bg-neutral-100"
+                aria-label="Abrir menú principal"
+              >
+                <Menu className="h-6 w-6" />
+              </button>
+            </div>
           </div>
         </div>
       </header>
