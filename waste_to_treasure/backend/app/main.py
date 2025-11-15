@@ -85,6 +85,10 @@ class ProxyHeadersMiddleware(BaseHTTPMiddleware):
         
         # Leer el host original (dominio del API Gateway)
         forwarded_host = request.headers.get("x-forwarded-host")
+        if not forwarded_host:
+            # HTTP API Gateway v2 usa 'host' header en lugar de 'x-forwarded-host'
+            forwarded_host = request.headers.get("host")
+            
         if forwarded_host:
             # Determinar puerto basado en protocolo
             port = 443 if forwarded_proto == "https" else 80
@@ -104,7 +108,11 @@ class ProxyHeadersMiddleware(BaseHTTPMiddleware):
                         f"{scheme}://{forwarded_host}"
                     )
                     response.headers["location"] = new_location
-                    logger.debug(f"Redirect reescrito: {location} -> {new_location}")
+                    logger.info(f"✅ Redirect reescrito: {location} -> {new_location}")
+                else:
+                    logger.debug(f"Location no requiere reescritura: {location}")
+            else:
+                logger.warning(f"⚠️  No se pudo reescribir redirect. forwarded_host={forwarded_host}, location={location}")
         
         return response
 
