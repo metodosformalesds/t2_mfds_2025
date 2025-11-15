@@ -490,8 +490,7 @@ def convert_to_card_response(listing: Listing) -> dict:
         "primary_image_url": primary_image,
         "seller_id": listing.seller_id,
         "quantity": listing.quantity,
-        "created_at": listing.created_at,
-        "status": listing.status.value if hasattr(listing.status, 'value') else str(listing.status)
+        "created_at": listing.created_at
     }
 
 
