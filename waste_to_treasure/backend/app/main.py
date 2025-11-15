@@ -12,8 +12,10 @@ from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.api.v1.router import router as api_router_v1
 from app.core.config import get_settings
@@ -58,19 +60,93 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     docs_url=f"{settings.API_V1_STR}/docs",
     redoc_url=f"{settings.API_V1_STR}/redoc",
+    # CRÍTICO: Deshabilitar redirects para evitar exposición de IP interna
+    # Los routers deben definir rutas sin trailing slash
+    redirect_slashes=False,
 )
+
+
+# 3.1. Middleware para Proxy Headers (IMPORTANTE)
+# ================================================
+class ProxyHeadersMiddleware(BaseHTTPMiddleware):
+    """
+    Middleware para leer headers de proxy (X-Forwarded-*).
+    Esto permite que FastAPI sepa el dominio y protocolo original
+    cuando está detrás de API Gateway o cualquier proxy.
+    
+    También reescribe los Location headers en redirects para usar
+    el host del API Gateway en lugar de la IP interna del backend.
+    """
+    async def dispatch(self, request: Request, call_next):
+        # Leer el protocolo original (http/https)
+        forwarded_proto = request.headers.get("x-forwarded-proto")
+        if forwarded_proto:
+            request.scope["scheme"] = forwarded_proto
+        
+        # Leer el host original (dominio del API Gateway)
+        forwarded_host = request.headers.get("x-forwarded-host")
+        if not forwarded_host:
+            # HTTP API Gateway v2 usa 'host' header en lugar de 'x-forwarded-host'
+            forwarded_host = request.headers.get("host")
+            
+        if forwarded_host:
+            # Determinar puerto basado en protocolo
+            port = 443 if forwarded_proto == "https" else 80
+            request.scope["server"] = (forwarded_host, port)
+            
+        response = await call_next(request)
+        
+        # Reescribir Location header en redirects (307, 308, 301, 302)
+        if response.status_code in (301, 302, 307, 308):
+            location = response.headers.get("location")
+            if location and forwarded_host:
+                # Si el Location contiene la IP interna, reemplazarla por el host del Gateway
+                if "98.95.79.84:8000" in location:
+                    scheme = forwarded_proto or "https"
+                    new_location = location.replace(
+                        "http://98.95.79.84:8000",
+                        f"{scheme}://{forwarded_host}"
+                    )
+                    response.headers["location"] = new_location
+                    logger.info(f"✅ Redirect reescrito: {location} -> {new_location}")
+                else:
+                    logger.debug(f"Location no requiere reescritura: {location}")
+            else:
+                logger.warning(f"⚠️  No se pudo reescribir redirect. forwarded_host={forwarded_host}, location={location}")
+        
+        return response
 
 
 # 4. Middlewares
 # ================
 
+# Middleware de Proxy Headers (debe ir primero)
+app.add_middleware(ProxyHeadersMiddleware)
+logger.info("Middleware de proxy headers configurado.")
+
+# Middleware de TrustedHost
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=[
+        "pk5nk9n968.execute-api.us-east-1.amazonaws.com",  # API Gateway actual  
+        "98.95.79.84",
+        "localhost",
+        "127.0.0.1",
+        "*"  # En producción, especificar hosts exactos
+    ]
+)
+logger.info("Middleware de TrustedHost configurado.")
+
 # Middleware de CORS
+# IMPORTANTE: Debe estar habilitado incluso con API Gateway
+# API Gateway no puede manejar completamente CORS (especialmente OPTIONS)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.BACKEND_CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 logger.info(f"CORS configurado para orígenes: {settings.BACKEND_CORS_ORIGINS}")
 

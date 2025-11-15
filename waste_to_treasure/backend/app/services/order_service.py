@@ -189,7 +189,7 @@ class OrderService:
                     user_id=user.user_id,
                     content=f"Tu orden #{new_order.order_id} ha sido confirmada con éxito.",
                     type="ORDER",
-                    link_url=f"/my-purchases/{new_order.order_id}"
+                    link_url=f"/dashboard/purchases/{new_order.order_id}"
                 )
                 
                 # 6b. Notificar a los vendedores
@@ -207,7 +207,7 @@ class OrderService:
                         user_id=seller_id,
                         content=content,
                         type="SALE", # Un tipo "SALE" para el vendedor
-                        link_url=f"/my-sales/{new_order.order_id}"
+                        link_url=f"/dashboard/sales/{new_order.order_id}"
                     )
                 
                 logger.info(f"Notificaciones in-app creadas para orden {new_order.order_id}")
@@ -312,7 +312,8 @@ class OrderService:
             select(Order)
             .where(Order.order_id.in_(stmt_base))
             .options(
-                selectinload(Order.order_items).selectinload(OrderItem.listing).selectinload(Listing.images)
+                selectinload(Order.order_items).selectinload(OrderItem.listing).selectinload(Listing.images),
+                joinedload(Order.buyer)  # Cargar comprador para mostrar en la lista
             )
             .order_by(Order.created_at.desc())
             .offset(skip)

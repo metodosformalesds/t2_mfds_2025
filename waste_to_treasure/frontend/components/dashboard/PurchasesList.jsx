@@ -7,9 +7,7 @@ export default function PurchasesList() {
   const { purchases, isLoading, error, pagination, goToPage, nextPage, prevPage } = usePurchases();
 
   const handleViewDetails = (orderId) => {
-    console.log('Ver detalles del pedido:', orderId);
-    // TODO: Navegar a página de detalles o abrir modal
-    // router.push(`/dashboard/purchases/${orderId}`);
+    window.location.href = `/dashboard/purchases/${orderId}`;
   };
 
   const getStatusColor = (status) => {
@@ -104,17 +102,17 @@ export default function PurchasesList() {
                     #{order.order_id}
                   </td>
                   <td className="py-4 px-4 text-gray-700 font-inter">
-                    {order.items?.length || 0} producto(s)
+                    {order.order_items?.length || 0} producto(s)
                   </td>
                   <td className="py-4 px-4 text-gray-700 font-inter font-semibold">
-                    ${order.total_amount?.toFixed(2) || '0.00'}
+                    ${typeof order.total_amount === 'number' ? order.total_amount.toFixed(2) : parseFloat(order.total_amount || 0).toFixed(2)}
                   </td>
                   <td className="py-4 px-4 text-gray-500 font-inter text-sm">
                     {formatDate(order.created_at)}
                   </td>
                   <td className="py-4 px-4">
                     <span className={`px-3 py-1 text-xs font-semibold rounded-full border ${getStatusColor(order.status)} font-inter`}>
-                      {getStatusLabel(order.status)}
+                      {getStatusLabel('completed')}
                     </span>
                   </td>
                   <td className="py-4 px-4">

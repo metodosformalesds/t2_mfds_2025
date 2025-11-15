@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 @router.post(
-    "/",
+    "",
     response_model=ReviewRead,
     status_code=status.HTTP_201_CREATED,
     summary="Crear nueva reseña",
@@ -37,6 +37,12 @@ router = APIRouter()
         403: {"description": "No ha comprado el item"},
         404: {"description": "Item de orden no encontrado"},
     }
+)
+@router.post(
+    "/",
+    response_model=ReviewRead,
+    status_code=status.HTTP_201_CREATED,
+    include_in_schema=False
 )
 async def create_review(
     review_data: ReviewCreate,

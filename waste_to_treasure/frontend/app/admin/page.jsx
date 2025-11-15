@@ -1,8 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { Home, UserCircle, RefreshCw } from 'lucide-react'
 import StatCard from '@/components/admin/StatCard'
 import TaskCard from '@/components/admin/TaskCard'
 import { adminService } from '@/lib/api/admin'
@@ -31,9 +29,15 @@ export default function AdminDashboardPage() {
   }, [])
 
   const kpiData = [
-    { title: 'Nuevos usuarios (24h)', value: stats?.new_users_24h || 'N/A' },
-    { title: 'Transacciones (24h)', value: stats?.transactions_24h || 'N/A' },
-    { title: 'Ingresos por comisión (mes)', value: `$${(stats?.total_revenue || 0).toFixed(2)}` },
+    { title: 'Total de usuarios', value: stats?.total_users || 0 },
+    { title: 'Usuarios activos', value: stats?.active_users || 0 },
+    { 
+      title: 'Ingresos totales', 
+      value: `$${Number(stats?.total_revenue || 0).toLocaleString('es-MX', { 
+        minimumFractionDigits: 2, 
+        maximumFractionDigits: 2 
+      })}` 
+    },
     { title: 'Publicaciones totales', value: stats?.total_listings || 0 },
   ]
 
@@ -45,16 +49,16 @@ export default function AdminDashboardPage() {
       linkHref: '/admin/moderation',
     },
     {
-      title: 'Reportes de usuario pendientes',
+      title: 'Reportes pendientes',
       value: stats?.pending_reports || 0,
-      linkText: 'Revisar reportes de usuario',
+      linkText: 'Revisar reportes',
       linkHref: '/admin/reports',
     },
     {
-      title: 'Usuarios Totales',
-      value: stats?.total_users || 0,
-      linkText: 'Gestionar usuarios',
-      linkHref: '/admin/users',
+      title: 'Publicaciones aprobadas',
+      value: stats?.approved_listings || 0,
+      linkText: 'Ver publicaciones activas',
+      linkHref: '/admin/moderation',
     },
   ]
   
@@ -70,30 +74,12 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="p-6">
-      {/* Header con navegación rápida */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="font-poppins text-5xl font-bold text-primary-500">
+    <div>
+      {/* Header */}
+      <div className="mb-6 sm:mb-8">
+        <h1 className="font-poppins text-3xl sm:text-4xl lg:text-5xl font-bold text-primary-500">
           Dashboard
         </h1>
-        
-        {/* Enlaces rápidos - visibles en desktop */}
-        <div className="hidden lg:flex items-center gap-3">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 font-inter text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
-          >
-            <Home className="h-4 w-4" />
-            Homepage
-          </Link>
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 rounded-lg border border-primary-500 bg-primary-50 px-4 py-2 font-inter text-sm font-medium text-primary-600 transition-colors hover:bg-primary-100"
-          >
-            <UserCircle className="h-4 w-4" />
-            Panel de Usuario
-          </Link>
-        </div>
       </div>
 
       {/* Mensaje de error */}
@@ -109,22 +95,22 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      <section className="mt-12">
-        <h2 className="font-poppins text-4xl font-semibold text-neutral-900">
+      <section className="mt-8 sm:mt-12">
+        <h2 className="font-poppins text-3xl sm:text-4xl font-semibold text-neutral-900">
           KPI's del sistema
         </h2>
-        <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-6 sm:mt-8 grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 xl:grid-cols-4">
           {kpiData.map(item => (
             <StatCard key={item.title} title={item.title} value={item.value} />
           ))}
         </div>
       </section>
 
-      <section className="mt-16">
-        <h2 className="font-poppins text-4xl font-semibold text-neutral-900">
+      <section className="mt-12 sm:mt-16">
+        <h2 className="font-poppins text-3xl sm:text-4xl font-semibold text-neutral-900">
           Colas de tarea
         </h2>
-        <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-6 sm:mt-8 grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 xl:grid-cols-3">
           {taskData.map(item => (
             <TaskCard
               key={item.title}

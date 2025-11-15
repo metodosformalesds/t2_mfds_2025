@@ -60,15 +60,10 @@ export const listingsService = {
    */
   getMyListings: async (params = {}) => {
     try {
-      console.log('[listingsService.getMyListings] Parámetros:', params)
       const { data } = await apiClient.get('/listings/me', { params })
-      console.log('[listingsService.getMyListings] Respuesta recibida:', data)
-      console.log('[listingsService.getMyListings] Total items:', data.items?.length || 0)
       return data
     } catch (error) {
-      console.error('[listingsService.getMyListings] Error:', error)
-      console.error('[listingsService.getMyListings] Response:', error.response?.data)
-      console.error('[listingsService.getMyListings] Status:', error.response?.status)
+      console.error('Error al obtener mis listings:', error)
       throw error
     }
   },

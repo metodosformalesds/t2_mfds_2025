@@ -168,7 +168,7 @@ export default function NavBar() {
         <div className="navbar-backdrop" />
         
         {/* Contenedor principal con padding superior para las islas */}
-        <div className="relative mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+        <div className="relative mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
           
           {/* VERSIÓN ESCRITORIO - Islands Layout */}
           <div className="hidden md:flex md:items-center md:justify-between md:gap-6">

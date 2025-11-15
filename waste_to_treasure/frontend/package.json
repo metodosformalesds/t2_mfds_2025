@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node scripts/check-config.js && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "check-config": "node scripts/check-config.js"
   },
   "dependencies": {
     "@aws-amplify/ui-react": "^6.13.1",

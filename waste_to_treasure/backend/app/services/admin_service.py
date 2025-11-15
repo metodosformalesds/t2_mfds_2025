@@ -25,6 +25,75 @@ from app.schemas.admin import (
 class AdminService:
     """Servicio para operaciones administrativas"""
     
+    # ========== USER MANAGEMENT ==========
+    
+    @staticmethod
+    async def get_users_list(
+        db: AsyncSession,
+        role_filter: Optional[str] = None,
+        status_filter: Optional[str] = None,
+        search_term: Optional[str] = None,
+        skip: int = 0,
+        limit: int = 50
+    ) -> Tuple[List[Dict], int]:
+        """Obtener lista de usuarios con filtros"""
+        from sqlalchemy import or_
+        
+        # Query base
+        stmt = select(User)
+        count_stmt = select(func.count(User.user_id))
+        
+        # Filtro por rol
+        if role_filter:
+            try:
+                role_enum = UserRoleEnum(role_filter.upper())
+                stmt = stmt.where(User.role == role_enum)
+                count_stmt = count_stmt.where(User.role == role_enum)
+            except ValueError:
+                pass
+        
+        # Filtro por estado
+        if status_filter:
+            try:
+                status_enum = UserStatusEnum(status_filter.upper())
+                stmt = stmt.where(User.status == status_enum)
+                count_stmt = count_stmt.where(User.status == status_enum)
+            except ValueError:
+                pass
+        
+        # Búsqueda por email o nombre
+        if search_term:
+            search_pattern = f"%{search_term}%"
+            search_filter = or_(
+                User.email.ilike(search_pattern),
+                User.full_name.ilike(search_pattern)
+            )
+            stmt = stmt.where(search_filter)
+            count_stmt = count_stmt.where(search_filter)
+        
+        # Contar total
+        total = await db.scalar(count_stmt) or 0
+        
+        # Aplicar paginación y ordenamiento
+        stmt = stmt.order_by(User.created_at.desc()).offset(skip).limit(limit)
+        
+        result = await db.execute(stmt)
+        users = result.scalars().all()
+        
+        # Formatear respuesta
+        items = []
+        for user in users:
+            items.append({
+                "user_id": user.user_id,
+                "email": user.email,
+                "full_name": user.full_name,
+                "role": user.role,
+                "status": user.status,
+                "created_at": user.created_at
+            })
+        
+        return items, total
+    
     # ========== STATISTICS ==========
     
     @staticmethod
@@ -71,9 +140,13 @@ class AdminService:
         )
         pending_reports = await db.scalar(pending_reports_stmt) or 0
         
-        # Revenue total (órdenes entregadas)
+        # Revenue total (órdenes pagadas, enviadas y entregadas - excluyendo canceladas y reembolsadas)
         total_revenue_stmt = select(func.sum(Order.total_amount)).where(
-            Order.order_status == OrderStatusEnum.DELIVERED
+            Order.order_status.in_([
+                OrderStatusEnum.PAID,
+                OrderStatusEnum.SHIPPED,
+                OrderStatusEnum.DELIVERED
+            ])
         )
         total_revenue = await db.scalar(total_revenue_stmt) or 0.0
         

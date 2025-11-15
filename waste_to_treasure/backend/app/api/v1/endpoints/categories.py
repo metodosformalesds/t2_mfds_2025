@@ -28,7 +28,7 @@ router = APIRouter()
 
 
 @router.post(
-    "/",
+    "",
     response_model=CategoryRead,
     status_code=status.HTTP_201_CREATED,
     summary="Crear nueva categoría",
@@ -39,6 +39,12 @@ router = APIRouter()
         401: {"description": "No autenticado"},
         403: {"description": "Sin permisos de administrador"},
     }
+)
+@router.post(
+    "/",
+    response_model=CategoryRead,
+    status_code=status.HTTP_201_CREATED,
+    include_in_schema=False
 )
 async def create_category(
     category_data: CategoryCreate,
@@ -75,13 +81,18 @@ async def create_category(
 
 
 @router.get(
-    "/",
+    "",
     response_model=CategoryList,
     summary="Listar categorías",
     description="Obtiene una lista paginada de categorías con filtros opcionales.",
     responses={
         200: {"description": "Lista de categorías obtenida exitosamente"},
     }
+)
+@router.get(
+    "/",
+    response_model=CategoryList,
+    include_in_schema=False
 )
 async def get_categories(
     skip: int = Query(0, ge=0, description="Número de registros a omitir"),

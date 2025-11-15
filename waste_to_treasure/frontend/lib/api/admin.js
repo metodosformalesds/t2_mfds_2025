@@ -7,6 +7,43 @@
 import apiClient from './client'
 
 export const adminService = {
+  // --- User Management ---
+
+  /**
+   * Obtiene la lista de usuarios (Admin).
+   * @param {Object} params - Parámetros de filtrado (skip, limit, role, status, search)
+   * @returns {Promise<Object>} Lista paginada de usuarios
+   */
+  getUsersList: async (params = {}) => {
+    try {
+      const { data } = await apiClient.get('/admin/users', { params })
+      return data
+    } catch (error) {
+      console.error('Error al obtener lista de usuarios:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Obtiene las estadísticas de un usuario específico.
+   * TODO: Implementar en backend GET /admin/users/{user_id}/stats
+   * 
+   * @param {string} userId - UUID del usuario
+   * @returns {Promise<Object>} Objeto con estadísticas del usuario
+   */
+  getUserDetailedStats: async (userId) => {
+    // TODO: Implementar cuando el backend tenga el endpoint
+    // const { data } = await apiClient.get(`/admin/users/${userId}/stats`)
+    // return data
+    
+    return {
+      publications: 0,
+      transactions: 0,
+      reports: 0,
+      warnings: 0
+    }
+  },
+
   // --- Dashboard ---
 
   /**
@@ -36,6 +73,21 @@ export const adminService = {
       return data
     } catch (error) {
       console.error('Error al obtener cola de moderación:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Obtiene los detalles completos de un listing en moderación.
+   * @param {number} listingId - ID del listing
+   * @returns {Promise<Object>} Detalles completos del listing
+   */
+  getModerationListingDetail: async (listingId) => {
+    try {
+      const { data } = await apiClient.get(`/admin/moderation/listings/${listingId}`)
+      return data
+    } catch (error) {
+      console.error(`Error al obtener detalles del listing ${listingId}:`, error)
       throw error
     }
   },

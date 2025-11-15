@@ -7,7 +7,7 @@ Todos los endpoints requieren rol ADMIN.
 """
 import logging
 from typing import Optional
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, status, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_async_db, require_admin
@@ -21,13 +21,74 @@ from app.schemas.admin import (
     ReportResolution,
     ReportResolutionResponse,
     AdminActionLogList,
+    UserAdminList,
+    UserAdminListItem,
 )
+from app.schemas.listing import ListingRead
 from app.services import admin_service
 from app.services.admin_service import AdminService
+from app.services import listing_service
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+# ==========================================
+# USER MANAGEMENT
+# ==========================================
+
+@router.get(
+    "/users",
+    response_model=UserAdminList,
+    summary="Listar usuarios",
+    description="Obtiene lista paginada de todos los usuarios para gestión administrativa.",
+    responses={
+        200: {"description": "Lista obtenida exitosamente"},
+        401: {"description": "No autenticado"},
+        403: {"description": "Sin permisos de administrador"},
+    }
+)
+async def get_users_list(
+    role: Optional[str] = Query(None, description="Filtrar por rol: USER, ADMIN"),
+    status: Optional[str] = Query(None, description="Filtrar por estado: ACTIVE, BLOCKED, PENDING"),
+    search: Optional[str] = Query(None, description="Buscar por email o nombre"),
+    skip: int = Query(0, ge=0, description="Número de registros a omitir"),
+    limit: int = Query(50, ge=1, le=100, description="Número máximo de registros"),
+    db: AsyncSession = Depends(get_async_db),
+    current_admin: User = Depends(require_admin)
+) -> UserAdminList:
+    """
+    Lista todos los usuarios de la plataforma.
+    
+    **Requiere**: Rol ADMIN
+    """
+    logger.info(
+        f"Admin {current_admin.user_id} listando usuarios "
+        f"(role={role}, status={status}, search={search}, skip={skip}, limit={limit})"
+    )
+    
+    items, total = await AdminService.get_users_list(
+        db=db,
+        role_filter=role,
+        status_filter=status,
+        search_term=search,
+        skip=skip,
+        limit=limit
+    )
+    
+    page = (skip // limit) + 1 if limit > 0 else 1
+    
+    return UserAdminList(
+        items=items,
+        total=total,
+        page=page,
+        page_size=limit
+    )
+
+
+# ==========================================
+# DASHBOARD
+# ==========================================
 
 @router.get(
     "/dashboard/stats",
@@ -53,6 +114,45 @@ async def get_dashboard_stats(
     stats = await AdminService.get_dashboard_stats(db)
     
     return StatsDashboard(**stats)
+
+@router.get(
+    "/moderation/listings/{listing_id}",
+    response_model=ListingRead,
+    summary="Obtener detalles de listing en moderación",
+    description="Obtiene los detalles completos de una publicación en cualquier estado (admin only).",
+    responses={
+        200: {"description": "Listing encontrado"},
+        401: {"description": "No autenticado"},
+        403: {"description": "Sin permisos de administrador"},
+        404: {"description": "Listing no encontrado"},
+    }
+)
+async def get_moderation_listing_detail(
+    listing_id: int,
+    db: AsyncSession = Depends(get_async_db),
+    current_admin: User = Depends(require_admin)
+) -> ListingRead:
+    """
+    Obtiene detalles completos de un listing (incluyendo PENDING, REJECTED, etc.).
+    
+    **Requiere**: Rol ADMIN
+    """
+    logger.info(f"Admin {current_admin.user_id} obteniendo detalles de listing {listing_id}")
+    
+    listing = await listing_service.get_listing_by_id(
+        db=db,
+        listing_id=listing_id,
+        include_inactive=True  # Admin puede ver todos los estados
+    )
+    
+    if not listing:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Listing {listing_id} no encontrado"
+        )
+    
+    return ListingRead.model_validate(listing)
+
 
 @router.get(
     "/moderation/listings",

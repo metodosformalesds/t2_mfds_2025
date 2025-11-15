@@ -1,9 +1,9 @@
 'use client';
 
-import { ShoppingBag } from 'lucide-react';
+import { ShoppingBag, Package, MapPin, CreditCard, Calendar, User } from 'lucide-react';
+import Link from 'next/link';
 
 export default function PurchaseDetails({ order }) {
-  // order es un objeto que contiene todos los datos del pedido
   if (!order) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
@@ -15,44 +15,179 @@ export default function PurchaseDetails({ order }) {
     );
   }
 
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'completed':
+        return 'bg-green-100 text-green-700 border-green-300';
+      case 'shipped':
+        return 'bg-blue-100 text-blue-700 border-blue-300';
+      case 'processing':
+        return 'bg-yellow-100 text-yellow-700 border-yellow-300';
+      case 'cancelled':
+        return 'bg-red-100 text-red-700 border-red-300';
+      default:
+        return 'bg-gray-100 text-gray-700 border-gray-300';
+    }
+  };
+
+  const getStatusLabel = (status) => {
+    const labels = {
+      'pending': 'Pendiente',
+      'processing': 'Procesando',
+      'shipped': 'En camino',
+      'completed': 'Entregado',
+      'cancelled': 'Cancelado',
+    };
+    return labels[status?.toLowerCase()] || status;
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-MX', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const totalAmount = typeof order.total_amount === 'number' 
+    ? order.total_amount 
+    : parseFloat(order.total_amount || 0);
+
   return (
-    <div className="bg-white rounded-lg shadow-md p-8 space-y-6 max-w-4xl mx-auto">
+    <div className="space-y-6">
       {/* Encabezado */}
-      <div className="border-b border-gray-200 pb-4">
-        <h1 className="text-3xl font-bold font-poppins text-neutral-900">
-          Detalles del Pedido {order.id}
-        </h1>
-        <p className="text-sm text-gray-600 font-inter mt-1">
-          Fecha de compra: {order.date} | Estado: {order.status}
-        </p>
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold font-poppins text-neutral-900">
+              Pedido #{order.order_id}
+            </h1>
+            <div className="flex items-center gap-2 mt-2">
+              <Calendar className="w-4 h-4 text-gray-500" />
+              <p className="text-sm text-gray-600 font-inter">
+                {formatDate(order.created_at)}
+              </p>
+            </div>
+          </div>
+          <span className={`px-4 py-2 text-sm font-semibold rounded-full border ${getStatusColor(order.status)} font-inter`}>
+            {getStatusLabel('completed')}
+          </span>
+        </div>
       </div>
 
-      {/* Información del producto */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold font-poppins text-gray-900">
-          Producto
+      {/* Productos */}
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h2 className="text-xl font-semibold font-poppins text-gray-900 mb-4 flex items-center gap-2">
+          <Package className="w-5 h-5" />
+          Productos
         </h2>
-        <div className="flex flex-col gap-2">
-          <p className="font-inter text-gray-700">
-            <span className="font-semibold">Nombre:</span> {order.product}
-          </p>
-          <p className="font-inter text-gray-700">
-            <span className="font-semibold">Vendedor:</span> {order.seller}
-          </p>
-          <p className="font-inter text-gray-700">
-            <span className="font-semibold">Precio:</span> ${order.price}
-          </p>
+        <div className="space-y-4">
+          {order.order_items && order.order_items.length > 0 ? (
+            order.order_items.map((item, index) => (
+              <div key={index} className="flex items-center justify-between border-b border-gray-100 pb-4 last:border-0">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                    {item.listing?.primary_image_url ? (
+                      <img 
+                        src={item.listing.primary_image_url} 
+                        alt={item.listing.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Package className="w-8 h-8 text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900 font-inter">
+                      {item.listing?.title || 'Producto no disponible'}
+                    </p>
+                    <p className="text-sm text-gray-600 font-inter">
+                      Cantidad: {item.quantity}
+                    </p>
+                    <p className="text-sm text-gray-600 font-inter">
+                      Precio unitario: ${typeof item.price_at_purchase === 'number' ? item.price_at_purchase.toFixed(2) : parseFloat(item.price_at_purchase || 0).toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold text-gray-900 font-inter">
+                    ${(typeof item.price_at_purchase === 'number' ? item.price_at_purchase * item.quantity : parseFloat(item.price_at_purchase || 0) * item.quantity).toFixed(2)}
+                  </p>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-500 font-inter text-center py-8">No hay productos en este pedido</p>
+          )}
+        </div>
+      </div>
+
+      {/* Información de Envío */}
+      {order.shipping_address && (
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold font-poppins text-gray-900 mb-4 flex items-center gap-2">
+            <MapPin className="w-5 h-5" />
+            Dirección de Envío
+          </h2>
+          <div className="space-y-2">
+            <p className="font-inter text-gray-700">
+              <span className="font-semibold">Calle:</span> {order.shipping_address.street}
+            </p>
+            {order.shipping_address.city && (
+              <p className="font-inter text-gray-700">
+                <span className="font-semibold">Ciudad:</span> {order.shipping_address.city}
+              </p>
+            )}
+            {order.shipping_address.state && (
+              <p className="font-inter text-gray-700">
+                <span className="font-semibold">Estado:</span> {order.shipping_address.state}
+              </p>
+            )}
+            {order.shipping_address.postal_code && (
+              <p className="font-inter text-gray-700">
+                <span className="font-semibold">Código Postal:</span> {order.shipping_address.postal_code}
+              </p>
+            )}
+            {order.shipping_address.country && (
+              <p className="font-inter text-gray-700">
+                <span className="font-semibold">País:</span> {order.shipping_address.country}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Resumen del Pedido */}
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h2 className="text-xl font-semibold font-poppins text-gray-900 mb-4 flex items-center gap-2">
+          <CreditCard className="w-5 h-5" />
+          Resumen del Pedido
+        </h2>
+        <div className="space-y-3">
+          <div className="flex justify-between font-inter text-gray-700">
+            <span>Subtotal:</span>
+            <span>${totalAmount.toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between font-inter text-gray-700 border-t pt-3">
+            <span className="font-semibold text-lg">Total:</span>
+            <span className="font-semibold text-lg text-primary-600">${totalAmount.toFixed(2)}</span>
+          </div>
         </div>
       </div>
 
       {/* Información adicional */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <h3 className="font-semibold text-blue-900 mb-1 font-inter">
-          Información adicional
+          ℹ️ Información adicional
         </h3>
         <p className="text-sm text-blue-700 font-inter">
-          Este pedido se procesará según la política de la tienda. Puedes
-          revisar el estado de tu envío o solicitar soporte en caso de dudas.
+          Si tienes alguna pregunta sobre tu pedido, puedes contactar al vendedor o a nuestro equipo de soporte.
         </p>
       </div>
     </div>

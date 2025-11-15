@@ -53,32 +53,35 @@ export default function AdminSidebar({ isOpen, onClose }) {
   return (
     <aside
       className={`
-        fixed inset-y-0 left-0 z-50 flex h-screen w-[275px] flex-shrink-0 flex-col 
-        bg-neutral-900 text-white transition-transform duration-300 ease-in-out 
-        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:static lg:translate-x-0
+        fixed top-4 left-4 bottom-4 z-50 w-[300px] flex-shrink-0 flex-col 
+        bg-gradient-to-b from-neutral-900 to-neutral-800 text-white 
+        transition-transform duration-300 ease-in-out 
+        rounded-2xl shadow-2xl border border-white/10
+        ${isOpen ? 'flex translate-x-0' : 'hidden -translate-x-full'}
+        lg:flex lg:static lg:translate-x-0 lg:top-0 lg:left-0 lg:bottom-0 
+        lg:ml-12 lg:my-4 lg:mr-1 lg:rounded-3xl
       `}
     >
       {/* Encabezado del Sidebar */}
-      <div className="flex h-[120px] flex-shrink-0 items-center justify-between px-4">
+      <div className="flex h-[120px] flex-shrink-0 items-center justify-between px-6 pt-6">
         <div>
           <h1 className="font-roboto text-xl font-bold text-white">
             WASTE TO TREASURE
           </h1>
-          <p className="font-inter text-base text-secondary-600">
+          <p className="font-inter text-sm text-secondary-400 mt-1">
             CONSOLA ADMIN
           </p>
         </div>
         <button
           onClick={onClose}
-          className="p-2 text-neutral-400 hover:text-white lg:hidden"
+          className="p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors lg:hidden"
         >
           <X className="h-6 w-6" />
         </button>
       </div>
 
       {/* Navegación Principal */}
-      <nav className="flex-1 space-y-2 overflow-y-auto px-4 py-4">
+      <nav className="flex-1 space-y-2 overflow-y-auto px-4 py-4 content-center">
         {menuItems.map(item => {
           const Icon = item.icon
           const isActive = item.exact
@@ -89,13 +92,13 @@ export default function AdminSidebar({ isOpen, onClose }) {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 rounded-lg px-6 py-4 font-semibold text-white transition-colors ${
+              className={`flex items-center justify-start gap-3 rounded-xl px-5 py-3.5 font-medium text-sm transition-all ${
                 isActive
-                  ? 'bg-primary-500'
-                  : 'hover:bg-neutral-700'
+                  ? 'bg-primary-500 text-white text shadow-lg shadow-primary-500/30 scale-[1.02]'
+                  : 'text-neutral-200 hover:bg-white/10 hover:text-white hover:scale-[1.01]'
               }`}
             >
-              <Icon className="h-6 w-6" />
+              <Icon className="h-5 w-5 flex-shrink-0" />
               <span className="truncate">{item.label}</span>
             </Link>
           )
@@ -103,17 +106,22 @@ export default function AdminSidebar({ isOpen, onClose }) {
       </nav>
 
       {/* Pie de página del Sidebar (Perfil) */}
-      <div className="h-[120px] flex-shrink-0 border-t border-white/20 px-4 pt-4">
-        <p className="font-inter text-base text-white">
-          Admin: {user?.name || user?.full_name || 'Usuario Admin'}
-        </p>
-        <button
-          onClick={handleLogout}
-          className="group mt-2 flex items-center gap-2 font-inter text-sm text-secondary-600 hover:underline"
-        >
-          <LogOut className="h-4 w-4 text-secondary-600" />
-          Cerrar sesión
-        </button>
+      <div className="flex-shrink-0 border-t border-white/10 px-4 py-6 mb-2">
+        <div className="bg-white/5 rounded-xl p-4 backdrop-blur-sm">
+          <p className="font-inter text-sm text-white font-medium mb-1">
+            {user?.name || user?.full_name || 'Usuario Admin'}
+          </p>
+          <p className="font-inter text-xs text-neutral-300 mb-3">
+            Administrador
+          </p>
+          <button
+            onClick={handleLogout}
+            className="group flex items-center gap-2 font-inter text-sm text-secondary-400 hover:text-secondary-300 transition-colors w-full"
+          >
+            <LogOut className="h-4 w-4" />
+            Cerrar sesión
+          </button>
+        </div>
       </div>
     </aside>
   )
