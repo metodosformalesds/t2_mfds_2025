@@ -6,6 +6,8 @@ applications:
         preBuild:
           commands:
             - nvm use 20
+            # Limpia caché para forzar rebuild con nuevas variables
+            - rm -rf .next
             - npm ci --legacy-peer-deps
         build:
           commands:
@@ -17,4 +19,5 @@ applications:
       cache:
         paths:
           - node_modules/**/*
-          - .next/cache/**/*
+          # Comentado temporalmente para forzar rebuild completo
+          # - .next/cache/**/*

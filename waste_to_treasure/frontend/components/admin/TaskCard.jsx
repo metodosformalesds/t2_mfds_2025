@@ -6,8 +6,8 @@ import Link from 'next/link'
  */
 export default function TaskCard({ title, value, linkText, linkHref }) {
   return (
-    <div className="flex h-[242px] flex-col justify-center gap-10 rounded-xl bg-white p-6 shadow-md">
-      <h3 className="font-roboto text-2xl font-bold text-neutral-900/70 mt-5">
+    <div className="flex h-[200px] flex-col justify-between rounded-xl bg-white p-6 shadow-md">
+      <h3 className="font-roboto text-lg font-semibold text-neutral-900/70 leading-tight">
         {title}
       </h3>
       <p className="font-roboto text-5xl font-bold text-primary-500">
@@ -15,9 +15,10 @@ export default function TaskCard({ title, value, linkText, linkHref }) {
       </p>
       <Link
         href={linkHref}
-        className="font-inter font-medium text-secondary-600 transition-colors hover:text-secondary-500 hover:underline"
+        className="inline-flex items-center font-inter text-sm font-medium text-secondary-600 transition-colors hover:text-secondary-500 hover:underline"
       >
-        {linkText} →
+        {linkText} 
+        <span className="ml-1">→</span>
       </Link>
     </div>
   )
