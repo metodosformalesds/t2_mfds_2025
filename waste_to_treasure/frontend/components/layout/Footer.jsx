@@ -104,6 +104,9 @@ export default function Footer() {
               <Link href="/legal/terms" className="hover:text-white">
                 Términos de servicio
               </Link>
+              <Link href="/legal/data-deletion" className="hover:text-white">
+                Instrucciones para eliminación de datos 
+              </Link>
             </div>
           </div>
         </div>
