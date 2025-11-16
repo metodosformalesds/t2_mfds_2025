@@ -7,6 +7,11 @@ Implementa la lógica de negocio para:
 - Crear, cambiar y cancelar suscripciones.
 - Simular llamadas a la pasarela de pago (Stripe).
 """
+# Autor: Alejandro Campa Alonso 215833
+# Fecha: 2025-11-08T00:48:41-07:00
+# Descripción: Servicio que gestiona planes disponibles y suscripciones
+# de usuarios. Incluye simulación de llamadas a la pasarela de pago y
+# lógica para crear, reactivar y cancelar suscripciones.
 import logging
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -25,7 +30,16 @@ logger = logging.getLogger(__name__)
 class SubscriptionService:
 
     async def list_available_plans(self, db: AsyncSession) -> List[Plan]:
-        """Lista todos los planes disponibles."""
+        """
+        Autor: Alejandro Campa Alonso 215833
+        Lista todos los planes disponibles.
+
+        Args:
+            db: Sesión asíncrona de la base de datos.
+
+        Returns:
+            Lista de `Plan` disponibles.
+        """
         result = await db.execute(
             select(Plan).order_by(Plan.price.asc())
         )
@@ -36,7 +50,17 @@ class SubscriptionService:
         db: AsyncSession, 
         user: User
     ) -> Optional[Subscription]:
-        """Obtiene la suscripción activa del usuario, si existe."""
+        """
+        Autor: Alejandro Campa Alonso 215833
+        Obtiene la suscripción activa del usuario, si existe.
+
+        Args:
+            db: Sesión asíncrona de la base de datos.
+            user: Usuario a consultar.
+
+        Returns:
+            `Subscription` activa o `None`.
+        """
         result = await db.execute(
             select(Subscription)
             .where(
@@ -54,7 +78,27 @@ class SubscriptionService:
         plan_id: int,
         payment_token: str
     ) -> Subscription:
-        """Crea una nueva suscripción o cambia una existente."""
+        """
+        Autor: Alejandro Campa Alonso 215833
+        Crea una nueva suscripción o cambia una existente.
+
+        Comportamiento clave:
+        - Valida existencia del plan.
+        - Cancela la suscripción activa en otros planes (simulado).
+        - Simula el procesamiento del pago y crea/actualiza la suscripción.
+
+        Args:
+            db: Sesión asíncrona de la base de datos.
+            user: Usuario solicitante.
+            plan_id: ID del plan al que suscribirse.
+            payment_token: Token de pago (simulado, debe empezar por 'tok_').
+
+        Returns:
+            La instancia `Subscription` creada o actualizada.
+
+        Raises:
+            HTTPException 400/404 según errores de validación.
+        """
         
         # 1. Validar el plan
         plan_result = await db.execute(select(Plan).where(Plan.plan_id == plan_id))
@@ -134,7 +178,17 @@ class SubscriptionService:
         db: AsyncSession,
         user: User
     ) -> Subscription:
-        """Cancela la suscripción activa del usuario."""
+        """
+        Autor: Alejandro Campa Alonso 215833
+        Cancela la suscripción activa del usuario.
+
+        Args:
+            db: Sesión asíncrona de la base de datos.
+            user: Usuario cuya suscripción será cancelada.
+
+        Returns:
+            La suscripción cancelada.
+        """
         
         active_sub = await self.get_active_subscription(db, user)
         if not active_sub:
@@ -160,7 +214,15 @@ class SubscriptionService:
         user: User
     ) -> Optional[str]:
         """
+        Autor: Alejandro Campa Alonso 215833
         Helper: Devuelve el nombre (tier) del plan activo del usuario.
+
+        Args:
+            db: Sesión asíncrona de la base de datos.
+            user: Usuario a consultar.
+
+        Returns:
+            Nombre del plan activo o `None` para tier gratuito.
         """
         active_sub = await self.get_active_subscription(db, user)
         if active_sub:

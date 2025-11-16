@@ -1,3 +1,9 @@
+# Autor: Alejandro Campa Alonso 215833
+# Fecha: 2025-11-08
+# Descripción: Endpoints de la API para Planes (SaaS). Proporciona un endpoint público para
+# listar todos los planes de suscripción disponibles en la plataforma, con validación y
+# parseo de campos computados JSON.
+
 """
 Endpoints de la API para Planes (SaaS).
 
@@ -31,7 +37,18 @@ async def get_available_plans(
     db: Annotated[AsyncSession, Depends(get_async_db)]
 ) -> PlanList:
     """
-    Endpoint público para listar todos los planes de suscripción.
+    Endpoint público para listar todos los planes de suscripción disponibles en la plataforma.
+    
+    Obtiene todos los planes activos, los valida y parsea sus campos computados JSON.
+    No requiere autenticación, ya que es información pública.
+    
+    Autor: Alejandro Campa Alonso 215833
+    
+    Args:
+        db: Sesión asincrónica de la base de datos
+    
+    Returns:
+        PlanList: Lista de todos los planes disponibles con metadatos
     """
     plans = await subscription_service.list_available_plans(db)
     

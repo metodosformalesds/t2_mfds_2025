@@ -7,6 +7,11 @@ Implementa la lógica de negocio para:
 - Listado de compras y ventas
 - Consulta de detalles de órdenes
 """
+# Autor: Alejandro Campa Alonso 215833
+# Fecha: 2025-11-08T00:48:30-07:00
+# Descripción: Servicio que implementa la lógica de negocio para checkout,
+# validaciones de carrito/stock, creación de órdenes, notificaciones y
+# consultas de compras/ventas.
 import logging
 import uuid
 from decimal import Decimal
@@ -35,16 +40,17 @@ class OrderService:
         user: User
     ) -> Tuple[Cart, Dict[int, Listing]]:
         """
+        Autor: Alejandro Campa Alonso 215833
         Obtiene el carrito del usuario y bloquea los listings asociados
         para una validación de stock segura (previene race conditions).
-        
+
         Args:
             db: Sesión de base de datos (transacción).
             user: Usuario autenticado.
-            
+
         Returns:
             Tupla (Cart, Dict[listing_id, Listing])
-            
+
         Raises:
             HTTPException 404: Si el carrito está vacío.
             HTTPException 400: Si hay items no disponibles o sin stock.
@@ -121,7 +127,27 @@ class OrderService:
         payment_method: str
     ) -> Order:
         """
-        ... (docstring sin cambios) ...
+        Autor: Alejandro Campa Alonso 215833
+        Crea una orden a partir del carrito del usuario. Este método:
+        - Crea la cabecera `Order` y los `OrderItem` asociados.
+        - Reduce el stock de los listings involucrados.
+        - Vacía el carrito del usuario.
+        - Crea notificaciones in-app para comprador y vendedores.
+        - Intenta enviar un email de confirmación (no crítico si falla).
+
+        Args:
+            db: Sesión asíncrona de la base de datos (transacción).
+            user: Usuario que realiza la compra.
+            cart: Instancia de `Cart` con los items.
+            listings_map: Mapa de `listing_id` a `Listing` bloqueados.
+            payment_charge_id: ID de la transacción en la pasarela de pago.
+            payment_method: Método de pago usado.
+
+        Returns:
+            La instancia de `Order` recién creada (con relaciones cargadas).
+
+        Raises:
+            HTTPException 500: Si ocurre un error crítico al persistir la orden.
         """
         try:
             # ... (Pasos 1 al 4: Crear Order, OrderItems, reducir stock, vaciar carrito) ...
@@ -260,7 +286,19 @@ class OrderService:
         skip: int, 
         limit: int
     ) -> Tuple[List[Order], int]:
-        """Obtiene las órdenes de compra (comprador)."""
+        """
+        Autor: Alejandro Campa Alonso 215833
+        Obtiene las órdenes de compra (comprador).
+
+        Args:
+            db: Sesión asíncrona de la base de datos.
+            user: Usuario comprador.
+            skip: Offset para paginación.
+            limit: Límite de items.
+
+        Returns:
+            Tupla (lista_de_orders, total)
+        """
         
         stmt_base = select(Order).where(Order.buyer_id == user.user_id)
         
@@ -291,7 +329,19 @@ class OrderService:
         skip: int, 
         limit: int
     ) -> Tuple[List[Order], int]:
-        """Obtiene las órdenes de venta (vendedor)."""
+        """
+        Autor: Alejandro Campa Alonso 215833
+        Obtiene las órdenes de venta (vendedor).
+
+        Args:
+            db: Sesión asíncrona de la base de datos.
+            user: Usuario vendedor.
+            skip: Offset para paginación.
+            limit: Límite de items.
+
+        Returns:
+            Tupla (lista_de_orders, total)
+        """
         
         # Query base para encontrar IDs de órdenes que contienen items del vendedor
         stmt_base = (
@@ -331,8 +381,21 @@ class OrderService:
         user: User
     ) -> Order:
         """
+        Autor: Alejandro Campa Alonso 215833
         Obtiene el detalle de una orden, validando que el usuario
         sea el comprador, el vendedor de al menos un item, o admin.
+
+        Args:
+            db: Sesión asíncrona de la base de datos.
+            order_id: ID de la orden a consultar.
+            user: Usuario que solicita el detalle.
+
+        Returns:
+            La instancia `Order` si el usuario tiene permisos.
+
+        Raises:
+            HTTPException 404: Si la orden no existe.
+            HTTPException 403: Si el usuario no tiene permisos.
         """
         stmt = (
             select(Order)

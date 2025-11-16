@@ -1,3 +1,9 @@
+# Autor: Alejandro Campa Alonso 215833
+# Fecha: 2025-11-08
+# Descripción: Endpoints de la API para Notificaciones. Implementa la gestión de notificaciones
+# del usuario permitiendo listar notificaciones paginadas (priorizando no leídas),
+# marcar notificaciones individuales como leídas, y marcar todas como leídas en batch.
+
 """
 Endpoints de la API para Notificaciones.
 
@@ -34,6 +40,23 @@ async def get_my_notifications(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=50), # Límite más bajo para notificaciones
 ) -> NotificationList:
+    """
+    Obtiene una lista paginada de las notificaciones del usuario autenticado.
+    
+    Las notificaciones se ordenan priorizando las no leídas primero.
+    Soporta paginación mediante skip y limit.
+    
+    Autor: Alejandro Campa Alonso 215833
+    
+    Args:
+        db: Sesión asincrónica de la base de datos
+        user: Usuario autenticado
+        skip: Número de registros a saltar (por defecto 0)
+        limit: Número máximo de registros a retornar (por defecto 20, máximo 50)
+    
+    Returns:
+        NotificationList: Lista paginada de notificaciones con metadatos de paginación
+    """
     
     notifications, total, unread_count = (
         await notification_service.get_user_notifications(db, user, skip, limit)
@@ -61,6 +84,21 @@ async def mark_notification_as_read(
     db: Annotated[AsyncSession, Depends(get_async_db)],
     user: Annotated[User, Depends(get_current_active_user)]
 ) -> NotificationRead:
+    """
+    Marca una notificación específica como leída.
+    
+    El servicio valida que la notificación pertenezca al usuario autenticado.
+    
+    Autor: Alejandro Campa Alonso 215833
+    
+    Args:
+        notification_id: ID de la notificación a marcar como leída
+        db: Sesión asincrónica de la base de datos
+        user: Usuario autenticado
+    
+    Returns:
+        NotificationRead: La notificación actualizada con estado leído
+    """
     
     notification = await notification_service.mark_as_read(
         db, notification_id, user
@@ -78,6 +116,20 @@ async def mark_all_notifications_as_read(
     db: Annotated[AsyncSession, Depends(get_async_db)],
     user: Annotated[User, Depends(get_current_active_user)]
 ) -> Dict[str, int]:
+    """
+    Marca todas las notificaciones no leídas del usuario como leídas en una operación batch.
+    
+    Operación eficiente que actualiza múltiples registros en una sola transacción.
+    
+    Autor: Alejandro Campa Alonso 215833
+    
+    Args:
+        db: Sesión asincrónica de la base de datos
+        user: Usuario autenticado
+    
+    Returns:
+        Dict[str, int]: Diccionario con la cantidad de notificaciones actualizadas
+    """
     
     updated_count = await notification_service.mark_all_as_read(db, user)
     return {"updated_count": updated_count}

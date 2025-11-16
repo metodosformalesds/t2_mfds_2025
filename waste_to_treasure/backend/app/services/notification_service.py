@@ -6,6 +6,11 @@ Implementa la lógica de negocio para:
 - Listar notificaciones de un usuario.
 - Marcar notificaciones como leídas.
 """
+# Autor: Alejandro Campa Alonso 215833
+# Fecha: 2025-11-08T00:48:20-07:00
+# Descripción: Servicio para crear y listar notificaciones internas (in-app),
+# marcar como leídas y operaciones relacionadas; diseñado para ser usado por
+# otros servicios dentro de la misma transacción.
 import logging
 import uuid
 from typing import List, Optional, Tuple
@@ -31,13 +36,14 @@ class NotificationService:
         priority: str = "MEDIUM"
     ) -> Notification:
         """
+        Autor: Alejandro Campa Alonso 215833
         Crea una nueva notificación para un usuario.
-        
+
         IMPORTANTE: Esta función NO comitea la sesión (db.commit()).
         Está diseñada para ser llamada desde otro servicio (ej. OrderService)
         que ya está manejando una transacción. El servicio llamador
         es responsable de comitear.
-        
+
         Args:
             db: Sesión asíncrona de base de datos.
             user_id: ID del usuario que recibirá la notificación.
@@ -45,7 +51,7 @@ class NotificationService:
             type: Tipo (ej. "ORDER", "OFFER").
             link_url: URL relativa de destino (ej. "/my-orders/123").
             priority: "LOW", "MEDIUM", "HIGH".
-            
+
         Returns:
             La instancia de Notification creada (aún no comiteada).
         """
@@ -73,8 +79,9 @@ class NotificationService:
         limit: int = 20
     ) -> Tuple[List[Notification], int, int]:
         """
+        Autor: Alejandro Campa Alonso 215833
         Obtiene las notificaciones de un usuario (no leídas primero).
-        
+
         Returns:
             Tupla (lista_de_notificaciones, total_items, total_no_leidas)
         """
@@ -116,7 +123,18 @@ class NotificationService:
         notification_id: int,
         user: User
     ) -> Notification:
-        """Marca una notificación específica como leída."""
+        """
+        Autor: Alejandro Campa Alonso 215833
+        Marca una notificación específica como leída.
+
+        Args:
+            db: Sesión asíncrona de la base de datos.
+            notification_id: ID de la notificación.
+            user: Usuario que solicita la operación.
+
+        Returns:
+            La `Notification` actualizada.
+        """
         
         stmt = select(Notification).where(Notification.notification_id == notification_id)
         result = await db.execute(stmt)
@@ -148,8 +166,9 @@ class NotificationService:
         user: User
     ) -> int:
         """
+        Autor: Alejandro Campa Alonso 215833
         Marca todas las notificaciones no leídas de un usuario como leídas.
-        
+
         Returns:
             El número de notificaciones actualizadas.
         """
