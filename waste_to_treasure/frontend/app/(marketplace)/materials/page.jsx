@@ -73,17 +73,14 @@ export default function MaterialsPage() {
       // Llamar a la API
       const response = await listingsService.getAll(params)
 
-      console.log('[Materials] Respuesta completa de API:', response)
-      console.log('[Materials] Total items:', response.items?.length || 0)
-      
-      // Log detallado del primer material para ver estructura
-      if (response.items && response.items.length > 0) {
-        console.log('[Materials] Primer material completo:', response.items[0])
-        console.log('[Materials] primary_image_url:', response.items[0].primary_image_url)
-      }
+      // Filtrar materiales sin stock (quantity <= 0)
+      const materialsInStock = (response.items || []).filter(item => {
+        const quantity = item.quantity ?? item.available ?? 0
+        return quantity > 0
+      })
 
-      // Actualizar estados con la respuesta
-      setMaterials(response.items || [])
+      // Actualizar estados con la respuesta filtrada
+      setMaterials(materialsInStock)
       setTotalMaterials(response.total || 0)
       setTotalPages(Math.ceil(response.total / pageSize) || 1)
     } catch (err) {
@@ -197,34 +194,12 @@ export default function MaterialsPage() {
           ) : (
             /* Materials Grid */
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
-              {materials.map((material) => {
-                // El backend devuelve primary_image_url directamente en el ListingCardRead
-                const imageUrl = material.primary_image_url || '/images/placeholder-material.jpg'
-                
-                console.log(`[Material ${material.listing_id}] Datos completos:`, material)
-
-                return (
-                  <MaterialCard
-                    key={material.listing_id}
-                    material={{
-                      id: material.listing_id,
-                      listing_id: material.listing_id,
-                      title: material.title,
-                      seller: material.seller_name || 'Vendedor anónimo',
-                      price: parseFloat(material.price),
-                      unit: material.price_unit || 'unidad',
-                      available: material.quantity,
-                      quantity: material.quantity,
-                      unit_measure: material.price_unit || 'unidad',
-                      price_unit: material.price_unit || 'unidad',
-                      isResidue: material.listing_type === 'MATERIAL',
-                      imageUrl: imageUrl,
-                      primary_image_url: imageUrl,
-                      category: material.category_name ? { name: material.category_name } : null,
-                    }}
-                  />
-                )
-              })}
+              {materials.map((material) => (
+                <MaterialCard
+                  key={material.listing_id}
+                  material={material}
+                />
+              ))}
             </div>
           )}
 

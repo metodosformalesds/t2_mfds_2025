@@ -494,9 +494,10 @@ class AdminService:
                 detail=f"Listing is not pending approval (current: {listing.status.value})"
             )
         
-        # Actualizar estado
+        # Actualizar estado y guardar razón de rechazo
         listing.status = ListingStatusEnum.REJECTED
-        
+        listing.rejection_reason = action_data.reason
+
         # Registrar acción
         action_log = AdminActionLog(
             admin_id=admin_user.user_id,

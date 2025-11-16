@@ -49,18 +49,18 @@ export default function PublishItemPage() {
       console.log('[handlePublish] Publicando en la API...', listingData)
       console.log('[handlePublish] URLs de imágenes a incluir:', imageUrls)
 
-      // Preparar datos para el backend (solo campos que acepta el schema ListingCreate)
+      // Preparar datos para el backend
       const payload = {
-        listing_type: listingData.type, // 'PRODUCT' o 'MATERIAL'
+        listing_type: listingData.type,
         title: listingData.title,
         description: listingData.description,
         price: parseFloat(listingData.price),
-        price_unit: listingData.unit || 'unidad', // Unidad de precio
+        price_unit: listingData.unit || 'unidad',
         quantity: parseInt(listingData.quantity),
         category_id: parseInt(listingData.category_id),
         origin_description: listingData.origin_description || null,
         location_address_id: listingData.location_address_id || null,
-        images: imageUrls // URLs de S3 ya subidas
+        images: imageUrls
       }
 
       console.log('[handlePublish] Payload a enviar:', payload)

@@ -23,13 +23,40 @@ echo "✅ Contenedor detenido"
 echo ""
 
 # 3. Build de la imagen
-echo "🔨 3/5 - Construyendo nueva imagen..."
+echo "🔨 3/6 - Construyendo nueva imagen..."
 docker build -t w2t-backend .
 echo "✅ Imagen construida"
 echo ""
 
-# 4. Verificar .env.prod
-echo "🔍 4/5 - Verificando configuración..."
+# 4. Ejecutar migraciones de base de datos
+echo "🗄️  4/6 - Ejecutando migraciones de base de datos..."
+if [ -f .env.prod ]; then
+    # Ejecutar migraciones con las variables de entorno de producción
+    set -a
+    source .env.prod
+    set +a
+    
+    # Ejecutar alembic upgrade dentro del contenedor de Python local o con Docker
+    docker run --rm --env-file .env.prod w2t-backend alembic upgrade head
+    
+    if [ $? -eq 0 ]; then
+        echo "✅ Migraciones aplicadas exitosamente"
+    else
+        echo "❌ ERROR: Fallo en migraciones de base de datos"
+        echo "⚠️  Continuar con el deploy? (y/n)"
+        read -r response
+        if [[ ! "$response" =~ ^[Yy]$ ]]; then
+            echo "Deploy cancelado"
+            exit 1
+        fi
+    fi
+else
+    echo "⚠️  Advertencia: .env.prod no encontrado, saltando migraciones"
+fi
+echo ""
+
+# 5. Verificar .env.prod
+echo "🔍 5/6 - Verificando configuración..."
 if [ -f .env.prod ]; then
     echo "Configuración CORS actual:"
     grep BACKEND_CORS_ORIGINS .env.prod || echo "⚠️  BACKEND_CORS_ORIGINS no encontrado"
@@ -42,8 +69,8 @@ else
     exit 1
 fi
 
-# 5. Iniciar contenedor
-echo "▶️  5/5 - Iniciando contenedor..."
+# 6. Iniciar contenedor
+echo "▶️  6/6 - Iniciando contenedor..."
 docker run -d \
     -p 8000:8000 \
     --env-file .env.prod \

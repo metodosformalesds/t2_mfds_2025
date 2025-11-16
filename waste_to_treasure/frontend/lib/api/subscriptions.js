@@ -20,7 +20,6 @@ export const subscriptionsService = {
       const { data } = await apiClient.get('/subscriptions/me')
       return data
     } catch (error) {
-      console.error('Error al obtener suscripción:', error)
       // Si es 404, retornar null (no hay suscripción)
       if (error.response?.status === 404) {
         return null
@@ -45,7 +44,6 @@ export const subscriptionsService = {
       const { data } = await apiClient.post('/subscriptions/subscribe', subscriptionData)
       return data
     } catch (error) {
-      console.error('Error al crear/cambiar suscripción:', error)
       throw new Error(error.response?.data?.detail || 'No se pudo procesar la suscripción.')
     }
   },
@@ -63,7 +61,6 @@ export const subscriptionsService = {
       const { data } = await apiClient.post('/subscriptions/cancel')
       return data
     } catch (error) {
-      console.error('Error al cancelar suscripción:', error)
       throw new Error(error.response?.data?.detail || 'No se pudo cancelar la suscripción.')
     }
   },

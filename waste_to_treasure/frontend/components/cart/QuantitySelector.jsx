@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, memo } from 'react'
 import { Minus, Plus } from 'lucide-react'
 
 /**
@@ -8,7 +8,7 @@ import { Minus, Plus } from 'lucide-react'
  * Usado cuando el precio_unit es "kg", "L", "m", etc.
  * Solo permite edición de números enteros
  */
-export default function QuantitySelector({
+function QuantitySelector({
   quantity,
   onChange,
   maxQuantity = 999,
@@ -100,3 +100,13 @@ export default function QuantitySelector({
     </div>
   )
 }
+
+// Memoizar componente para evitar re-renders innecesarios
+export default memo(QuantitySelector, (prevProps, nextProps) => {
+  return (
+    prevProps.quantity === nextProps.quantity &&
+    prevProps.maxQuantity === nextProps.maxQuantity &&
+    prevProps.disabled === nextProps.disabled &&
+    prevProps.unit === nextProps.unit
+  )
+})

@@ -13,14 +13,22 @@ import { signInWithRedirect } from '@aws-amplify/auth'
 // Configuración del User Pool de Cognito
 const poolData = {
   UserPoolId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID || '',
-  ClientId: process.env.NEXT_PUBLIC_COGNITO_APP_CLIENT_ID || '',
+  ClientId: process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID || '',
 }
 
 let userPool
 
 // Inicializar User Pool solo en el cliente
 if (typeof window !== 'undefined') {
-  userPool = new CognitoUserPool(poolData)
+  // Validar que las variables existan antes de crear el pool
+  if (!poolData.UserPoolId || !poolData.ClientId) {
+    console.error('❌ Variables de Cognito no configuradas correctamente:', {
+      UserPoolId: poolData.UserPoolId ? '✅' : '❌',
+      ClientId: poolData.ClientId ? '✅' : '❌',
+    })
+  } else {
+    userPool = new CognitoUserPool(poolData)
+  }
 }
 
 /**

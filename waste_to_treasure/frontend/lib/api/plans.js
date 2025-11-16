@@ -15,7 +15,6 @@ export const plansService = {
       const { data } = await apiClient.get('/plans')
       return data
     } catch (error) {
-      console.error('Error al obtener planes:', error)
       throw error
     }
   },

@@ -96,7 +96,7 @@ export default function TermsPage() {
             <TermSection icon={Shield} title="4. Privacidad y Protección de Datos">
               <ul className="list-disc pl-5 space-y-2">
                 <li>Recopilamos y procesamos datos según nuestra Política de Privacidad.</li>
-                <li>Usamos AWS Cognito para la autenticación segura.</li>
+                <li>Utilizamos sistemas de autenticación seguros para proteger tu cuenta.</li>
                 <li>No vendemos tu información personal a terceros.</li>
                 <li>Puedes solicitar la eliminación de tus datos en cualquier momento.</li>
                 <li>Implementamos medidas de seguridad para proteger tu información.</li>

@@ -17,7 +17,6 @@ export const paymentsService = {
       const { data } = await apiClient.post('/payments/customers', { email, name })
       return data
     } catch (error) {
-      console.error('Error al crear customer en Stripe:', error)
       throw error
     }
   },
@@ -32,7 +31,6 @@ export const paymentsService = {
       const { data } = await apiClient.get('/payments/customers/me')
       return data
     } catch (error) {
-      console.error('Error al obtener customer de Stripe:', error)
       throw error
     }
   },
@@ -51,7 +49,6 @@ export const paymentsService = {
       const { data } = await apiClient.post('/payments/checkout', payload)
       return data
     } catch (error) {
-      console.error('Error al crear sesión de checkout:', error)
       throw error
     }
   },
@@ -70,7 +67,6 @@ export const paymentsService = {
       const { data } = await apiClient.post('/payments/process', payload)
       return data
     } catch (error) {
-      console.error('Error al procesar pago:', error)
       throw error
     }
   },

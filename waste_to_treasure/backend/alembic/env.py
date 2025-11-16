@@ -46,7 +46,17 @@ target_metadata = Base.metadata
 
 # Obtener la configuración del proyecto y establecer la URL de la base de datos
 settings = get_settings()
-config.set_main_option("sqlalchemy.url", str(settings.DATABASE_URL))
+
+# Alembic usa conexiones síncronas, así que usamos psycopg2 para migraciones
+sync_database_url = str(settings.DATABASE_URL)
+if "+asyncpg" in sync_database_url:
+    # Reemplazar asyncpg por psycopg2 para migraciones síncronas
+    sync_database_url = sync_database_url.replace("postgresql+asyncpg://", "postgresql+psycopg2://")
+elif sync_database_url.startswith("postgresql://"):
+    # Agregar el driver síncrono explícito
+    sync_database_url = sync_database_url.replace("postgresql://", "postgresql+psycopg2://")
+
+config.set_main_option("sqlalchemy.url", sync_database_url)
 
 
 def run_migrations_offline() -> None:

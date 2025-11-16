@@ -15,7 +15,6 @@ export const cartService = {
       const { data } = await apiClient.get('/cart/me')
       return data
     } catch (error) {
-      console.error('Error al obtener el carrito:', error)
       throw error
     }
   },
@@ -35,7 +34,6 @@ export const cartService = {
       })
       return data
     } catch (error) {
-      console.error('Error al agregar item:', error)
       throw error
     }
   },
@@ -54,7 +52,6 @@ export const cartService = {
       })
       return data
     } catch (error) {
-      console.error('Error al actualizar item:', error)
       throw error
     }
   },
@@ -70,7 +67,6 @@ export const cartService = {
       const { data } = await apiClient.delete(`/cart/me/items/${cartItemId}`)
       return data
     } catch (error) {
-      console.error('Error al eliminar item:', error)
       throw error
     }
   },
@@ -85,7 +81,6 @@ export const cartService = {
       const { data } = await apiClient.delete('/cart/me')
       return data
     } catch (error) {
-      console.error('Error al vaciar el carrito:', error)
       throw error
     }
   },

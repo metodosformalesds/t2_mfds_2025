@@ -25,7 +25,7 @@ export const sellersService = {
       // Usar el endpoint público de usuarios
       const { data } = await apiClient.get(`/users/${sellerId}/public`)
 
-      // El backend retorna UserPublic schema con: user_id, email, full_name, role, created_at
+      // El backend retorna UserPublic schema con: user_id, email, full_name, bio, role, created_at
       return {
         user_id: data.user_id,
         // Usar full_name como business_name
@@ -34,16 +34,16 @@ export const sellersService = {
         email: data.email || null,
         role: data.role || 'USER',
         created_at: data.created_at || new Date().toISOString(),
+        // Usar el campo bio del backend como description
+        description: data.bio || `Proveedor de materiales y productos reciclados de alta calidad`,
         // Campos adicionales con valores por defecto (no están en UserPublic schema)
         seller_type: 'INDUSTRIAL',
         city: 'Ciudad Juárez',
         state: 'Chihuahua',
-        description: `Proveedor de materiales y productos reciclados de alta calidad`,
-        profile_image_url: null,
+        // Mapear profile_image_url si el backend lo devuelve
+        profile_image_url: data.profile_image_url || null,
       }
     } catch (error) {
-      console.error(`Error al obtener seller ${sellerId}:`, error)
-
       // Si el usuario no existe (404), retornar fallback
       if (error.response?.status === 404) {
         return {
@@ -94,7 +94,6 @@ export const sellersService = {
         items: sellerListings,
       }
     } catch (error) {
-      console.error(`Error al obtener listings del seller ${sellerId}:`, error)
       throw error
     }
   },
@@ -126,7 +125,6 @@ export const sellersService = {
         average_rating: data.average_rating || 0,
       }
     } catch (error) {
-      console.error(`Error al obtener reseñas del seller ${sellerId}:`, error)
       return {
         total: 0,
         page: 1,
@@ -164,7 +162,6 @@ export const sellersService = {
         response_time: '24h',
       }
     } catch (error) {
-      console.error(`Error al obtener estadísticas del seller ${sellerId}:`, error)
       return {
         average_rating: 0,
         total_reviews: 0,

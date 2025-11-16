@@ -67,9 +67,16 @@ logger.info("SessionLocal (sync) creado exitosamente.")
 # ASYNC ENGINE Y SESSION FACTORY
 # ==================================
 # Adaptar la URL de la base de datos para el driver asíncrono
-async_database_url = str(settings.DATABASE_URL).replace(
-    "postgresql://", "postgresql+asyncpg://"
-)
+# Soporta tanto postgresql:// como postgresql+psycopg2://
+async_database_url = str(settings.DATABASE_URL)
+if "+psycopg2" in async_database_url:
+    # Reemplazar psycopg2 (sync) por asyncpg (async)
+    async_database_url = async_database_url.replace("postgresql+psycopg2://", "postgresql+asyncpg://")
+elif async_database_url.startswith("postgresql://"):
+    # Agregar el driver async
+    async_database_url = async_database_url.replace("postgresql://", "postgresql+asyncpg://")
+
+logger.info(f"Usando URL async: {async_database_url.split('@')[0]}@***")
 
 # IMPORTANTE: AsyncEngine NO puede usar QueuePool
 # Usar NullPool para async o dejar que SQLAlchemy use el pool por defecto para async

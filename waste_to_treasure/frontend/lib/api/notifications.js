@@ -26,7 +26,6 @@ export const notificationsService = {
       })
       return data
     } catch (error) {
-      console.error('Error al obtener notificaciones:', error)
       throw new Error(error.response?.data?.detail || 'No se pudieron cargar las notificaciones.')
     }
   },
@@ -45,7 +44,6 @@ export const notificationsService = {
       const { data } = await apiClient.patch(`/notifications/me/${notificationId}/read`)
       return data
     } catch (error) {
-      console.error(`Error al marcar notificación ${notificationId} como leída:`, error)
       throw new Error(error.response?.data?.detail || 'No se pudo marcar como leída.')
     }
   },
@@ -63,7 +61,6 @@ export const notificationsService = {
       const { data } = await apiClient.post('/notifications/me/read-all')
       return data
     } catch (error) {
-      console.error('Error al marcar todas las notificaciones como leídas:', error)
       throw new Error(error.response?.data?.detail || 'No se pudieron marcar como leídas.')
     }
   },

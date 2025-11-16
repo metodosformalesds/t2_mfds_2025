@@ -43,7 +43,6 @@ export default function AdminModerationPage() {
         setSelectedListingDetails(null)
       }
     } catch (error) {
-      console.error("Error al cargar cola de moderación:", error)
       setError('Error al cargar la cola de moderación')
     } finally {
       setIsLoading(false)
@@ -78,14 +77,23 @@ export default function AdminModerationPage() {
     if (!queueItem) return null
     
     // Combinar datos de la cola con detalles completos del listing
+    // Manejar tanto el campo 'images' como posibles variaciones
+    const images = selectedListingDetails.images || 
+                   selectedListingDetails.listing_images || 
+                   []
+    
+    const processedImages = images.map(img => {
+      // Manejar diferentes formatos de imagen
+      if (typeof img === 'string') return img
+      if (img.image_url) return img.image_url
+      if (img.url) return img.url
+      return null
+    }).filter(url => url) // Filtrar URLs vacías o nulas
+    
     return {
       ...queueItem,
       description: selectedListingDetails.description || 'Sin descripción disponible',
-      images: (selectedListingDetails.images || []).map(img => {
-        // Manejar tanto objetos con image_url como strings directos
-        if (typeof img === 'string') return img
-        return img.image_url || img.url || ''
-      }).filter(url => url), // Filtrar URLs vacías
+      images: processedImages,
     }
   }, [formattedQueue, selectedId, selectedListingDetails])
   
@@ -99,8 +107,8 @@ export default function AdminModerationPage() {
       const details = await adminService.getModerationListingDetail(id)
       setSelectedListingDetails(details)
     } catch (error) {
-      console.error('Error al cargar detalles del listing:', error)
       setSelectedListingDetails(null)
+      setError('Error al cargar detalles de la publicación')
     }
   }
 
@@ -124,11 +132,10 @@ export default function AdminModerationPage() {
           await removeItemFromQueue(selectedItem.id)
           setError('')
         } catch (error) {
-          console.error('Error al aprobar:', error)
           setError(error.response?.data?.detail || 'Error al aprobar la publicación')
         }
       },
-      false // No es peligroso
+      false
     )
   }
   
@@ -149,11 +156,10 @@ export default function AdminModerationPage() {
           await removeItemFromQueue(selectedItem.id)
           setError('')
         } catch (error) {
-          console.error('Error al rechazar:', error)
           setError(error.response?.data?.detail || 'Error al rechazar la publicación')
         }
       },
-      true // Es peligroso
+      true
     )
   }
 

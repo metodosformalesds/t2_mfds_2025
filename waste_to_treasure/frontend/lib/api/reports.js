@@ -35,7 +35,6 @@ export const reportsService = {
       const { data } = await apiClient.post('/reports', payload)
       return data
     } catch (error) {
-      console.error('Error al crear reporte:', error)
       throw error
     }
   },

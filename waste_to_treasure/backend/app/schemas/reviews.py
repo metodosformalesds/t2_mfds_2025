@@ -110,6 +110,7 @@ class ReviewerBasic(BaseModel):
     """Esquema simplificado del usuario que reseña."""
     user_id: UUID = Field(..., description="UUID del usuario")
     full_name: Optional[str] = Field(None, description="Nombre completo del usuario")
+    profile_image_url: Optional[str] = Field(None, description="URL de la imagen de perfil del usuario")
     
     model_config = ConfigDict(from_attributes=True)
 

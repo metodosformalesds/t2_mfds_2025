@@ -16,7 +16,6 @@ export const addressService = {
       const { data } = await apiClient.get('/address/', { params })
       return data
     } catch (error) {
-      console.error('Error al obtener direcciones:', error)
       throw error
     }
   },
@@ -32,7 +31,6 @@ export const addressService = {
       const { data } = await apiClient.post('/address/', addressData)
       return data
     } catch (error) {
-      console.error('Error al crear dirección:', error)
       throw error
     }
   },

@@ -28,8 +28,6 @@ export const ordersService = {
       const { data } = await apiClient.post('/orders/checkout', payload)
       return data
     } catch (error) {
-      console.error('Error detallado al procesar el checkout:', error.response?.data?.detail || error.message)
-      
       // Detectar si el payment method está "quemado" (usado sin customer)
       if (error.response?.status === 410 || 
           (error.response?.data?.detail?.error === 'payment_method_burned')) {
@@ -63,9 +61,6 @@ export const ordersService = {
       })
       return data
     } catch (error) {
-      console.error('Error al obtener mis compras:', error)
-      console.error('Status:', error.response?.status)
-      console.error('Data:', error.response?.data)
       throw error
     }
   },
@@ -88,7 +83,6 @@ export const ordersService = {
       })
       return data
     } catch (error) {
-      console.error('Error al obtener mis ventas:', error)
       throw new Error(error.response?.data?.detail || 'No se pudieron cargar las ventas.')
     }
   },
@@ -107,7 +101,6 @@ export const ordersService = {
       const { data } = await apiClient.get(`/orders/${orderId}`)
       return data
     } catch (error) {
-      console.error(`Error al obtener detalle de orden ${orderId}:`, error)
       throw new Error(error.response?.data?.detail || 'No se pudo cargar el detalle de la orden.')
     }
   },
@@ -153,8 +146,6 @@ export const ordersService = {
         order_item_id: null
       }
     } catch (error) {
-      console.error('[checkPurchase] Error al verificar compra:', error)
-      
       // En caso de error, no permitir reseña por seguridad
       return {
         purchased: false,
