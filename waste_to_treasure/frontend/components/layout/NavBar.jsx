@@ -19,6 +19,9 @@ import { useAuth } from '@/context/AuthContext'
 import { useCartStore } from '@/stores/useCartStore'
 import UserAvatar from '@/components/ui/UserAvatar'
 
+// Mover el icono de carrito fuera del render para evitar crear componentes en cada render
+// keep CartIcon inside NavBar render to avoid parse issues for now; we'll revisit
+
 export default function NavBar() {
   const { isAuthenticated, user, logout } = useAuth()
   const { total_items, fetchCart } = useCartStore()
@@ -139,21 +142,7 @@ export default function NavBar() {
   
   // --- INICIO DE MODIFICACIÓN ---
   // Componente de ícono de carrito reutilizable
-  const CartIcon = ({ isMobile = false }) => (
-    <Link
-      href="/cart"
-      aria-label="Carrito de compras"
-      className="relative rounded-full p-2 text-neutral-900 hover:bg-neutral-100"
-      onClick={isMobile ? () => setIsMobileMenuOpen(false) : undefined}
-    >
-      <ShoppingCart className="h-6 w-6 text-primary-500" />
-      {total_items > 0 && (
-        <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-secondary-600 text-xs font-bold text-white">
-          {total_items}
-        </span>
-      )}
-    </Link>
-  )
+  // Ya no definimos CartIcon aquí para evitar recrear componentes durante render
   // --- FIN DE MODIFICACIÓN ---
 
 
@@ -345,7 +334,20 @@ export default function NavBar() {
             </Link>
 
             <div className="flex items-center gap-2">
-              <CartIcon isMobile />
+              {isAuthenticated && (
+                <Link
+                  href="/cart"
+                  aria-label="Carrito de compras"
+                  className="relative rounded-lg p-2 text-neutral-900 hover:bg-neutral-100"
+                >
+                  <ShoppingCart className="h-6 w-6" />
+                  {total_items > 0 && (
+                    <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary-500 text-xs font-bold text-white">
+                      {total_items}
+                    </span>
+                  )}
+                </Link>
+              )}
               <button
                 ref={mobileToggleRef}
                 onClick={() => setIsMobileMenuOpen(prev => !prev)}
@@ -356,123 +358,126 @@ export default function NavBar() {
               </button>
             </div>
           </div>
+
+          {/* Menú Móvil Desplegable */}
+          {isMobileMenuOpen && (
+            <div
+              ref={mobileMenuRef}
+              className="fixed inset-0 z-50 bg-white md:hidden"
+            >
+              <div className="flex h-full flex-col">
+                {/* Header del menú móvil */}
+                <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-4">
+                  <Link
+                    href={isAuthenticated ? '/materials' : '/'}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <Image
+                      src="/images/LogoFondoBlanco.webp"
+                      alt="Waste to Treasure Logo"
+                      width={80}
+                      height={62}
+                      className="h-14 w-auto"
+                    />
+                  </Link>
+                  <button
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="rounded-md p-2 text-neutral-900 hover:bg-neutral-100"
+                    aria-label="Cerrar menú"
+                  >
+                    <X className="h-6 w-6" />
+                  </button>
+                </div>
+
+                {/* --- Enlaces del Menú Móvil --- */}
+                <div className="flex-1 overflow-y-auto px-4 py-6">
+                  <div className="flex flex-col gap-y-4">
+                    {/* --- MODIFICADO: Navegación principal (siempre visible) --- */}
+                    <p className="text-sm font-semibold uppercase text-neutral-500">
+                      Explorar
+                    </p>
+                    <div className="flex flex-col gap-y-4">{siteLinks}</div>
+
+                    <div className="my-2 border-t border-neutral-200" />
+                    {/* --- FIN DE MODIFICACIÓN --- */}
+
+                          {isAuthenticated ? (
+                      <>
+                        {/* --- Menú Autenticado (Móvil) --- */}
+                        <p className="text-sm font-semibold uppercase text-neutral-500">
+                          Mi Cuenta
+                        </p>
+                        {userLinks.map(link => (
+                          <Link
+                            key={link.href}
+                            href={link.href}
+                            className="-m-3 flex items-center rounded-lg p-3 text-base font-medium text-neutral-900 hover:bg-neutral-50"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            <link.icon
+                              className="mr-3 h-6 w-6 flex-shrink-0 text-primary-500"
+                              aria-hidden="true"
+                            />
+                            {link.label}
+                          </Link>
+                        ))}
+                        {adminLinks.map(link => (
+                          <Link
+                            key={link.href}
+                            href={link.href}
+                            className="-m-3 flex items-center rounded-lg p-3 text-base font-medium text-primary-600 hover:bg-primary-50"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            <link.icon
+                              className="mr-3 h-6 w-6 flex-shrink-0 text-primary-500"
+                              aria-hidden="true"
+                            />
+                            {link.label}
+                          </Link>
+                        ))}
+
+                        <div className="my-2 border-t border-neutral-200" />
+
+                        <button
+                          onClick={() => {
+                            logout()
+                            setIsMobileMenuOpen(false)
+                          }}
+                          className="-m-3 flex w-full items-center rounded-lg p-3 text-left text-base font-medium text-red-600 hover:bg-red-50"
+                        >
+                          <LogOut
+                            className="mr-3 h-6 w-6 flex-shrink-0"
+                            aria-hidden="true"
+                          />
+                          Cerrar sesión
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        {/* --- Menú No Autenticado (Móvil) --- */}
+                        <Link
+                          href="/login"
+                          className="flex w-full items-center justify-center rounded-lg border-2 border-primary-500 px-5 py-3 text-base font-semibold text-primary-500 transition-colors hover:bg-primary-500/10"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          Iniciar sesión
+                        </Link>
+                        <Link
+                          href="/register"
+                          className="flex w-full items-center justify-center rounded-lg bg-primary-500 px-5 py-3 text-base font-semibold text-white transition-colors hover:bg-primary-600"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          Regístrate
+                        </Link>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </header>
-
-      {/* --- Contenedor del Menú Móvil (Pantalla Completa) --- */}
-      {isMobileMenuOpen && (
-        <div
-          ref={mobileMenuRef}
-          className="fixed inset-0 z-50 bg-white p-4 md:hidden"
-        >
-          <div className="flex items-center justify-between">
-            <Link
-              href={isAuthenticated ? '/materials' : '/'}
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              <Image
-                src="/images/LogoFondoBlanco.webp"
-                alt="Waste to Treasure Logo"
-                width={80}
-                height={62}
-                className="h-16 w-auto"
-              />
-            </Link>
-            <button
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="rounded-md p-2 text-neutral-900 hover:bg-neutral-100"
-              aria-label="Cerrar menú"
-            >
-              <X className="h-6 w-6" />
-            </button>
-          </div>
-
-          {/* --- Enlaces del Menú Móvil --- */}
-          <div className="mt-6">
-            <div className="flex flex-col gap-y-4">
-              {/* --- MODIFICADO: Navegación principal (siempre visible) --- */}
-              <p className="px-4 text-sm font-semibold uppercase text-neutral-500">
-                Explorar
-              </p>
-              <div className="ml-3 flex flex-col gap-y-4">{siteLinks}</div>
-
-              <div className="my-2 border-t border-neutral-200" />
-              {/* --- FIN DE MODIFICACIÓN --- */}
-
-              {isAuthenticated ? (
-                <>
-                  {/* --- Menú Autenticado (Móvil) --- */}
-                  <p className="px-4 text-sm font-semibold uppercase text-neutral-500">
-                    Mi Cuenta
-                  </p>
-                  {userLinks.map(link => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      className="-m-3 flex items-center rounded-lg p-3 text-base font-medium text-neutral-900 hover:bg-neutral-50"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <link.icon
-                        className="mr-3 h-6 w-6 flex-shrink-0 text-primary-500"
-                        aria-hidden="true"
-                      />
-                      {link.label}
-                    </Link>
-                  ))}
-                  {adminLinks.map(link => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      className="-m-3 flex items-center rounded-lg p-3 text-base font-medium text-primary-600 hover:bg-primary-50"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <link.icon
-                        className="mr-3 h-6 w-6 flex-shrink-0 text-primary-500"
-                        aria-hidden="true"
-                      />
-                      {link.label}
-                    </Link>
-                  ))}
-
-                  <div className="my-2 border-t border-neutral-200" />
-
-                  <button
-                    onClick={() => {
-                      logout()
-                      setIsMobileMenuOpen(false)
-                    }}
-                    className="-m-3 flex w-full items-center rounded-lg p-3 text-left text-base font-medium text-red-600 hover:bg-red-50"
-                  >
-                    <LogOut
-                      className="mr-3 h-6 w-6 flex-shrink-0"
-                      aria-hidden="true"
-                    />
-                    Cerrar sesión
-                  </button>
-                </>
-              ) : (
-                <>
-                  {/* --- Menú No Autenticado (Móvil) --- */}
-                  <Link
-                    href="/login"
-                    className="flex w-full items-center justify-center rounded-lg border-2 border-primary-500 px-5 py-3 text-base font-semibold text-primary-500 transition-colors hover:bg-primary-500/10"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Iniciar sesión
-                  </Link>
-                  <Link
-                    href="/register"
-                    className="flex w-full items-center justify-center rounded-lg bg-primary-500 px-5 py-3 text-base font-semibold text-white transition-colors hover:bg-primary-600"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Regístrate
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </>
   )
 }

@@ -38,6 +38,16 @@ export default function ImageCarousel({ items = [] }) {
     return urls.filter(Boolean)
   })
 
+  useEffect(() => {
+    if (imagePool.length < 2) return; // No rotar si hay 0 o 1 imagen
+
+    const timer = setInterval(() => {
+      setCurrentIndex(prevIndex => (prevIndex + 1) % imagePool.length)
+    }, 4000)
+
+    return () => clearInterval(timer)
+  }, [imagePool.length])
+
   // Si no hay imágenes, mostrar un placeholder estático
   if (imagePool.length === 0) {
     return (
@@ -49,15 +59,7 @@ export default function ImageCarousel({ items = [] }) {
     );
   }
 
-  useEffect(() => {
-    if (imagePool.length < 2) return; // No rotar si hay 0 o 1 imagen
-
-    const timer = setInterval(() => {
-      setCurrentIndex(prevIndex => (prevIndex + 1) % imagePool.length)
-    }, 4000) 
-
-    return () => clearInterval(timer)
-  }, [imagePool.length])
+  
 
   return (
     <div className="relative w-full min-h-[500px] flex items-center justify-center overflow-hidden">

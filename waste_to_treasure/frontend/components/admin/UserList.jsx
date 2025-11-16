@@ -50,47 +50,42 @@ export default function UserList({ users, onView, onBlock, onUnblock }) {
   }
 
   return (
-    // --- INICIO DE LA CORRECCIÓN DE LAYOUT ---
-    // El 'card' ahora está en la página (page.jsx)
-    // Este componente solo renderiza el contenido de la tabla.
-    <>
-      {/* Encabezado */}
-      <div className="w-full overflow-x-auto rounded-t-xl bg-neutral-100 px-6 py-4">
+    <div className="overflow-hidden rounded-xl bg-white shadow-md">
+      {/* Tabla con scroll horizontal en móvil */}
+      <div className="w-full overflow-x-auto">
         <table className="min-w-full table-auto">
-          <thead>
+          {/* Encabezado */}
+          <thead className="border-b-2 border-neutral-100 bg-neutral-100">
             <tr>
-              <th className="w-2/12 px-0 py-2 text-left font-inter text-base font-semibold text-neutral-900">
-                Nombre
+              <th className="px-6 py-4 text-left font-inter text-base font-semibold text-neutral-900">
+                Usuario
               </th>
-              <th className="w-2/12 px-4 py-2 text-left font-inter text-base font-semibold text-neutral-900">
+              <th className="px-6 py-4 text-left font-inter text-base font-semibold text-neutral-900">
                 Email
               </th>
-              <th className="w-1/12 px-8 py-2 text-left font-inter text-base font-semibold text-neutral-900">
+              <th className="px-6 py-4 text-center font-inter text-base font-semibold text-neutral-900">
                 Rol
               </th>
-              <th className="w-2/12 px-0 py-2 text-left font-inter text-base font-semibold text-neutral-900">
-                Fecha de registro
+              <th className="px-6 py-4 text-left font-inter text-base font-semibold text-neutral-900">
+                Fecha registro
               </th>
-              <th className="w-1/12 px-2 py-2 text-left font-inter text-base font-semibold text-neutral-900">
+              <th className="px-6 py-4 text-center font-inter text-base font-semibold text-neutral-900">
                 Estado
               </th>
-              <th className="w-3/12 px-8 py-2 text-left font-inter text-base font-semibold text-neutral-900">
+              <th className="px-6 py-4 text-center font-inter text-base font-semibold text-neutral-900">
                 Acciones
               </th>
             </tr>
           </thead>
-        </table>
-      </div>
 
-      {/* Cuerpo */}
-      <div className="w-full overflow-x-auto rounded-b-xl">
-        <table className="min-w-full table-auto">
+          {/* Cuerpo */}
           <tbody className="divide-y divide-neutral-200">
             {users.map(user => {
               const userStatus = (user.status || 'active').toLowerCase()
               return (
                 <tr key={user.id} className="hover:bg-neutral-50">
-                  <td className="w-2/12 px-2 py-4">
+                  {/* Usuario con avatar */}
+                  <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <UserAvatar
                         imageUrl={user.profile_image_url}
@@ -98,46 +93,63 @@ export default function UserList({ users, onView, onBlock, onUnblock }) {
                         userId={user.id}
                         size="sm"
                       />
-                      <span className="font-inter text-base text-neutral-900">
+                      <span className="font-inter text-sm text-neutral-900 font-medium">
                         {user.name}
                       </span>
                     </div>
                   </td>
-                  <td className="w-2/12 px-5 py-4 font-inter text-base text-neutral-900">
+
+                  {/* Email */}
+                  <td className="px-6 py-4 font-inter text-sm text-neutral-700">
                     {user.email}
                   </td>
-                  <td className="w-1/12 px-8 py-4 font-inter text-base text-neutral-900">
-                    {user.role}
+
+                  {/* Rol con badge */}
+                  <td className="px-6 py-4 text-center">
+                    <span className={`inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-semibold ${
+                      user.role?.toUpperCase() === 'ADMIN' 
+                        ? 'bg-purple-100 text-purple-700' 
+                        : 'bg-blue-100 text-blue-700'
+                    }`}>
+                      {user.role?.toUpperCase() || 'USER'}
+                    </span>
                   </td>
-                  <td className="w-2/12 px-0 py-4 font-inter text-base text-neutral-900">
+
+                  {/* Fecha */}
+                  <td className="px-6 py-4 font-inter text-sm text-neutral-700 whitespace-nowrap">
                     {user.registeredAt}
                   </td>
-                  <td className="w-1/12 px-0 py-4">
+
+                  {/* Estado */}
+                  <td className="px-6 py-4 text-center">
                     <StatusBadge status={user.status} />
                   </td>
-                  {/* Botones ahora con flex-nowrap y flex-shrink-0 */}
-                  <td className="flex w-3/12 flex-nowrap gap-2 px-4 py-4">
-                    <button
-                      onClick={() => onView(user)}
-                      className="flex-shrink-0 rounded-lg bg-primary-500 px-5 py-2 font-inter text-sm font-semibold text-white transition-colors hover:bg-primary-600"
-                    >
-                      Ver
-                    </button>
-                    {userStatus === 'active' || userStatus === 'activo' ? (
+
+                  {/* Acciones */}
+                  <td className="px-6 py-4">
+                    <div className="flex items-center justify-center gap-2">
                       <button
-                        onClick={() => onBlock(user)}
-                        className="flex-shrink-0 rounded-lg bg-secondary-600 px-5 py-2 font-inter text-sm font-semibold text-white transition-colors hover:bg-secondary-500"
+                        onClick={() => onView(user)}
+                        className="whitespace-nowrap rounded-lg bg-primary-500 px-4 py-2 font-inter text-sm font-semibold text-white transition-colors hover:bg-primary-600"
                       >
-                        Bloquear
+                        Ver
                       </button>
-                    ) : (
-                      <button
-                        onClick={() => onUnblock(user)}
-                        className="flex-shrink-0 rounded-lg bg-primary-500 px-5 py-2 font-inter text-sm font-semibold text-white transition-colors hover:bg-primary-600"
-                      >
-                        Desbloquear
-                      </button>
-                    )}
+                      {userStatus === 'active' || userStatus === 'activo' ? (
+                        <button
+                          onClick={() => onBlock(user)}
+                          className="whitespace-nowrap rounded-lg bg-secondary-600 px-4 py-2 font-inter text-sm font-semibold text-white transition-colors hover:bg-secondary-500"
+                        >
+                          Bloquear
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => onUnblock(user)}
+                          className="whitespace-nowrap rounded-lg bg-green-600 px-4 py-2 font-inter text-sm font-semibold text-white transition-colors hover:bg-green-700"
+                        >
+                          Activar
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               )
@@ -145,7 +157,6 @@ export default function UserList({ users, onView, onBlock, onUnblock }) {
           </tbody>
         </table>
       </div>
-    </>
-    // --- FIN DE LA CORRECCIÓN DE LAYOUT ---
+    </div>
   )
 }

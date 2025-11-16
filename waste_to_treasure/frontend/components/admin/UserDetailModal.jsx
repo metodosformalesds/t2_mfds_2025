@@ -31,6 +31,7 @@ export default function UserDetailModal({
   user,
   onBlock,
   onUnblock,
+  onChangeRole,  // Nueva prop para cambiar rol
 }) {
   const openConfirmModal = useConfirmStore(state => state.open)
 
@@ -55,6 +56,24 @@ export default function UserDetailModal({
   const handleUnblock = () => {
     onClose() // Cierra el modal de detalles
     onUnblock(user) // Llama a la función de desbloqueo (que abre el modal de confirmación)
+  }
+  
+  const handleChangeRole = () => {
+    const currentRole = user.role?.toUpperCase() || 'USER'
+    const newRole = currentRole === 'ADMIN' ? 'USER' : 'ADMIN'
+    const roleText = newRole === 'ADMIN' ? 'Administrador' : 'Usuario'
+    
+    openConfirmModal(
+      'Cambiar Rol de Usuario',
+      `¿Estás seguro de que quieres cambiar el rol de ${displayName} a ${roleText}?`,
+      () => {
+        onClose()
+        if (onChangeRole) {
+          onChangeRole(user, newRole)
+        }
+      },
+      false
+    )
   }
   
   // Acciones placeholder
@@ -170,6 +189,11 @@ export default function UserDetailModal({
             Acciones de moderación:
           </h3>
           <div className="mt-2 flex flex-wrap gap-2">
+            <ActionButton
+              text={`Cambiar a ${user.role?.toUpperCase() === 'ADMIN' ? 'Usuario' : 'Admin'}`}
+              color="bg-purple-600 text-white hover:bg-purple-700"
+              onClick={handleChangeRole}
+            />
             {user.status?.toLowerCase() === 'active' || user.status?.toLowerCase() === 'activo' ? (
               <ActionButton
                 text="Bloquear usuario"

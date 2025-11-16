@@ -23,9 +23,10 @@ export default function GlobalConfirmModal({
   if (!isOpen) return null
 
   const handleConfirm = () => {
-    console.log('[GlobalConfirmModal] handleConfirm ejecutado')
-    console.log('[GlobalConfirmModal] onConfirm tipo:', typeof onConfirm)
-    onConfirm()
+    if (onConfirm) {
+      console.log('[GlobalConfirmModal] handleConfirm ejecutado')
+      onConfirm()
+    }
     close()
   }
 
@@ -92,15 +93,17 @@ export default function GlobalConfirmModal({
             onClick={handleCancel}
             className="rounded-lg border border-neutral-300 bg-white px-4 py-2 font-inter text-sm font-semibold text-neutral-900 transition-colors hover:bg-neutral-50"
           >
-            {cancelText}
+            {onConfirm ? cancelText : 'Entendido'}
           </button>
-          <button
-            type="button"
-            onClick={handleConfirm}
-            className={`rounded-lg px-4 py-2 font-inter text-sm font-semibold transition-colors ${confirmClasses}`}
-          >
-            {finalConfirmText}
-          </button>
+          {onConfirm && (
+            <button
+              type="button"
+              onClick={handleConfirm}
+              className={`rounded-lg px-4 py-2 font-inter text-sm font-semibold transition-colors ${confirmClasses}`}
+            >
+              {finalConfirmText}
+            </button>
+          )}
         </div>
       </div>
     </div>
