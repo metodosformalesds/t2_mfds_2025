@@ -290,23 +290,17 @@ async def update_listing(
             detail="No tienes permiso para actualizar este listing"
         )
 
-    # No permitir editar listings rechazados
-    if db_listing.status == ListingStatusEnum.REJECTED:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No se pueden editar listings rechazados"
-        )
-
     # Actualizar campos
     update_data = listing_data.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(db_listing, field, value)
 
-    # Si el listing estaba ACTIVE, cambiar a PENDING para nueva revisión
-    if db_listing.status == ListingStatusEnum.ACTIVE:
+    # Si el listing estaba ACTIVE o REJECTED, cambiar a PENDING para nueva revisión
+    if db_listing.status in [ListingStatusEnum.ACTIVE, ListingStatusEnum.REJECTED]:
         db_listing.status = ListingStatusEnum.PENDING
         db_listing.approved_by_admin_id = None
-        logger.info(f"Listing {listing_id} movido a PENDING para nueva revisión")
+        db_listing.rejection_reason = None  # Limpiar razón de rechazo anterior
+        logger.info(f"Listing {listing_id} movido a PENDING para nueva revisión (estado anterior: {db_listing.status})")
 
     await db.commit()
     await db.refresh(db_listing)
