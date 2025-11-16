@@ -1,4 +1,5 @@
 import React from 'react'
+import UserAvatar from '@/components/ui/UserAvatar'
 
 /**
  * Badge para el estado del usuario (ACTIVO / BLOQUEADO)
@@ -89,8 +90,18 @@ export default function UserList({ users, onView, onBlock, onUnblock }) {
               const userStatus = (user.status || 'active').toLowerCase()
               return (
                 <tr key={user.id} className="hover:bg-neutral-50">
-                  <td className="w-2/12 px-2 py-4 font-inter text-base text-neutral-900">
-                    {user.name}
+                  <td className="w-2/12 px-2 py-4">
+                    <div className="flex items-center gap-3">
+                      <UserAvatar
+                        imageUrl={user.profile_image_url}
+                        fullName={user.name}
+                        userId={user.id}
+                        size="sm"
+                      />
+                      <span className="font-inter text-base text-neutral-900">
+                        {user.name}
+                      </span>
+                    </div>
                   </td>
                   <td className="w-2/12 px-5 py-4 font-inter text-base text-neutral-900">
                     {user.email}

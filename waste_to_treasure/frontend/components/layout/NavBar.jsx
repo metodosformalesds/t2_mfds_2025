@@ -16,15 +16,12 @@ import {
   Shield, // Icono para "Panel Admin"
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
-// --- INICIO DE MODIFICACIÓN ---
 import { useCartStore } from '@/stores/useCartStore'
-// --- FIN DE MODIFICACIÓN ---
+import UserAvatar from '@/components/ui/UserAvatar'
 
 export default function NavBar() {
   const { isAuthenticated, user, logout } = useAuth()
-  // --- INICIO DE MODIFICACIÓN ---
   const { total_items, fetchCart } = useCartStore()
-  // --- FIN DE MODIFICACIÓN ---
 
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -237,10 +234,17 @@ export default function NavBar() {
                     <button
                       ref={profileToggleRef}
                       onClick={() => setIsProfileOpen(prev => !prev)}
-                      className="navbar-action-btn group"
+                      className="navbar-action-btn group flex items-center justify-center"
                       aria-label="Abrir menú de usuario"
                     >
-                      <User className="h-5 w-5 text-neutral-700 transition-colors group-hover:text-primary-500" />
+                      <UserAvatar
+                        imageUrl={user?.profile_image_url}
+                        fullName={user?.name}
+                        userId={user?.user_id}
+                        size="sm"
+                        showIcon={true}
+                        className="ring-2 ring-transparent transition-all group-hover:ring-primary-500/50"
+                      />
                     </button>
 
                     {/* Menú Desplegable */}

@@ -1,9 +1,12 @@
 // components/dashboard/ProfileForm.jsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useDropzone } from 'react-dropzone';
+import Image from 'next/image';
 import { useProfile } from '@/hooks/useProfile';
-import { Save, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'; 
+import { Save, Loader2, AlertCircle, CheckCircle2, Upload, User, X } from 'lucide-react'; 
+import { uploadService } from '@/lib/api/upload';
 
 export default function ProfileForm() {
   const { profile, isLoading, error, updateProfile } = useProfile();
@@ -15,6 +18,11 @@ export default function ProfileForm() {
     newPassword: '',
   });
 
+  const [profileImage, setProfileImage] = useState(null);
+  const [profileImagePreview, setProfileImagePreview] = useState(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  
   const [isSaving, setIsSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -28,8 +36,59 @@ export default function ProfileForm() {
         currentPassword: '',
         newPassword: '',
       });
+      
+      // Cargar imagen de perfil existente
+      if (profile.profile_image_url) {
+        setProfileImagePreview(profile.profile_image_url);
+      }
     }
   }, [profile]);
+
+  // Configuración de dropzone para imagen de perfil
+  const onDrop = useCallback((acceptedFiles) => {
+    if (acceptedFiles && acceptedFiles.length > 0) {
+      const file = acceptedFiles[0];
+      
+      // Validar tamaño (máx 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setUploadError('La imagen no debe superar 5MB');
+        return;
+      }
+      
+      // Validar tipo
+      if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type)) {
+        setUploadError('Solo se permiten imágenes JPG, PNG o WebP');
+        return;
+      }
+      
+      setProfileImage(file);
+      setUploadError('');
+      
+      // Crear preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'image/jpeg': ['.jpg', '.jpeg'],
+      'image/png': ['.png'],
+      'image/webp': ['.webp']
+    },
+    maxFiles: 1,
+    multiple: false
+  });
+
+  const removeProfileImage = () => {
+    setProfileImage(null);
+    setProfileImagePreview(profile?.profile_image_url || null);
+    setUploadError('');
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -46,11 +105,31 @@ export default function ProfileForm() {
     setIsSaving(true);
     setSuccessMessage('');
     setErrorMessage('');
+    setUploadError('');
 
     try {
-      // Actualizar perfil
+      let profileImageUrl = profile?.profile_image_url || null;
+      
+      // Si hay una nueva imagen, subirla primero
+      if (profileImage) {
+        setIsUploadingImage(true);
+        try {
+          // Usar el nuevo endpoint específico para imágenes de perfil
+          profileImageUrl = await uploadService.uploadProfileImage(profileImage);
+        } catch (uploadErr) {
+          setUploadError(uploadErr.message || 'Error al subir la imagen. Intenta de nuevo.');
+          setIsSaving(false);
+          setIsUploadingImage(false);
+          return;
+        } finally {
+          setIsUploadingImage(false);
+        }
+      }
+
+      // Actualizar perfil con la nueva imagen (si existe)
       const profileUpdateData = {
         full_name: formData.fullName,
+        profile_image_url: profileImageUrl,
         // TODO: Agregar bio cuando esté disponible en el backend
         // bio: formData.bio,
       };
@@ -58,12 +137,13 @@ export default function ProfileForm() {
       await updateProfile(profileUpdateData);
 
       setSuccessMessage('Perfil actualizado correctamente');
+      setProfileImage(null); // Limpiar imagen temporal
+      setUploadError(''); // Limpiar errores
       
       // Limpiar mensaje después de 3 segundos
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err) {
       setErrorMessage(err.message || 'Error al actualizar el perfil');
-      console.error('Error al guardar:', err);
     } finally {
       setIsSaving(false);
     }
@@ -95,7 +175,100 @@ export default function ProfileForm() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-8">
+        {/* Imagen de Perfil */}
+        <div className="border-b pb-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 font-poppins">
+            Imagen de Perfil
+          </h3>
+          
+          <div className="flex flex-col md:flex-row gap-6 items-start">
+            {/* Preview de la imagen */}
+            <div className="flex-shrink-0">
+              <div className="relative w-32 h-32 rounded-full overflow-hidden bg-gray-100 border-4 border-gray-200 shadow-sm">
+                {isUploadingImage && (
+                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10">
+                    <Loader2 className="w-8 h-8 animate-spin text-white" />
+                  </div>
+                )}
+                {profileImagePreview ? (
+                  <Image
+                    src={profileImagePreview}
+                    alt="Imagen de perfil"
+                    fill
+                    className="object-cover"
+                    unoptimized={profileImagePreview.startsWith('blob:')}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <User className="w-16 h-16 text-gray-400" />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Dropzone */}
+            <div className="flex-1 w-full">
+              <div
+                {...getRootProps()}
+                className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all duration-200 ${
+                  isDragActive
+                    ? 'border-primary-500 bg-primary-50 scale-[1.02]'
+                    : 'border-gray-300 hover:border-primary-400 hover:bg-gray-50'
+                } ${isUploadingImage ? 'opacity-50 pointer-events-none' : ''}`}
+              >
+                <input {...getInputProps()} disabled={isUploadingImage} />
+                <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                {isDragActive ? (
+                  <p className="text-primary-600 font-inter font-medium">Suelta la imagen aquí...</p>
+                ) : (
+                  <>
+                    <p className="text-gray-700 font-inter mb-1">
+                      <span className="font-semibold text-primary-500">Haz clic</span> o arrastra una imagen
+                    </p>
+                    <p className="text-sm text-gray-500 font-inter">
+                      JPG, PNG o WebP (máx. 5MB)
+                    </p>
+                  </>
+                )}
+              </div>
+
+              {uploadError && (
+                <div className="mt-3 flex items-start gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-lg border border-red-200">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <span className="font-inter">{uploadError}</span>
+                </div>
+              )}
+
+              {profileImage && !isUploadingImage && (
+                <div className="mt-3 flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-3">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
+                    <span className="text-sm text-green-700 font-inter truncate">
+                      {profileImage.name}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={removeProfileImage}
+                    className="ml-2 text-red-500 hover:text-red-700 transition-colors flex-shrink-0"
+                    aria-label="Quitar imagen"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              )}
+
+              {isUploadingImage && (
+                <div className="mt-3 flex items-center gap-2 text-primary-600 text-sm bg-primary-50 p-3 rounded-lg border border-primary-200">
+                  <Loader2 className="w-4 h-4 animate-spin flex-shrink-0" />
+                  <span className="font-inter">Subiendo imagen...</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* Información del Usuario */}
         <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-4 font-poppins">

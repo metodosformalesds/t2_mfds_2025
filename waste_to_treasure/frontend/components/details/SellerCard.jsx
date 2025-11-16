@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { Star, User } from 'lucide-react'
+import UserAvatar from '@/components/ui/UserAvatar'
 
 /**
  * Seller Card Component
@@ -11,6 +12,7 @@ import { Star, User } from 'lucide-react'
 export default function SellerCard({ sellerId, seller, sellerStats }) {
   // Extract seller information from the seller object passed from the listing
   const sellerName = seller?.full_name || seller?.business_name || `Vendedor ${sellerId?.substring(0, 8)}`
+  const profileImageUrl = seller?.profile_image_url
 
   // Extract seller statistics from the sellerStats object
   // These stats represent ALL reviews across ALL seller's listings
@@ -20,22 +22,17 @@ export default function SellerCard({ sellerId, seller, sellerStats }) {
     total_listings_reviewed = 0,
   } = sellerStats || {}
 
-  console.log('[SellerCard] Estadísticas recibidas:', {
-    sellerId,
-    sellerName,
-    average_rating,
-    total_reviews,
-    total_listings_reviewed,
-    sellerStats
-  })
-
   return (
     <div className="rounded-lg border border-neutral-300 bg-white p-6 shadow-sm">
       {/* Seller Name and Logo */}
       <div className="mb-4 flex items-start gap-4">
-        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-primary-500 font-roboto text-xl font-bold text-white">
-          <User size={24} />
-        </div>
+        <UserAvatar
+          imageUrl={profileImageUrl}
+          fullName={sellerName}
+          userId={sellerId}
+          size="lg"
+          showIcon={true}
+        />
         <div className="flex-1">
           <h3 className="font-roboto text-xl font-bold text-neutral-900">
             {sellerName}

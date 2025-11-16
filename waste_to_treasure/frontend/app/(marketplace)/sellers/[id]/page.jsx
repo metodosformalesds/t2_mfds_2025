@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Calendar, MapPin, Star, Package, ShoppingCart, Clock } from 'lucide-react'
+import UserAvatar from '@/components/ui/UserAvatar'
 import sellersService from '@/lib/api/sellers'
 import listingsService from '@/lib/api/listings'
 import MaterialCard from '@/components/marketplace/MaterialCard'
@@ -45,15 +46,12 @@ export default function SellerProfilePage() {
         setSeller(sellerData)
         setStats(statsData)
 
-        // Fetch seller's listings - cargar TODOS para poder cruzar con reviews
+        // Fetch seller's listings
         const listingsData = await sellersService.getListings(sellerId, {
           page: 1,
-          page_size: 100, // Aumentar para obtener todos los listings
+          page_size: 100,
         })
         setListings(listingsData.items || [])
-        
-        console.log('[SellerProfile] Listings cargados:', listingsData.items?.length || 0)
-        console.log('[SellerProfile] Listings data:', listingsData.items)
 
         // Fetch seller's reviews
         const reviewsData = await sellersService.getReviews(sellerId, {
@@ -61,9 +59,6 @@ export default function SellerProfilePage() {
           page_size: 10,
         })
         setReviews(reviewsData.items || [])
-        
-        console.log('[SellerProfile] Reviews cargadas:', reviewsData.items?.length || 0)
-        console.log('[SellerProfile] Reviews data:', reviewsData.items)
       } catch (err) {
         console.error('Error al cargar datos del vendedor:', err)
         setError('Error al cargar el perfil del vendedor')
@@ -123,19 +118,14 @@ export default function SellerProfilePage() {
         <div className="flex flex-col gap-[60px] lg:flex-row lg:items-center">
           {/* Profile Picture */}
           <div className="flex justify-center lg:justify-start">
-            <div className="h-[280px] w-[280px] overflow-hidden rounded-full border-[5px] border-white shadow-lg">
-              {seller.profile_image_url ? (
-                <img
-                  src={seller.profile_image_url}
-                  alt={seller.business_name}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center bg-primary-500 font-poppins text-6xl font-bold text-white">
-                  {seller.business_name?.charAt(0).toUpperCase()}
-                </div>
-              )}
-            </div>
+            <UserAvatar
+              imageUrl={seller.profile_image_url}
+              fullName={seller.business_name}
+              userId={sellerId}
+              size="xl"
+              className="h-[280px] w-[280px] border-[5px] border-white shadow-lg text-[80px]"
+              showIcon={true}
+            />
           </div>
 
           {/* Seller Info */}
@@ -300,20 +290,6 @@ export default function SellerProfilePage() {
                 <div className="space-y-6">
                   {reviews.map((review, index) => {
                     const reviewerName = review.reviewer?.full_name || 'Usuario Anónimo'
-                    const reviewerInitial = reviewerName.charAt(0).toUpperCase()
-                    
-                    // Debug: Ver qué datos vienen en la reseña
-                    if (index === 0) {
-                      console.log('[SellerProfile] Primera review completa:', review)
-                      console.log('[SellerProfile] Listings disponibles:', listings)
-                    }
-                    
-                    console.log(`[SellerProfile] Review #${review.review_id}:`, {
-                      listing_id: review.listing_id,
-                      tiene_listing_object: !!review.listing,
-                      listing_title_from_review: review.listing?.title,
-                      listing_image_from_review: review.listing?.primary_image_url
-                    })
                     
                     // Obtener información del listing desde la reseña o cruzar con listings
                     let listing = null
@@ -321,16 +297,10 @@ export default function SellerProfilePage() {
                     // Primero intentar desde el objeto listing de la review
                     if (review.listing && review.listing.title) {
                       listing = review.listing
-                      console.log(`[SellerProfile] ✅ Usando listing desde review:`, listing.title)
                     } 
                     // Si no, buscar en el array de listings del vendedor
                     else if (review.listing_id) {
                       listing = listings.find(l => l.listing_id === review.listing_id)
-                      if (listing) {
-                        console.log(`[SellerProfile] ✅ Listing encontrado en array:`, listing.title)
-                      } else {
-                        console.warn(`[SellerProfile] ⚠️ No se encontró listing con ID ${review.listing_id}`)
-                      }
                     }
                     
                     // Fallback a objeto vacío
@@ -346,23 +316,20 @@ export default function SellerProfilePage() {
                         : `/products/${listing.listing_id}`
                     ) : null
                     
-                    console.log(`[SellerProfile] Rendering con:`, {
-                      title: listingTitle,
-                      image: listingImage,
-                      type: listingType
-                    })
-                    
                     return (
                       <div
                         key={review.review_id || index}
                         className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
                       >
                         {/* Header: Reviewer info y Rating */}
-                        <div className="mb-4 flex items-start justify-between">
+                          <div className="mb-4 flex items-start justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-500 font-inter text-lg font-semibold text-white">
-                              {reviewerInitial}
-                            </div>
+                            <UserAvatar
+                              imageUrl={review.reviewer?.profile_image_url}
+                              fullName={review.reviewer?.full_name}
+                              userId={review.reviewer?.user_id}
+                              size="md"
+                            />
                             <div>
                               <p className="font-roboto text-lg font-semibold text-neutral-900">
                                 {reviewerName}

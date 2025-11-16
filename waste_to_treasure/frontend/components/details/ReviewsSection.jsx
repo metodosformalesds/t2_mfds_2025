@@ -6,24 +6,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useAuth } from '@/context/AuthContext'
 import reviewsService from '@/lib/api/reviews'
-
-/**
- * Helper function to get user initials from name
- */
-function getInitials(fullName) {
-  if (!fullName) return 'U'
-  
-  const nameParts = fullName.trim().split(' ')
-  if (nameParts.length === 1) {
-    // Solo un nombre, usar las primeras dos letras
-    return nameParts[0].substring(0, 2).toUpperCase()
-  }
-  
-  // Tomar primera letra del primer y último nombre
-  const first = nameParts[0].charAt(0).toUpperCase()
-  const last = nameParts[nameParts.length - 1].charAt(0).toUpperCase()
-  return `${first}${last}`
-}
+import UserAvatar from '@/components/ui/UserAvatar'
 
 /**
  * Helper function to format relative time
@@ -315,8 +298,9 @@ export default function ReviewsSection({
         {reviews.length > 0 ? (
           reviews.slice(0, 3).map((review, index) => {
             const isLast = index === reviews.slice(0, 3).length - 1
-            const initials = getInitials(review.reviewer?.full_name)
             const fullName = review.reviewer?.full_name || 'Usuario Anónimo'
+            const profileImageUrl = review.reviewer?.profile_image_url
+            const reviewerId = review.reviewer?.user_id
 
             return (
               <div
@@ -327,12 +311,13 @@ export default function ReviewsSection({
                 <div className="flex items-center justify-between px-[10px]">
                   {/* User profile */}
                   <div className="flex items-center gap-[20px]">
-                    {/* Avatar with initials */}
-                    <div className="relative flex h-[67px] w-[67px] items-center justify-center rounded-full bg-[#7b3ff2]">
-                      <p className="font-poppins text-[32px] font-bold leading-normal text-white">
-                        {initials}
-                      </p>
-                    </div>
+                    {/* Avatar - ahora con imagen de perfil */}
+                    <UserAvatar
+                      imageUrl={profileImageUrl}
+                      fullName={fullName}
+                      userId={reviewerId}
+                      size="2xl"
+                    />
 
                     {/* Name and time */}
                     <div className="flex flex-col gap-[5px]">

@@ -45,7 +45,9 @@ class ListingBase(BaseModel):
     description: str = Field(..., min_length=50, description="Descripción detallada")
     price: Decimal = Field(..., gt=0, decimal_places=2, description="Precio del ítem")
     price_unit: Optional[str] = Field(None, max_length=50, description="Unidad de precio (Kg, Unidad, etc)")
-    quantity: int = Field(..., gt=0, description="Cantidad disponible en stock")
+    # Allow zero in the base/read schema (0 = out of stock).
+    # Creation uses a stricter validation (gt=0) via ListingCreate override.
+    quantity: int = Field(..., ge=0, description="Cantidad disponible en stock")
     category_id: int = Field(..., gt=0, description="ID de la categoría")
     listing_type: ListingTypeEnum = Field(..., description="Tipo: MATERIAL o PRODUCT")
     origin_description: Optional[str] = Field(None, max_length=1000, description="Origen reciclado del material")
@@ -58,6 +60,8 @@ class ListingCreate(ListingBase):
     
     # URLs de imágenes ya subidas a S3 (opcional)
     images: Optional[List[str]] = Field(None, description="URLs de imágenes en S3")
+    # For creation, require quantity > 0
+    quantity: int = Field(..., gt=0, description="Cantidad inicial disponible (debe ser mayor que 0)")
     
     @field_validator('listing_type')
     def validate_listing_type(cls, v):
@@ -74,7 +78,7 @@ class ListingUpdate(BaseModel):
     description: Optional[str] = Field(None, min_length=50)
     price: Optional[Decimal] = Field(None, gt=0, decimal_places=2)
     price_unit: Optional[str] = Field(None, max_length=50)
-    quantity: Optional[int] = Field(None, gt=0)
+    quantity: Optional[int] = Field(None, ge=0, description="Cantidad disponible (0 = sin stock)")
     origin_description: Optional[str] = Field(None, max_length=1000)
     location_address_id: Optional[int] = None
 

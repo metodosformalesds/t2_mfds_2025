@@ -5,9 +5,6 @@ import EditPublicationForm from '@/components/dashboard/EditPublicationForm'
 
 export default function EditPublicationPage({ params }) {
   const resolvedParams = use(params)
-  
-  console.log('[EditPage] Params:', resolvedParams)
-  console.log('[EditPage] ID:', resolvedParams.id)
 
   return (
     <div className="flex flex-col gap-6">

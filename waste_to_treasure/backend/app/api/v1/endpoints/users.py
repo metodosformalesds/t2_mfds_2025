@@ -4,24 +4,28 @@ Endpoints para gestión de usuarios.
 Este módulo maneja las operaciones relacionadas con usuarios:
 - GET /users/me: Obtener perfil del usuario autenticado (con JIT creation)
 - PATCH /users/me: Actualizar perfil del usuario autenticado
+- POST /users/upload-profile-image: Subir imagen de perfil
 - GET /users/{user_id}: Obtener perfil público de un usuario (admin only)
 - PATCH /users/{user_id}: Actualizar usuario (admin only)
 """
 
 from uuid import UUID
 from typing import Annotated
+import logging
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db, get_async_session
 from app.api.deps import get_current_active_user, require_admin
 from app.models.user import User
 from app.schemas.user import UserRead, UserUpdate, UserAdminUpdate, UserPublic
+from app.services.aws_s3_service import s3_service
 from sqlalchemy import select
 
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 # ==========================================
@@ -137,6 +141,80 @@ async def update_current_user_profile(
     await db.refresh(current_user)
     
     return UserRead.model_validate(current_user)
+
+
+@router.post(
+    "/upload-profile-image",
+    response_model=dict,
+    summary="Subir imagen de perfil",
+    description="""
+    Sube una imagen de perfil del usuario autenticado directamente a S3.
+    
+    **Requiere autenticación**
+    
+    - Tipos permitidos: JPG, JPEG, PNG, WEBP
+    - Tamaño máximo: 5MB
+    - Retorna URL pública de la imagen en S3
+    
+    **Flujo:**
+    1. Usuario selecciona imagen en el frontend
+    2. Frontend llama a este endpoint con el archivo
+    3. Backend valida y sube a S3
+    4. Retorna URL
+    5. Frontend puede usar la URL para actualizar el perfil con PATCH /me
+    """,
+    responses={
+        200: {"description": "Imagen subida exitosamente"},
+        400: {"description": "Archivo inválido o demasiado grande"},
+        401: {"description": "No autenticado"},
+        500: {"description": "Error al subir imagen"},
+    }
+)
+async def upload_profile_image(
+    file: UploadFile = File(..., description="Archivo de imagen de perfil"),
+    current_user: User = Depends(get_current_active_user)
+) -> dict:
+    """
+    Sube una imagen de perfil del usuario a S3 y retorna la URL.
+    
+    Args:
+        file: Archivo de imagen subido
+        current_user: Usuario autenticado
+        
+    Returns:
+        dict con success, url y message
+        
+    Raises:
+        HTTPException: Si falla la validación o el upload
+    """
+    logger.info(
+        f"Usuario {current_user.user_id} subiendo imagen de perfil"
+    )
+    
+    try:
+        # Upload a S3 usando el servicio
+        file_url = await s3_service.upload_profile_image(
+            file=file,
+            user_id=str(current_user.user_id)
+        )
+        
+        logger.info(f"Imagen de perfil subida exitosamente: {file_url}")
+        
+        return {
+            "success": True,
+            "url": file_url,
+            "message": "Imagen de perfil subida exitosamente"
+        }
+        
+    except HTTPException:
+        # Re-raise HTTPExceptions del servicio S3
+        raise
+    except Exception as e:
+        logger.error(f"Error inesperado al subir imagen de perfil: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error interno al procesar la imagen"
+        )
 
 
 # ==========================================

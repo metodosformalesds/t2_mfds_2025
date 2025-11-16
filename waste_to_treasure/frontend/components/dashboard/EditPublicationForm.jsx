@@ -26,45 +26,66 @@ export default function EditPublicationForm({ listingId }) {
   const [originalData, setOriginalData] = useState(null)
 
   // Cargar datos del listing
-    useEffect(() => {
+  useEffect(() => {
     const fetchListing = async () => {
-        try {
+      try {
         setIsLoading(true)
         setError(null)
         
-        console.log('[EditForm] Intentando cargar listing ID:', listingId)
-        console.log('[EditForm] Tipo de listingId:', typeof listingId)
+        // Validar que el ID sea válido
+        if (!listingId || listingId === 'undefined' || listingId === 'null') {
+          setError('ID de publicación inválido')
+          setIsLoading(false)
+          return
+        }
         
         const listing = await listingsService.getById(listingId)
-        console.log('[EditForm] Listing recibido:', listing)
+        
+        // Validar que el listing existe
+        if (!listing) {
+          setError('Publicación no encontrada')
+          setIsLoading(false)
+          return
+        }
 
         setFormData({
-            title: listing.title || '',
-            description: listing.description || '',
-            price: listing.price || '',
-            price_unit: listing.price_unit || '',
-            quantity: listing.quantity || '',
-            origin_description: listing.origin_description || '',
+          title: listing.title || '',
+          description: listing.description || '',
+          price: listing.price || '',
+          price_unit: listing.price_unit || '',
+          quantity: listing.quantity || 0,
+          origin_description: listing.origin_description || '',
         })
         setOriginalData(listing)
-        } catch (err) {
-        console.error('[EditForm] Error completo:', err)
-        console.error('[EditForm] Response:', err.response?.data)
-        console.error('[EditForm] Status:', err.response?.status)
-        setError('No se pudo cargar la publicación.')
-        } finally {
-        console.log('[EditForm] Finalizando carga')
-        setIsLoading(false)
+      } catch (err) {
+        // Manejo mejorado de errores
+        let errorMessage = 'No se pudo cargar la publicación.'
+        
+        if (err.message === 'Network Error') {
+          errorMessage = 'Error de conexión. Verifica que el backend esté funcionando.'
+        } else if (err.response?.status === 404) {
+          errorMessage = 'Publicación no encontrada.'
+        } else if (err.response?.status === 403) {
+          errorMessage = 'No tienes permisos para editar esta publicación.'
+        } else if (err.response?.status === 401) {
+          errorMessage = 'Sesión expirada. Por favor inicia sesión nuevamente.'
+        } else if (err.response?.data?.detail) {
+          errorMessage = err.response.data.detail
         }
+        
+        setError(errorMessage)
+      } finally {
+        setIsLoading(false)
+      }
     }
 
     if (listingId) {
-        fetchListing()
+      fetchListing()
     } else {
-        console.log('[EditForm] No hay listingId')
-        setIsLoading(false)
+      setError('ID de publicación no proporcionado')
+      setIsLoading(false)
     }
-    }, [listingId])
+  }, [listingId])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -81,6 +102,21 @@ export default function EditPublicationForm({ listingId }) {
     setSuccessMessage('')
 
     try {
+      // Validaciones antes de enviar
+      const newQuantity = parseInt(formData.quantity)
+      if (isNaN(newQuantity) || newQuantity < 0) {
+        setError('La cantidad debe ser un número válido mayor o igual a 0')
+        setIsSaving(false)
+        return
+      }
+
+      const newPrice = parseFloat(formData.price)
+      if (isNaN(newPrice) || newPrice <= 0) {
+        setError('El precio debe ser un número válido mayor a 0')
+        setIsSaving(false)
+        return
+      }
+
       const updates = {}
       
       if (formData.title !== originalData.title) {
@@ -89,14 +125,25 @@ export default function EditPublicationForm({ listingId }) {
       if (formData.description !== originalData.description) {
         updates.description = formData.description
       }
-      if (parseFloat(formData.price) !== parseFloat(originalData.price)) {
-        updates.price = Number(formData.price)
+      if (newPrice !== parseFloat(originalData.price)) {
+        updates.price = newPrice
       }
       if (formData.price_unit !== originalData.price_unit) {
         updates.price_unit = formData.price_unit
       }
-      if (parseInt(formData.quantity) !== parseInt(originalData.quantity)) {
-        updates.quantity = Number(formData.quantity)
+      if (newQuantity !== parseInt(originalData.quantity)) {
+        updates.quantity = newQuantity
+        
+        // Advertencia si se está poniendo en 0
+        if (newQuantity === 0) {
+          const confirmZero = window.confirm(
+            '⚠️ Estás poniendo la cantidad en 0. Esto hará que el producto no esté disponible para compra. ¿Deseas continuar?'
+          )
+          if (!confirmZero) {
+            setIsSaving(false)
+            return
+          }
+        }
       }
       if (formData.origin_description !== originalData.origin_description) {
         updates.origin_description = formData.origin_description
@@ -117,8 +164,15 @@ export default function EditPublicationForm({ listingId }) {
         router.push('/dashboard/publicaciones')
       }, 2000)
     } catch (err) {
-      console.error('Error al actualizar:', err)
-      setError(err.response?.data?.detail || 'Error al actualizar la publicación')
+      let errorMessage = 'Error al actualizar la publicación'
+      
+      if (err.response?.data?.detail) {
+        errorMessage = err.response.data.detail
+      } else if (err.message === 'Network Error') {
+        errorMessage = 'Error de conexión. Verifica que el backend esté funcionando.'
+      }
+      
+      setError(errorMessage)
     } finally {
       setIsSaving(false)
     }

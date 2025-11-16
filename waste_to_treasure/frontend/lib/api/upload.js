@@ -58,6 +58,53 @@ export const uploadService = {
   },
 
   /**
+   * Sube una imagen de perfil de usuario a S3
+   * @param {File} file - Archivo de imagen a subir
+   * @returns {Promise<string>} URL de la imagen en S3
+   */
+  uploadProfileImage: async (file) => {
+    try {
+      // Validar tipo de archivo
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!validTypes.includes(file.type)) {
+        throw new Error(`Tipo de archivo no válido. Permitidos: ${validTypes.join(', ')}`);
+      }
+
+      // Validar tamaño (máx 5MB)
+      const maxSize = 5 * 1024 * 1024; // 5MB en bytes
+      if (file.size > maxSize) {
+        throw new Error(`Archivo demasiado grande. Máximo: 5MB`);
+      }
+
+      // Crear FormData
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Llamar al endpoint específico de perfil
+      const { data } = await apiClient.post(
+        '/users/upload-profile-image',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+          // Timeout mayor para uploads grandes
+          timeout: 30000, // 30 segundos
+        }
+      );
+
+      return data.url;
+    } catch (error) {
+      // Extraer mensaje de error del backend
+      if (error.response?.data?.detail) {
+        throw new Error(error.response.data.detail);
+      }
+
+      throw error;
+    }
+  },
+
+  /**
    * Sube múltiples imágenes en secuencia
    * @param {File[]} files - Array de archivos a subir
    * @param {number} listingId - ID del listing
