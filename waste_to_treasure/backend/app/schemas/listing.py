@@ -134,10 +134,12 @@ class ListingCardRead(BaseModel):
     price: Decimal
     price_unit: Optional[str]
     listing_type: ListingTypeEnum
-    status: ListingStatusEnum  # Agregado para que el frontend pueda filtrar por estado
+    status: ListingStatusEnum
     primary_image_url: Optional[str]
     seller_id: UUID
     seller: Optional[UserPublic] = None
+    seller_name: Optional[str] = None
+    category_name: Optional[str] = None
     quantity: int
     created_at: datetime
 
