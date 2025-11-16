@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: VerticalStepper
+ * Descripción: indicador de progreso vertical para formulario de publicación mostrando 4 pasos (tipo, información, multimedia, revisión) con líneas conectoras y checkmark en pasos completados
+ */
+
 'use client';
 
 import { Check } from 'lucide-react'; // Asumo que tienes lucide-react

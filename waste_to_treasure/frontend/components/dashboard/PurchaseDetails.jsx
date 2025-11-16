@@ -3,6 +3,15 @@
 import { ShoppingBag, Package, MapPin, CreditCard, Calendar, User } from 'lucide-react';
 import Link from 'next/link';
 
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: PurchaseDetails
+ * Descripción: vista detallada de una compra mostrando información de envío, detalles de items, cantidad y precio unitario, total y estado de la orden
+ */
+
+'use client';
+/* Lines 2-5 omitted */
+
 export default function PurchaseDetails({ order }) {
   if (!order) {
     return (

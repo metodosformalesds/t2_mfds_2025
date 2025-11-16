@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: CheckoutSummary
+ * Descripción: resumen del carrito durante checkout con cálculo de subtotal, envío y total, incluye botón de continuar, enlace de retroceso y checkbox de términos y condiciones
+ */
+
 'use client'
 
 import Link from 'next/link'

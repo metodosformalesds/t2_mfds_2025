@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: QuantitySelector
+ * Descripción: selector numérico para ajustar cantidades de productos con unidades personalizadas (kg, litros, metros), incluye botones incrementar/decrementar, validación de rango y entrada manual con debounce
+ */
+
 'use client'
 
 import { useState, useEffect, memo } from 'react'

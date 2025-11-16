@@ -7,6 +7,15 @@ import { Trash2, AlertCircle, CheckCircle, AlertTriangle } from 'lucide-react'
 import QuantitySelector from './QuantitySelector'
 import { useCartStore } from '@/stores/useCartStore'
 
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: CartItem
+ * Descripción: representa un item individual en el carrito de compras con controles para ajustar cantidad, remover item, mostrar disponibilidad, manejo de errores y notificaciones toast personalizadas
+ */
+
+'use client'
+/* Lines 2-9 omitted */
+
 // Componente Toast mejorado
 function Toast({ message, type = 'info', onClose, unit = '' }) {
   // Auto-cerrar usando useEffect (corregir uso previo de useState)

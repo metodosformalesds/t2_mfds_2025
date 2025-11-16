@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: CheckoutStepper
+ * Descripción: indicador visual de progreso del proceso de checkout mostrando tres pasos (entrega, pago, confirmación) con barra de progreso indicando paso completado
+ */
+
 'use client'
 
 /**

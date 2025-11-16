@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: CategorySelect
+ * Descripción: dropdown para seleccionar categoría de producto con carga desde API, muestra opciones como Madera, Textil, Metal, Plástico, Vidrio, etc.
+ */
+
 'use client';
 
 import { useState, useEffect } from 'react';

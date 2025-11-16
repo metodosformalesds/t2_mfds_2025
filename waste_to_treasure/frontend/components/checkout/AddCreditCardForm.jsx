@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: AddCreditCardForm
+ * Descripción: formulario para agregar tarjeta de crédito/débito integrado con Stripe CardElement, incluye validación, manejo de errores y tokenización de tarjeta
+ */
+
 'use client'
 
 import { useState } from 'react'

@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: RelatedProducts
+ * Descripción: carrusel horizontal de productos relacionados con scroll suave, botones de navegación y carga de productos desde API con manejo de estado de carga
+ */
+
 'use client'
 
 import { useState, useEffect, useRef } from 'react'

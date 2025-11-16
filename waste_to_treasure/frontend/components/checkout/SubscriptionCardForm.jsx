@@ -6,6 +6,15 @@ import FormInput from '@/components/dashboard/FormInput'
 import Checkbox from '@/components/ui/Checkbox'
 
 /**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: SubscriptionCardForm
+ * Descripción: formulario para agregar tarjeta de suscripción usando Stripe con generación de tokens, validación y opción para establecer como tarjeta predeterminada
+ */
+
+'use client'
+/* Lines 2-7 omitted */
+
+/**
  * Opciones de estilo para el Stripe CardElement
  */
 const CARD_ELEMENT_OPTIONS = {

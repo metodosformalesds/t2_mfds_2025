@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: QuickActions
+ * Descripción: tarjeta con botones de acciones rápidas en el dashboard para publicar nuevo item, ver publicaciones y ver ventas
+ */
+
 'use client'
 
 import Link from 'next/link'

@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: Step1_Type
+ * Descripción: primer paso del formulario de publicación para seleccionar tipo de item (Producto o Material) y categoría correspondiente con validación
+ */
+
 'use client';
 
 import { useState } from 'react';

@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: SalesList
+ * Descripción: tabla paginada de ventas del usuario mostrando información del comprador, estado de la orden, fechas y acciones para ver detalles
+ */
+
 'use client';
 
 import { useSales } from '@/hooks/useSales';

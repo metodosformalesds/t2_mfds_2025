@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: ConfirmationProductCard
+ * Descripción: tarjeta de producto en página de confirmación que muestra imagen, cantidad, detalles del vendedor, precio y método de envío seleccionado
+ */
+
 'use client'
 
 import Image from 'next/image'

@@ -6,6 +6,15 @@ import FormInput from '@/components/dashboard/FormInput' // Reutilizamos FormInp
 import Checkbox from '@/components/ui/Checkbox'
 import { addressService } from '@/lib/api/address'
 
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: AddAddressForm
+ * Descripción: formulario para agregar nueva dirección de envío con campos de calle, ciudad, estado, código postal, notas y opciones para marcar como dirección por defecto y tipo de dirección
+ */
+
+'use client'
+/* Lines 2-8 omitted */
+
 export default function AddAddressForm({ onAddressAdded, onCancel }) {
   const [formData, setFormData] = useState({
     street: '',

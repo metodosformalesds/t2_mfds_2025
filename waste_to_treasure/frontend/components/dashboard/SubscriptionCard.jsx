@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: SubscriptionCard
+ * Descripción: tarjeta que muestra estado de suscripción actual con detalles de plan, fecha de próxima renovación, opciones para gestionar facturación y cancelar suscripción
+ */
+
 'use client';
 
 import { useState } from 'react';

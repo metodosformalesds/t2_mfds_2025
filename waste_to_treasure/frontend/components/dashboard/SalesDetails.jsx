@@ -4,6 +4,15 @@ import { DollarSign, Package, User, CreditCard, Calendar, MapPin } from 'lucide-
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: SalesDetails
+ * Descripción: vista detallada de una venta del usuario mostrando información del comprador, dirección de envío, items vendidos y total de la venta
+ */
+
+'use client';
+/* Lines 2-6 omitted */
+
 export default function SalesDetails({ sale }) {
   const { user } = useAuth();
   

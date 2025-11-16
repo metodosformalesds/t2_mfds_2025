@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: PurchasesList
+ * Descripción: tabla paginada de compras del usuario con información de orden, estado, fechas y acciones para ver detalles de cada compra
+ */
+
 'use client';
 
 import { usePurchases } from '@/hooks/usePurchases';

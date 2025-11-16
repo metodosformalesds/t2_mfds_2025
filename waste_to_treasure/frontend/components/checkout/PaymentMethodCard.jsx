@@ -3,6 +3,15 @@
 import { Trash2 } from 'lucide-react'
 
 /**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: PaymentMethodCard
+ * Descripción: tarjeta seleccionable para métodos de pago que muestra icono, título, descripción y estado de selección, con soporte para botón de eliminar tarjeta
+ */
+
+'use client'
+/* Lines 2-4 omitted */
+
+/**
  * Tarjeta seleccionable para un método de pago.
  * @param {Object} props
  * @param {React.ReactNode} props.icon - El icono a mostrar (ej. CreditCard)
