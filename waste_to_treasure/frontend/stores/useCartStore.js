@@ -7,6 +7,7 @@ export const useCartStore = create((set, get) => ({
   subtotal: '0.00',
   estimated_commission: '0.00',
   estimated_total: '0.00',
+  has_unavailable_items: false,
   isLoading: false,
   error: null,
 
@@ -20,6 +21,7 @@ export const useCartStore = create((set, get) => ({
       subtotal: data.subtotal || '0.00',
       estimated_commission: data.estimated_commission || '0.00',
       estimated_total: data.estimated_total || '0.00',
+      has_unavailable_items: data.has_unavailable_items || false,
       isLoading: false,
       error: null,
     })
@@ -34,13 +36,13 @@ export const useCartStore = create((set, get) => ({
     } catch (error) {
       // Si es 401, es porque no hay sesión - resetear carrito silenciosamente
       if (error.response?.status === 401) {
-        console.log('No hay sesión activa - carrito vacío')
         set({
           items: [],
           total_items: 0,
           subtotal: '0.00',
           estimated_commission: '0.00',
           estimated_total: '0.00',
+          has_unavailable_items: false,
           isLoading: false,
           error: null, // No mostrar error en páginas públicas
         })
@@ -96,13 +98,13 @@ export const useCartStore = create((set, get) => ({
       get()._setCartState(data)
       return data
     } catch (error) {
-      console.error('Error al limpiar el carrito:', error)
       set({
         items: [],
         total_items: 0,
         subtotal: '0.00',
         estimated_commission: '0.00',
         estimated_total: '0.00',
+        has_unavailable_items: false,
         isLoading: false,
         error: 'Error al limpiar el carrito',
       })
@@ -117,6 +119,7 @@ export const useCartStore = create((set, get) => ({
       subtotal: '0.00',
       estimated_commission: '0.00',
       estimated_total: '0.00',
+      has_unavailable_items: false,
       isLoading: false,
       error: null,
     })

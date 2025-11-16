@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import Image from 'next/image'
-import { Trash2, AlertCircle, CheckCircle } from 'lucide-react'
+import { Trash2, AlertCircle, CheckCircle, AlertTriangle } from 'lucide-react'
 import QuantitySelector from './QuantitySelector'
 import { useCartStore } from '@/stores/useCartStore'
 
@@ -48,7 +48,7 @@ function Toast({ message, type = 'info', onClose, unit = '' }) {
   return null
 }
 
-export default function CartItem({ item }) {
+export default function CartItem({ item, isUnavailable = false }) {
   const { updateItem, removeItem, fetchCart } = useCartStore()
   const [isUpdating, setIsUpdating] = useState(false)
   const [updateError, setUpdateError] = useState(null)
@@ -56,6 +56,10 @@ export default function CartItem({ item }) {
   const debounceTimerRef = useRef(null)
 
   const quantityUnit = item.listing_price_unit || 'unidades'
+  
+  // Verificar disponibilidad real
+  const actualQuantity = item.listing_available_quantity ?? 0
+  const isOutOfStock = !item.listing_is_available || actualQuantity === 0
 
   const showToast = (message, type = 'info') => {
     setToast({ message, type })
@@ -76,12 +80,21 @@ export default function CartItem({ item }) {
       return
     }
 
+    // Prevenir cambios si está sin stock
+    if (isOutOfStock) {
+      showToast(
+        `"${item.listing_title}" no está disponible. Por favor elimínalo del carrito.`,
+        'error'
+      )
+      return
+    }
+
     if (isUpdating) return
     
     // Validar si se intenta agregar más de lo disponible
-    if (newQuantity > item.listing_available_quantity) {
+    if (newQuantity > actualQuantity) {
       showToast(
-        `Solo hay ${item.listing_available_quantity} ${quantityUnit} disponibles para "${item.listing_title}".`,
+        `Solo hay ${actualQuantity} ${quantityUnit} disponibles para "${item.listing_title}".`,
         'warning'
       )
       return
@@ -116,7 +129,6 @@ export default function CartItem({ item }) {
           )
         }
       } catch (err) {
-          console.error('Error actualizando cantidad:', err)
           showToast(`No se pudo actualizar la cantidad de "${item.listing_title}". Intenta de nuevo.`, 'error')
           setUpdateError('Error al actualizar cantidad')
           setTimeout(() => setUpdateError(null), 2000)
@@ -141,7 +153,6 @@ export default function CartItem({ item }) {
       await removeItem(item.cart_item_id)
       await fetchCart()
     } catch (err) {
-      console.error('Error eliminando item:', err)
       showToast(`No se pudo eliminar "${item.listing_title}". Intenta de nuevo.`, 'error')
       setUpdateError('Error al eliminar item')
       setTimeout(() => setUpdateError(null), 2000)
@@ -151,20 +162,37 @@ export default function CartItem({ item }) {
   }
 
   return (
-    <div className="flex w-full items-center gap-4 border-b border-neutral-200 py-6 last:border-b-0 opacity-100 disabled:opacity-50" style={{ opacity: isUpdating ? 0.6 : 1 }}>
+    <div 
+      className={`flex w-full items-center gap-4 border-b border-neutral-200 py-6 last:border-b-0 transition-opacity ${
+        isUnavailable ? 'bg-red-50/50' : ''
+      }`}
+      style={{ opacity: isUpdating ? 0.6 : 1 }}
+    >
       <div className="relative h-24 w-24 flex-shrink-0 md:h-36 md:w-48">
         <Image
           src={item.listing_image_url || 'https://via.placeholder.com/190x150'}
           alt={item.listing_title || 'Imagen de producto'}
-          layout="fill"
-          objectFit="cover"
-          className="rounded-lg border border-neutral-300"
+          fill
+          sizes="(max-width: 768px) 96px, 192px"
+          className={`rounded-lg border ${
+            isUnavailable ? 'border-red-300 grayscale' : 'border-neutral-300'
+          }`}
+          loading="lazy"
         />
+        {isOutOfStock && (
+          <div className="absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center">
+            <span className="text-white font-bold text-sm md:text-base text-center px-2">
+              SIN STOCK
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="flex flex-1 flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex-1 space-y-1">
-          <h3 className="font-roboto text-1xl font-bold text-black">
+          <h3 className={`font-roboto text-1xl font-bold ${
+            isUnavailable ? 'text-neutral-500' : 'text-black'
+          }`}>
             {item.listing_title}
           </h3>
           <p className="font-inter text-base font-medium text-neutral-600">
@@ -173,15 +201,25 @@ export default function CartItem({ item }) {
           <p className="font-inter text-sm font-small text-neutral-600">
             Tu cantidad: {item.quantity} {quantityUnit}
           </p>
-          <p className="font-inter text-sm font-small text-primary-500">
-            Disponible: <span className="font-bold text-primary-500">{item.listing_available_quantity} {quantityUnit}</span>
-          </p>
+          
+          {isOutOfStock ? (
+            <p className="font-inter text-sm font-bold text-red-600 flex items-center gap-1">
+              <AlertTriangle className="h-4 w-4" />
+              ¡Sin stock! - Eliminar para continuar
+            </p>
+          ) : (
+            <p className="font-inter text-sm font-small text-primary-500">
+              Disponible: <span className="font-bold text-primary-500">{actualQuantity} {quantityUnit}</span>
+            </p>
+          )}
         </div>
 
         <div className="flex flex-col items-end gap-4">
           <div className="flex items-center gap-3">
             <div className="text-right">
-              <p className="font-roboto text-xl font-bold text-black">
+              <p className={`font-roboto text-xl font-bold ${
+                isUnavailable ? 'text-neutral-400' : 'text-black'
+              }`}>
                 ${parseFloat(item.listing_price).toFixed(2)}
                 <span className="font-inter text-sm font-medium text-neutral-600">
                   {" "}
@@ -190,15 +228,17 @@ export default function CartItem({ item }) {
               </p>
             </div>
           </div>
-          <div className="flex flex-col items-end gap-2">
-            <QuantitySelector
-              quantity={item.quantity}
-              onChange={handleQuantityChange}
-              maxQuantity={item.listing_available_quantity}
-              disabled={isUpdating}
-              unit={quantityUnit}
-            />
-          </div>
+          {!isOutOfStock && (
+            <div className="flex flex-col items-end gap-2">
+              <QuantitySelector
+                quantity={item.quantity}
+                onChange={handleQuantityChange}
+                maxQuantity={actualQuantity}
+                disabled={isUpdating}
+                unit={quantityUnit}
+              />
+            </div>
+          )}
         </div>
       </div>
 

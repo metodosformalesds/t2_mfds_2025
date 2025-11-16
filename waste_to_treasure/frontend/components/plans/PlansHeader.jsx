@@ -30,7 +30,7 @@ const plans = [
     priceMonthly: 149,
     priceAnnual: 119, // Precio con descuento anual
     priceLabel: 'por mes',
-    buttonText: 'COMENZAR PRUEBA GRATUITA',
+    buttonText: 'COMENZAR PRO',
     buttonVariant: 'primary',
     isPopular: true,
     features: [

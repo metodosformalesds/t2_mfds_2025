@@ -18,7 +18,6 @@ export const usersService = {
       const { data } = await apiClient.get('/users/me')
       return data
     } catch (error) {
-      console.error('Error al obtener perfil de usuario:', error)
       throw error
     }
   },
@@ -34,7 +33,6 @@ export const usersService = {
       const { data } = await apiClient.get(`/users/${userId}`)
       return data
     } catch (error) {
-      console.error(`Error al obtener usuario ${userId}:`, error)
       throw error
     }
   },
@@ -52,7 +50,6 @@ export const usersService = {
       const { data } = await apiClient.patch(`/users/${userId}`, updates)
       return data
     } catch (error) {
-      console.error(`Error al actualizar usuario ${userId}:`, error)
       throw error
     }
   },
@@ -86,7 +83,6 @@ export const usersService = {
       const { data } = await apiClient.patch('/users/me', profileData)
       return data
     } catch (error) {
-      console.error('Error al actualizar perfil:', error)
       throw new Error(error.response?.data?.detail || 'No se pudo actualizar el perfil.')
     }
   },

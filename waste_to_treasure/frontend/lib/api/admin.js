@@ -7,6 +7,42 @@
 import apiClient from './client'
 
 export const adminService = {
+  // --- User Management ---
+
+  /**
+   * Obtiene la lista de usuarios (Admin).
+   * @param {Object} params - Parámetros de filtrado (skip, limit, role, status, search)
+   * @returns {Promise<Object>} Lista paginada de usuarios
+   */
+  getUsersList: async (params = {}) => {
+    try {
+      const { data } = await apiClient.get('/admin/users', { params })
+      return data
+    } catch (error) {
+      throw error
+    }
+  },
+
+  /**
+   * Obtiene las estadísticas de un usuario específico.
+   * TODO: Implementar en backend GET /admin/users/{user_id}/stats
+   * 
+   * @param {string} userId - UUID del usuario
+   * @returns {Promise<Object>} Objeto con estadísticas del usuario
+   */
+  getUserDetailedStats: async (userId) => {
+    // TODO: Implementar cuando el backend tenga el endpoint
+    // const { data } = await apiClient.get(`/admin/users/${userId}/stats`)
+    // return data
+    
+    return {
+      publications: 0,
+      transactions: 0,
+      reports: 0,
+      warnings: 0
+    }
+  },
+
   // --- Dashboard ---
 
   /**
@@ -18,7 +54,6 @@ export const adminService = {
       const { data } = await apiClient.get('/admin/dashboard/stats')
       return data
     } catch (error) {
-      console.error('Error al obtener estadísticas del dashboard:', error)
       throw error
     }
   },
@@ -35,7 +70,20 @@ export const adminService = {
       const { data } = await apiClient.get('/admin/moderation/listings', { params })
       return data
     } catch (error) {
-      console.error('Error al obtener cola de moderación:', error)
+      throw error
+    }
+  },
+
+  /**
+   * Obtiene los detalles completos de un listing en moderación.
+   * @param {number} listingId - ID del listing
+   * @returns {Promise<Object>} Detalles completos del listing
+   */
+  getModerationListingDetail: async (listingId) => {
+    try {
+      const { data } = await apiClient.get(`/admin/moderation/listings/${listingId}`)
+      return data
+    } catch (error) {
       throw error
     }
   },
@@ -48,21 +96,16 @@ export const adminService = {
    */
   approveListing: async (listingId, reason = 'Aprobado por moderador') => {
     try {
-      console.log('[adminService.approveListing] Iniciando aprobación')
-      console.log('[adminService.approveListing] ListingId:', listingId)
-      console.log('[adminService.approveListing] Reason:', reason)
-      
       const { data } = await apiClient.post(
         `/admin/moderation/listings/${listingId}/approve`,
-        { reason }
+        { 
+          reason,
+          notes: null
+        }
       )
       
-      console.log('[adminService.approveListing] Respuesta exitosa:', data)
       return data
     } catch (error) {
-      console.error('[adminService.approveListing] Error:', error)
-      console.error('[adminService.approveListing] Response:', error.response?.data)
-      console.error('[adminService.approveListing] Status:', error.response?.status)
       throw error
     }
   },
@@ -75,21 +118,20 @@ export const adminService = {
    */
   rejectListing: async (listingId, reason) => {
     try {
-      console.log('[adminService.rejectListing] Iniciando rechazo')
-      console.log('[adminService.rejectListing] ListingId:', listingId)
-      console.log('[adminService.rejectListing] Reason:', reason)
-      
+      if (!reason || reason.trim().length === 0) {
+        throw new Error('La razón del rechazo es obligatoria')
+      }
+
       const { data } = await apiClient.post(
         `/admin/moderation/listings/${listingId}/reject`,
-        { reason }
+        { 
+          reason: reason.trim(),
+          notes: null
+        }
       )
       
-      console.log('[adminService.rejectListing] Respuesta exitosa:', data)
       return data
     } catch (error) {
-      console.error('[adminService.rejectListing] Error:', error)
-      console.error('[adminService.rejectListing] Response:', error.response?.data)
-      console.error('[adminService.rejectListing] Status:', error.response?.status)
       throw error
     }
   },
@@ -106,7 +148,6 @@ export const adminService = {
       const { data } = await apiClient.get('/admin/moderation/reports', { params })
       return data
     } catch (error) {
-      console.error('Error al obtener reportes:', error)
       throw error
     }
   },
@@ -122,12 +163,11 @@ export const adminService = {
   resolveReport: async (reportId, resolutionData) => {
     try {
       const { data } = await apiClient.post(
-        `/admin/moderation/reports/${reportId}/resolve`, // CORREGIDO: reportId en lugar de report_id
+        `/admin/moderation/reports/${reportId}/resolve`,
         resolutionData
       )
       return data
     } catch (error) {
-      console.error(`Error al resolver reporte ${reportId}:`, error)
       throw error
     }
   },

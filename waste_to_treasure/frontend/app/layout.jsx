@@ -1,5 +1,7 @@
 import { Poppins, Roboto, Inter } from 'next/font/google'
 import { AuthProvider } from '@/context/AuthContext'
+import { AmplifyProvider } from '@/lib/AmplifyProvider'
+import ErrorBoundary from '@/components/ErrorBoundary'
 import '../styles/global.css'
 
 const poppins = Poppins({
@@ -25,6 +27,9 @@ export const metadata = {
   description:
     'Plataforma de marketplace para materiales reciclados y productos sustentables',
   keywords: 'reciclaje, economía circular, materiales, productos sustentables',
+  icons: {
+    icon: 'icons/LogoNoFondo.ico',
+  },
 }
 
 export default function RootLayout({ children }) {
@@ -39,7 +44,11 @@ export default function RootLayout({ children }) {
       --- FIN DE LA CORRECCIÓN ---
       */}
       <body className="font-inter antialiased bg-neutral-75">
-        <AuthProvider>{children}</AuthProvider>
+        <ErrorBoundary fallbackMessage="Ocurrió un error al cargar la aplicación. Por favor, recarga la página.">
+          <AmplifyProvider>
+            <AuthProvider>{children}</AuthProvider>
+          </AmplifyProvider>
+        </ErrorBoundary>
       </body>
     </html>
   )

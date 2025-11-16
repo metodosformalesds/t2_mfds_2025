@@ -116,9 +116,9 @@ export default function SearchBar({ onSearch, onCategoryChange, isProductMode = 
             Cargando categorías...
           </p>
         ) : (
-          categories.map((category) => (
+          categories.map((category, index) => (
             <button
-              key={category.id || 'todos'}
+              key={category.id !== null ? category.id : `category-${index}`}
               onClick={() => handleCategoryClick(category)}
               className={`rounded-full px-4 py-2.5 font-inter text-base font-medium transition-colors ${
                 selectedCategory === category.name

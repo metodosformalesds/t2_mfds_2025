@@ -5,7 +5,10 @@ import { useSearchParams, useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronRight, ArrowLeft } from 'lucide-react'
 import listingsService from '@/lib/api/listings'
+import ordersService from '@/lib/api/orders'
+import reviewsService from '@/lib/api/reviews'
 import { useCartStore } from '@/stores/useCartStore'
+import { useAuth } from '@/context/AuthContext'
 import ImageGallery from '@/components/details/ImageGallery'
 import PricingCard from '@/components/details/PricingCard'
 import SellerCard from '@/components/details/SellerCard'
@@ -20,10 +23,13 @@ export default function MaterialDetailPage() {
   const materialId = searchParams.get('id') || params?.id
 
   const { addItem } = useCartStore()
+  const { isAuthenticated } = useAuth()
   const [material, setMaterial] = useState(null)
   const [similarMaterials, setSimilarMaterials] = useState([])
   const [reviews, setReviews] = useState([])
   const [reviewStats, setReviewStats] = useState({ average_rating: 0, total_reviews: 0 })
+  const [sellerStats, setSellerStats] = useState({ average_rating: 0, total_reviews: 0 })
+  const [userPurchase, setUserPurchase] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [addToCartMessage, setAddToCartMessage] = useState(null)
@@ -46,6 +52,37 @@ export default function MaterialDetailPage() {
         // Fetch main material data
         const materialData = await listingsService.getById(materialId)
         setMaterial(materialData)
+
+        // Fetch reviews and stats for the listing
+        try {
+          const reviewsData = await reviewsService.getListingReviews(materialId)
+          const statsData = await reviewsService.getListingReviewStatistics(materialId)
+          setReviews(reviewsData.items || [])
+          setReviewStats(statsData)
+        } catch (reviewError) {
+          console.error('Error al cargar reseñas:', reviewError)
+          // Continue even if reviews fail
+        }
+
+        // Fetch seller review statistics
+        if (materialData.seller_id) {
+          try {
+            const sellerReviewData = await reviewsService.getSellerReviewSummary(materialData.seller_id)
+            setSellerStats(sellerReviewData)
+          } catch (sellerError) {
+            // Continue even if seller stats fail
+          }
+        }
+
+        // Check if user has purchased this item (only if authenticated)
+        if (isAuthenticated) {
+          try {
+            const purchaseStatus = await ordersService.checkPurchase(materialId)
+            setUserPurchase(purchaseStatus)
+          } catch (purchaseError) {
+            setUserPurchase({ purchased: false, order_item_id: null })
+          }
+        }
 
         // Fetch similar materials (same category)
         if (materialData.category_id) {
@@ -70,7 +107,7 @@ export default function MaterialDetailPage() {
     }
 
     fetchMaterialData()
-  }, [materialId])
+  }, [materialId, isAuthenticated])
 
   /**
    * Handle add to cart
@@ -85,6 +122,20 @@ export default function MaterialDetailPage() {
       console.error('Error al agregar al carrito:', err)
       setAddToCartMessage({ type: 'error', text: 'Error al agregar al carrito. Intenta de nuevo.' })
       setTimeout(() => setAddToCartMessage(null), 3000)
+    }
+  }
+
+  /**
+   * Handle review submission - refresh reviews
+   */
+  const handleReviewSubmitted = async () => {
+    try {
+      const reviewsData = await reviewsService.getListingReviews(materialId)
+      const statsData = await reviewsService.getListingReviewStatistics(materialId)
+      setReviews(reviewsData.items || [])
+      setReviewStats(statsData)
+    } catch (error) {
+      console.error('Error al actualizar reseñas:', error)
     }
   }
 
@@ -208,20 +259,29 @@ export default function MaterialDetailPage() {
               <h1 className="mb-2 font-roboto text-3xl font-bold text-neutral-900">
                 {material.title}
               </h1>
-              <p className="font-inter text-sm text-neutral-600">Material</p>
+              <p className="font-inter text-sm text-neutral-600">
+                {material.category_name || material.category?.name || 'Material'}
+              </p>
             </div>
 
             <PricingCard listing={material} onAddToCart={handleAddToCart} />
-            <SellerCard sellerId={material.seller_id} sellerStats={reviewStats} />
+            <SellerCard 
+              sellerId={material.seller_id} 
+              seller={material.seller}
+              sellerStats={sellerStats} 
+            />
           </div>
         </div>
 
         {/* Reviews Section */}
         <div className="mb-8">
           <ReviewsSection
+            listingId={materialId}
             reviews={reviews}
             averageRating={reviewStats.average_rating}
             totalReviews={reviewStats.total_reviews}
+            userPurchase={userPurchase}
+            onReviewSubmitted={handleReviewSubmitted}
           />
         </div>
 

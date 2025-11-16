@@ -23,6 +23,7 @@ var/
 .installed.cfg
 *.egg
 pip-wheel-metadata/
+db_cli.py
 
 # Virtual environments
 venv/

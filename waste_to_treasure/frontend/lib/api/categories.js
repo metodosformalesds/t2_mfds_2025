@@ -26,7 +26,6 @@ export const categoriesService = {
       const { data } = await apiClient.get('/categories', { params })
       return data
     } catch (error) {
-      console.error('Error al obtener categorías:', error)
       throw error
     }
   },
@@ -42,7 +41,6 @@ export const categoriesService = {
       const { data } = await apiClient.get(`/categories/${categoryId}`)
       return data
     } catch (error) {
-      console.error(`Error al obtener categoría ${categoryId}:`, error)
       throw error
     }
   },
@@ -57,7 +55,6 @@ export const categoriesService = {
       const { data } = await apiClient.get('/categories/tree')
       return data
     } catch (error) {
-      console.error('Error al obtener árbol de categorías:', error)
       throw error
     }
   },
@@ -76,7 +73,6 @@ export const categoriesService = {
       const { data } = await apiClient.post('/categories', categoryData)
       return data
     } catch (error) {
-      console.error('Error al crear categoría:', error)
       throw error
     }
   },
@@ -93,7 +89,6 @@ export const categoriesService = {
       const { data } = await apiClient.patch(`/categories/${categoryId}`, updates)
       return data
     } catch (error) {
-      console.error(`Error al actualizar categoría ${categoryId}:`, error)
       throw error
     }
   },
@@ -108,7 +103,6 @@ export const categoriesService = {
     try {
       await apiClient.delete(`/categories/${categoryId}`)
     } catch (error) {
-      console.error(`Error al eliminar categoría ${categoryId}:`, error)
       throw error
     }
   },

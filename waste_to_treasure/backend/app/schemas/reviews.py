@@ -62,18 +62,18 @@ class ReviewInDB(ReviewBase):
     """
     Esquema que representa cómo se almacena Review en la base de datos.
     
-    Incluye campos autogenerados como ID, reviewer_id, listing_id y timestamps.
+    Incluye campos autogenerados como ID, buyer_id, listing_id y timestamps.
     """
     review_id: int = Field(..., description="Identificador único de la reseña")
-    reviewer_id: UUID = Field(..., description="UUID del usuario que reseña")
+    buyer_id: UUID = Field(..., description="UUID del usuario que reseña (comprador)", alias="reviewer_id")
     listing_id: int = Field(..., description="ID de la publicación reseñada")
     order_item_id: int = Field(..., description="ID del item de orden")
     created_at: datetime = Field(..., description="Fecha de creación")
-    updated_at: datetime = Field(..., description="Última actualización")
     
     model_config = ConfigDict(
         from_attributes=True,
-        populate_by_name=True
+        populate_by_name=True,
+        populate_by_alias=True
     )
 
 
@@ -92,7 +92,7 @@ class ReviewList(BaseModel):
     
     Usado en: GET /api/v1/reviews/listing/{listing_id}
     """
-    items: list[ReviewRead] = Field(..., description="Lista de reseñas")
+    items: list["ReviewWithReviewer"] = Field(..., description="Lista de reseñas")
     total: int = Field(..., ge=0, description="Total de reseñas")
     page: int = Field(..., ge=1, description="Página actual")
     page_size: int = Field(..., ge=1, le=100, description="Items por página")
@@ -109,27 +109,35 @@ class ReviewList(BaseModel):
 class ReviewerBasic(BaseModel):
     """Esquema simplificado del usuario que reseña."""
     user_id: UUID = Field(..., description="UUID del usuario")
-    first_name: str = Field(..., description="Nombre")
-    last_name: str = Field(..., description="Apellido")
+    full_name: Optional[str] = Field(None, description="Nombre completo del usuario")
+    profile_image_url: Optional[str] = Field(None, description="URL de la imagen de perfil del usuario")
     
     model_config = ConfigDict(from_attributes=True)
 
 
 class ReviewWithReviewer(ReviewInDB):
     """
-    Esquema extendido que incluye información básica del reviewer.
-    
+    Esquema extendido que incluye información básica del reviewer (buyer).
+
     Usado en: Listados públicos de reseñas de una publicación.
-    
+
     Note:
         Si usas este schema, asegúrate de hacer eager loading:
         ```python
-        stmt = select(Review).options(selectinload(Review.reviewer))
+        stmt = select(Review).options(selectinload(Review.buyer))
         ```
+        El campo buyer del modelo se serializa como 'reviewer' en el JSON.
     """
     reviewer: Optional[ReviewerBasic] = Field(
         None,
-        description="Información básica del usuario que reseñó"
+        description="Información básica del usuario que reseñó",
+        validation_alias="buyer",
+        serialization_alias="reviewer"
+    )
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        populate_by_name=True
     )
 
 
@@ -157,16 +165,23 @@ class ReviewWithListing(ReviewInDB):
 class ReviewWithDetails(ReviewInDB):
     """
     Esquema completo con reviewer y listing.
-    
+
     Usado en: Endpoints que requieren información completa.
     """
     reviewer: Optional[ReviewerBasic] = Field(
         None,
-        description="Información del reviewer"
+        description="Información del reviewer",
+        alias="buyer"
     )
     listing: Optional[ListingBasic] = Field(
         None,
         description="Información de la publicación"
+    )
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        populate_by_name=True,
+        populate_by_alias=True
     )
 
 class ReviewStatistics(BaseModel):

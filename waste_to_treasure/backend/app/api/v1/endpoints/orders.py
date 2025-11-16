@@ -215,7 +215,7 @@ async def process_checkout(
         payment_method="stripe"
     )
     
-    return OrderRead.model_validate(order)
+    return OrderRead.from_order(order)
 
 
 @router.get(
@@ -235,7 +235,7 @@ async def get_my_purchases(
     page = (skip // limit) + 1
     
     return OrderList(
-        items=[OrderRead.model_validate(o) for o in orders],
+        items=[OrderRead.from_order(o) for o in orders],
         total=total,
         page=page,
         page_size=limit
@@ -259,7 +259,7 @@ async def get_my_sales(
     page = (skip // limit) + 1
     
     return OrderList(
-        items=[OrderRead.model_validate(o) for o in orders],
+        items=[OrderRead.from_order(o) for o in orders],
         total=total,
         page=page,
         page_size=limit
@@ -280,4 +280,4 @@ async def get_order_details(
 ) -> OrderRead:
     
     order = await order_service.get_order_details(db, order_id, user)
-    return OrderRead.model_validate(order)
+    return OrderRead.from_order(order)

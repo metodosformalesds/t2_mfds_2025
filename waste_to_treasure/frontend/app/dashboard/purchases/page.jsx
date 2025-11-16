@@ -8,6 +8,14 @@ export const metadata = {
 export default function PurchasesPage() {
   return (
     <div className="flex flex-col gap-6">
+      <div>
+        <h1 className="text-black text-3xl font-poppins font-semibold">
+          Mis Compras
+        </h1>
+        <p className="text-gray-600 font-inter mt-2">
+          Historial de todas tus compras y pedidos realizados
+        </p>
+      </div>
       <PurchasesList />
     </div>
   );

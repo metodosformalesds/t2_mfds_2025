@@ -30,7 +30,7 @@ export function AuthProvider({ children }) {
           setUser({
             ...cognitoUser,
             ...backendUser,
-            name: backendUser.first_name || cognitoUser.attributes?.given_name || 'Usuario',
+            name: backendUser.full_name || cognitoUser.attributes?.given_name || 'Usuario',
             email: backendUser.email || cognitoUser.attributes?.email,
             role: backendUser.role || 'USER',
           });

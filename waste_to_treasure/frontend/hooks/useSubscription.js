@@ -23,6 +23,12 @@ export function useSubscription(autoLoad = true) {
       setSubscription(data)
       return data
     } catch (err) {
+      // Si es 404, no es un error, simplemente no hay suscripción
+      if (err.response?.status === 404) {
+        setSubscription(null)
+        setError(null)
+        return null
+      }
       setError(err.message || 'Error al cargar la suscripción')
       console.error('Error en fetchSubscription:', err)
       setSubscription(null)
@@ -90,6 +96,20 @@ export function useSubscription(autoLoad = true) {
     }
   }, [autoLoad, fetchSubscription])
 
+  /**
+   * Verifica si el usuario tiene una suscripción activa
+   */
+  const hasActiveSubscription = useCallback(() => {
+    return subscription?.status === 'ACTIVE'
+  }, [subscription])
+
+  /**
+   * Obtiene el nombre del plan actual
+   */
+  const getPlanName = useCallback(() => {
+    return subscription?.plan?.name || null
+  }, [subscription])
+
   return {
     subscription,
     isLoading,
@@ -98,5 +118,7 @@ export function useSubscription(autoLoad = true) {
     subscribe,
     cancelSubscription,
     refresh,
+    hasActiveSubscription,
+    getPlanName,
   }
 }

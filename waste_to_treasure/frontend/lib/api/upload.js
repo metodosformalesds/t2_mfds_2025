@@ -33,8 +33,6 @@ export const uploadService = {
       const formData = new FormData();
       formData.append('file', file);
 
-      console.log(`Subiendo imagen: ${file.name} (${(file.size / 1024).toFixed(2)}KB)`);
-
       // Llamar al endpoint
       const { data } = await apiClient.post(
         `/listings/upload-image?listing_id=${listingId}&is_primary=${isPrimary}`,
@@ -48,12 +46,55 @@ export const uploadService = {
         }
       );
 
-      console.log('Imagen subida exitosamente:', data.url);
+      return data.url;
+    } catch (error) {
+      // Extraer mensaje de error del backend
+      if (error.response?.data?.detail) {
+        throw new Error(error.response.data.detail);
+      }
+
+      throw error;
+    }
+  },
+
+  /**
+   * Sube una imagen de perfil de usuario a S3
+   * @param {File} file - Archivo de imagen a subir
+   * @returns {Promise<string>} URL de la imagen en S3
+   */
+  uploadProfileImage: async (file) => {
+    try {
+      // Validar tipo de archivo
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!validTypes.includes(file.type)) {
+        throw new Error(`Tipo de archivo no válido. Permitidos: ${validTypes.join(', ')}`);
+      }
+
+      // Validar tamaño (máx 5MB)
+      const maxSize = 5 * 1024 * 1024; // 5MB en bytes
+      if (file.size > maxSize) {
+        throw new Error(`Archivo demasiado grande. Máximo: 5MB`);
+      }
+
+      // Crear FormData
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Llamar al endpoint específico de perfil
+      const { data } = await apiClient.post(
+        '/users/upload-profile-image',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+          // Timeout mayor para uploads grandes
+          timeout: 30000, // 30 segundos
+        }
+      );
 
       return data.url;
     } catch (error) {
-      console.error('Error al subir imagen:', error);
-
       // Extraer mensaje de error del backend
       if (error.response?.data?.detail) {
         throw new Error(error.response.data.detail);
@@ -82,7 +123,6 @@ export const uploadService = {
         const url = await uploadService.uploadImage(file, listingId, isPrimary);
         uploadedUrls.push(url);
       } catch (error) {
-        console.error(`Error subiendo archivo ${file.name}:`, error);
         errors.push({
           fileName: file.name,
           error: error.message,
@@ -95,8 +135,6 @@ export const uploadService = {
       const errorMsg = errors
         .map(e => `${e.fileName}: ${e.error}`)
         .join('\n');
-      
-      console.warn(`Errores en upload:\n${errorMsg}`);
       
       // Si todas fallaron, lanzar error
       if (uploadedUrls.length === 0) {

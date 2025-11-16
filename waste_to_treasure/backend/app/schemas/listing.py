@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field, field_validator, HttpUrl, computed_field,
 
 from app.models.listing import ListingStatusEnum
 from app.models.category import ListingTypeEnum
+from app.schemas.user import UserPublic
 
 
 # SCHEMAS DE LISTING IMAGE
@@ -44,7 +45,9 @@ class ListingBase(BaseModel):
     description: str = Field(..., min_length=50, description="Descripción detallada")
     price: Decimal = Field(..., gt=0, decimal_places=2, description="Precio del ítem")
     price_unit: Optional[str] = Field(None, max_length=50, description="Unidad de precio (Kg, Unidad, etc)")
-    quantity: int = Field(..., gt=0, description="Cantidad disponible en stock")
+    # Allow zero in the base/read schema (0 = out of stock).
+    # Creation uses a stricter validation (gt=0) via ListingCreate override.
+    quantity: int = Field(..., ge=0, description="Cantidad disponible en stock")
     category_id: int = Field(..., gt=0, description="ID de la categoría")
     listing_type: ListingTypeEnum = Field(..., description="Tipo: MATERIAL o PRODUCT")
     origin_description: Optional[str] = Field(None, max_length=1000, description="Origen reciclado del material")
@@ -57,6 +60,8 @@ class ListingCreate(ListingBase):
     
     # URLs de imágenes ya subidas a S3 (opcional)
     images: Optional[List[str]] = Field(None, description="URLs de imágenes en S3")
+    # For creation, require quantity > 0
+    quantity: int = Field(..., gt=0, description="Cantidad inicial disponible (debe ser mayor que 0)")
     
     @field_validator('listing_type')
     def validate_listing_type(cls, v):
@@ -73,7 +78,7 @@ class ListingUpdate(BaseModel):
     description: Optional[str] = Field(None, min_length=50)
     price: Optional[Decimal] = Field(None, gt=0, decimal_places=2)
     price_unit: Optional[str] = Field(None, max_length=50)
-    quantity: Optional[int] = Field(None, gt=0)
+    quantity: Optional[int] = Field(None, ge=0, description="Cantidad disponible (0 = sin stock)")
     origin_description: Optional[str] = Field(None, max_length=1000)
     location_address_id: Optional[int] = None
 
@@ -87,31 +92,33 @@ class ListingStatusUpdate(BaseModel):
 # SCHEMAS PARA RESPONSES
 class ListingRead(ListingBase):
     """Schema de respuesta completo para una publicación."""
-    
+
     listing_id: int
     seller_id: UUID  # Cambiar a UUID, usaremos field_serializer para convertir a string
+    seller: Optional[UserPublic] = None
     status: ListingStatusEnum
     approved_by_admin_id: Optional[UUID] = None
+    rejection_reason: Optional[str] = None
     created_at: datetime
     updated_at: datetime
-    
+
     # Relaciones
     images: List[ListingImageRead] = []
-    
+
     class Config:
         from_attributes = True
-    
+
     @field_serializer('seller_id', 'approved_by_admin_id')
     def serialize_uuid(self, value: Optional[UUID], _info) -> Optional[str]:
         """Convierte UUID a string para la respuesta JSON."""
         return str(value) if value else None
-    
+
     @computed_field
     @property
     def is_available(self) -> bool:
         """Verifica si el listing está disponible."""
         return self.status == ListingStatusEnum.ACTIVE and self.quantity > 0
-    
+
     @computed_field
     @property
     def primary_image_url(self) -> Optional[str]:
@@ -126,20 +133,24 @@ class ListingRead(ListingBase):
 
 class ListingCardRead(BaseModel):
     """Schema simplificado para tarjetas en el catálogo."""
-    
+
     listing_id: int
     title: str
     price: Decimal
     price_unit: Optional[str]
     listing_type: ListingTypeEnum
+    status: ListingStatusEnum
     primary_image_url: Optional[str]
     seller_id: UUID
+    seller: Optional[UserPublic] = None
+    seller_name: Optional[str] = None
+    category_name: Optional[str] = None
     quantity: int
     created_at: datetime
-    
+
     class Config:
         from_attributes = True
-    
+
     @field_serializer('seller_id')
     def serialize_seller_uuid(self, value: UUID, _info) -> str:
         """Convierte seller_id UUID a string."""

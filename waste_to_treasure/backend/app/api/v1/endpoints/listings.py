@@ -224,6 +224,61 @@ async def list_my_listings(
 
 
 @router.get(
+    "/me/{listing_id}",
+    response_model=ListingRead,
+    summary="Obtener mi publicación por ID",
+    description="Obtiene una publicación específica del usuario autenticado, sin importar su estado.",
+    responses={
+        200: {"description": "Publicación encontrada"},
+        401: {"description": "No autenticado"},
+        403: {"description": "No eres el propietario de esta publicación"},
+        404: {"description": "Publicación no encontrada"},
+    }
+)
+async def get_my_listing_detail(
+    listing_id: int,
+    db: AsyncSession = Depends(get_async_db),
+    current_user: User = Depends(get_current_active_user)
+) -> ListingRead:
+    """
+    Obtiene una publicación específica del usuario autenticado.
+
+    **Requiere autenticación**
+
+    - Permite ver publicaciones en cualquier estado (ACTIVE, PENDING, REJECTED, INACTIVE)
+    - Solo el propietario puede acceder a su publicación
+    - Útil para editar publicaciones rechazadas o inactivas
+
+    **Casos de uso**:
+    - Editar publicaciones rechazadas
+    - Ver detalles completos de publicaciones pendientes
+    - Editar publicaciones inactivas
+    """
+    logger.info(f"Usuario {current_user.user_id} obteniendo detalles de su listing {listing_id}")
+
+    listing = await listing_service.get_listing_by_id(
+        db=db,
+        listing_id=listing_id,
+        include_inactive=True  # Incluir todas las publicaciones
+    )
+
+    if not listing:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Publicación no encontrada"
+        )
+
+    # Verificar que el usuario es el propietario
+    if listing.seller_id != current_user.user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No tienes permiso para ver esta publicación"
+        )
+
+    return listing
+
+
+@router.get(
     "/{listing_id}",
     response_model=ListingRead,
     summary="Obtener publicación por ID",
@@ -301,7 +356,10 @@ async def update_listing(
     **Validaciones**:
     - La publicación debe existir
     - Solo el vendedor propietario puede actualizar
-    - No se puede actualizar si está en estado REJECTED
+
+    **Comportamiento especial**:
+    - Si la publicación está ACTIVE o REJECTED, al editarla pasará a PENDING para nueva aprobación
+    - Esto permite corregir publicaciones rechazadas sin saltarse la revisión
 
     **Campos actualizables**:
     - `title`, `description`, `price`, `price_unit`

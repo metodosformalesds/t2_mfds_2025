@@ -163,7 +163,11 @@ async def get_public_listings(
     # Query base: solo listings activos
     stmt = (
         select(Listing)
-        .options(selectinload(Listing.images))
+        .options(
+            selectinload(Listing.images),
+            selectinload(Listing.category),
+            selectinload(Listing.seller)
+        )
         .where(Listing.status == ListingStatusEnum.ACTIVE)
     )
 
@@ -224,7 +228,11 @@ async def get_seller_listings(
     """
     stmt = (
         select(Listing)
-        .options(selectinload(Listing.images))
+        .options(
+            selectinload(Listing.images),
+            selectinload(Listing.category),
+            selectinload(Listing.seller)
+        )
         .where(Listing.seller_id == seller_id)
     )
 
@@ -282,17 +290,17 @@ async def update_listing(
             detail="No tienes permiso para actualizar este listing"
         )
 
-    # No permitir editar listings rechazados
-    if db_listing.status == ListingStatusEnum.REJECTED:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No se pueden editar listings rechazados"
-        )
-
     # Actualizar campos
     update_data = listing_data.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(db_listing, field, value)
+
+    # Si el listing estaba ACTIVE o REJECTED, cambiar a PENDING para nueva revisión
+    if db_listing.status in [ListingStatusEnum.ACTIVE, ListingStatusEnum.REJECTED]:
+        db_listing.status = ListingStatusEnum.PENDING
+        db_listing.approved_by_admin_id = None
+        db_listing.rejection_reason = None  # Limpiar razón de rechazo anterior
+        logger.info(f"Listing {listing_id} movido a PENDING para nueva revisión (estado anterior: {db_listing.status})")
 
     await db.commit()
     await db.refresh(db_listing)
@@ -486,8 +494,12 @@ def convert_to_card_response(listing: Listing) -> dict:
         "price": listing.price,
         "price_unit": listing.price_unit,
         "listing_type": listing.listing_type,
+        "status": listing.status,
         "primary_image_url": primary_image,
         "seller_id": listing.seller_id,
+        "seller": listing.seller,
+        "seller_name": listing.seller.full_name if listing.seller else None,
+        "category_name": listing.category.name if listing.category else None,
         "quantity": listing.quantity,
         "created_at": listing.created_at
     }

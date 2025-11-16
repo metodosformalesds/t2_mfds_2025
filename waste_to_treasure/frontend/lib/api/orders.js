@@ -28,8 +28,6 @@ export const ordersService = {
       const { data } = await apiClient.post('/orders/checkout', payload)
       return data
     } catch (error) {
-      console.error('Error detallado al procesar el checkout:', error.response?.data?.detail || error.message)
-      
       // Detectar si el payment method está "quemado" (usado sin customer)
       if (error.response?.status === 410 || 
           (error.response?.data?.detail?.error === 'payment_method_burned')) {
@@ -56,14 +54,14 @@ export const ordersService = {
    */
   getMyPurchases: async (params = {}) => {
     try {
-      const { skip = 0, limit = 20 } = params
+      const skip = params.skip || 0
+      const limit = params.limit || 20
       const { data } = await apiClient.get('/orders/my-purchases', {
         params: { skip, limit }
       })
       return data
     } catch (error) {
-      console.error('Error al obtener mis compras:', error)
-      throw new Error(error.response?.data?.detail || 'No se pudieron cargar las compras.')
+      throw error
     }
   },
 
@@ -85,7 +83,6 @@ export const ordersService = {
       })
       return data
     } catch (error) {
-      console.error('Error al obtener mis ventas:', error)
       throw new Error(error.response?.data?.detail || 'No se pudieron cargar las ventas.')
     }
   },
@@ -104,8 +101,57 @@ export const ordersService = {
       const { data } = await apiClient.get(`/orders/${orderId}`)
       return data
     } catch (error) {
-      console.error(`Error al obtener detalle de orden ${orderId}:`, error)
       throw new Error(error.response?.data?.detail || 'No se pudo cargar el detalle de la orden.')
+    }
+  },
+
+  /**
+   * Verifica si el usuario autenticado ha comprado un listing específico.
+   * @param {number} listingId - ID del listing
+   * @returns {Promise<Object>} { purchased: boolean, order_item_id: number|null }
+   */
+  checkPurchase: async (listingId) => {
+    try {
+      // Obtener las compras del usuario con un límite alto
+      const purchases = await ordersService.getMyPurchases({ skip: 0, limit: 100 })
+      
+      if (!purchases || !purchases.items || purchases.items.length === 0) {
+        return {
+          purchased: false,
+          order_item_id: null
+        }
+      }
+      
+      // Buscar si alguna compra incluye este listing
+      for (const order of purchases.items) {
+        if (order.order_items && Array.isArray(order.order_items)) {
+          for (const item of order.order_items) {
+            // El listing_id está dentro del objeto listing
+            const itemListingId = item.listing?.listing_id
+            
+            if (itemListingId === Number(listingId)) {
+              // Encontrado - usuario ha comprado este listing
+              return {
+                purchased: true,
+                order_item_id: item.order_item_id
+              }
+            }
+          }
+        }
+      }
+      
+      // No encontrado
+      return {
+        purchased: false,
+        order_item_id: null
+      }
+    } catch (error) {
+      // En caso de error, no permitir reseña por seguridad
+      return {
+        purchased: false,
+        order_item_id: null,
+        error: error.message
+      }
     }
   },
 }

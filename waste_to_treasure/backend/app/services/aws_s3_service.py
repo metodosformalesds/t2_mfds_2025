@@ -166,6 +166,86 @@ class S3Service:
                 detail=f"Error subiendo imagen: {str(e)}"
             )
     
+    async def upload_profile_image(
+        self,
+        file: UploadFile,
+        user_id: str
+    ) -> str:
+        """
+        Sube una imagen de perfil de usuario a S3.
+        
+        Args:
+            file: Archivo subido por el usuario.
+            user_id: ID del usuario (UUID).
+            
+        Returns:
+            URL pública de la imagen en S3.
+            
+        Raises:
+            HTTPException 400: Si el archivo es inválido.
+            HTTPException 500: Si falla el upload.
+            
+        Example:
+            ```python
+            file_url = await s3_service.upload_profile_image(
+                file=request_file,
+                user_id="1498f438-5001-7000-d32f-c970608926ea"
+            )
+            # file_url = "https://s3.amazonaws.com/bucket/images/profiles/user_id/uuid.jpg"
+            ```
+        """
+        # Validar tipo de archivo
+        if file.content_type not in self.allowed_types:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Tipo de archivo no permitido. Usa: {', '.join(self.allowed_types)}"
+            )
+        
+        # Leer contenido del archivo
+        contents = await file.read()
+        file_size = len(contents)
+        
+        # Validar tamaño
+        if file_size > self.max_file_size:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Archivo demasiado grande. Máximo: {self.max_file_size / (1024*1024)}MB"
+            )
+        
+        # Generar nombre único para el archivo
+        file_extension = file.filename.split(".")[-1]
+        unique_filename = f"{uuid.uuid4()}.{file_extension}"
+        
+        # Construir la key en S3 - usar prefijo "profiles" para imágenes de perfil
+        s3_key = f"{self.images_prefix}profiles/{user_id}/{unique_filename}"
+        
+        try:
+            # Upload a S3
+            self.s3_client.put_object(
+                Bucket=self.bucket_name,
+                Key=s3_key,
+                Body=BytesIO(contents),
+                ContentType=file.content_type,
+                CacheControl='max-age=31536000',  # 1 año
+                Metadata={
+                    'user_id': str(user_id),
+                    'type': 'profile_image'
+                }
+            )
+            
+            # Construir URL pública
+            file_url = f"https://{self.bucket_name}.s3.{settings.AWS_REGION}.amazonaws.com/{s3_key}"
+            
+            logger.info(f"Imagen de perfil subida exitosamente: {s3_key}")
+            return file_url
+            
+        except (ClientError, BotoCoreError) as e:
+            logger.error(f"Error subiendo imagen de perfil a S3: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Error subiendo imagen: {str(e)}"
+            )
+    
     async def delete_image(self, s3_key: str) -> bool:
         """
         Elimina una imagen de S3.

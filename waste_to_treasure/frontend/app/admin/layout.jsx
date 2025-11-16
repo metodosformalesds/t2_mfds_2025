@@ -7,6 +7,7 @@ import AdminSidebar from '@/components/admin/AdminSidebar'
 import AdminMobileHeader from '@/components/admin/AdminMobileHeader'
 import AdminLoading from '@/components/admin/AdminLoading'
 import GlobalConfirmModal from '@/components/admin/GlobalConfirmModal'
+import QuickNavigation from '@/components/admin/QuickNavigation'
 
 export default function AdminLayout({ children }) {
   const router = useRouter()
@@ -55,7 +56,7 @@ export default function AdminLayout({ children }) {
 
   // Si está autorizado, mostrar el layout de admin
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen">
       {/* Sidebar - Oculto en móvil, visible en desktop */}
       <AdminSidebar isOpen={isSidebarOpen} onClose={handleCloseSidebar} />
 
@@ -65,8 +66,13 @@ export default function AdminLayout({ children }) {
         <AdminMobileHeader onOpen={handleOpenSidebar} />
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden bg-gray-50 p-6">
-          <div className="mx-auto max-w-7xl">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden bg-gray-50">
+          <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+            {/* Navegación rápida - visible en todas las vistas */}
+            <div className="mb-4 sm:mb-6 flex justify-end">
+              <QuickNavigation />
+            </div>
+            
             {children}
           </div>
         </main>

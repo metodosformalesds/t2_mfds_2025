@@ -54,7 +54,12 @@ export function useDashboardData() {
         return saleDate >= thirtyDaysAgo && sale.status !== 'CANCELLED'
       })
       
-      const totalSales = recentSales.reduce((sum, sale) => sum + (sale.total_amount || 0), 0)
+      const totalSales = recentSales.reduce((sum, sale) => {
+        const amount = typeof sale.total_amount === 'number' 
+          ? sale.total_amount 
+          : parseFloat(sale.total_amount || 0)
+        return sum + amount
+      }, 0)
 
       // Obtener órdenes recientes como "pedidos recibidos"
       const receivedOrders = salesData.items.filter(
@@ -64,19 +69,26 @@ export function useDashboardData() {
       // Top productos (por cantidad de ventas)
       const productSales = {}
       salesData.items.forEach(sale => {
-        sale.items?.forEach(item => {
-          const key = item.listing_id
+        sale.order_items?.forEach(item => {
+          const key = item.listing?.listing_id
+          if (!key) return // Skip si no hay listing
+          
           if (!productSales[key]) {
             productSales[key] = {
-              listing_id: item.listing_id,
-              title: item.listing_title || 'Producto',
+              listing_id: item.listing.listing_id,
+              title: item.listing.title || 'Producto',
               totalSales: 0,
               totalRevenue: 0,
-              image_url: item.listing_image_url,
+              image_url: item.listing.primary_image_url,
             }
           }
+          
+          const price = typeof item.price_at_purchase === 'number' 
+            ? item.price_at_purchase 
+            : parseFloat(item.price_at_purchase || 0)
+            
           productSales[key].totalSales += item.quantity
-          productSales[key].totalRevenue += item.price * item.quantity
+          productSales[key].totalRevenue += price * item.quantity
         })
       })
 
@@ -95,6 +107,7 @@ export function useDashboardData() {
           text: `¡Nueva Venta! Orden #${sale.order_id}`,
           time: formatTimeAgo(sale.created_at),
           icon: 'dollar',
+          link_url: `/dashboard/sales/${sale.order_id}`
         })
       })
 
@@ -103,10 +116,11 @@ export function useDashboardData() {
         recentActivity.push({
           id: `notif-${notification.notification_id}`,
           type: notification.notification_type,
-          text: notification.message,
+          text: notification.content || notification.message,
           time: formatTimeAgo(notification.created_at),
           icon: getNotificationIcon(notification.notification_type),
           isRead: notification.is_read,
+          link_url: notification.link_url
         })
       })
 
@@ -127,7 +141,7 @@ export function useDashboardData() {
 
       setDashboardData({
         stats: {
-          totalSales: totalSales.toFixed(2),
+          totalSales: typeof totalSales === 'number' ? totalSales.toFixed(2) : '0.00',
           activeListings: activeListings.length,
           receivedOrders,
           newNotifications: notificationsData.unread_count || 0,

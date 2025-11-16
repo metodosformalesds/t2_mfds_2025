@@ -31,6 +31,7 @@ class UserRead(BaseModel):
             "user_id": "550e8400-e29b-41d4-a716-446655440000",
             "email": "usuario@example.com",
             "full_name": "Juan Pérez",
+            "profile_image_url": "https://s3.amazonaws.com/...",
             "role": "USER",
             "status": "ACTIVE",
             "created_at": "2025-11-06T10:30:00Z"
@@ -46,9 +47,18 @@ class UserRead(BaseModel):
         description="Email del usuario (único)"
     )
     full_name: Optional[str] = Field(
-        None, 
-        max_length=255, 
+        None,
+        max_length=255,
         description="Nombre completo del usuario"
+    )
+    profile_image_url: Optional[str] = Field(
+        None,
+        description="URL de la imagen de perfil en S3"
+    )
+    bio: Optional[str] = Field(
+        None,
+        max_length=1000,
+        description="Biografía del vendedor - información pública sobre el negocio"
     )
     role: UserRoleEnum = Field(
         ..., 
@@ -82,14 +92,17 @@ class UserPublic(BaseModel):
         {
             "user_id": "550e8400-e29b-41d4-a716-446655440000",
             "full_name": "Juan Pérez",
+            "profile_image_url": "https://s3.amazonaws.com/...",
             "role": "USER"
         }
         ```
     """
     user_id: UUID
     full_name: Optional[str] = None
+    profile_image_url: Optional[str] = None
+    bio: Optional[str] = None
     role: UserRoleEnum
-    
+
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -107,21 +120,33 @@ class UserUpdate(BaseModel):
     Example:
         ```json
         {
-            "full_name": "Juan Carlos Pérez López"
+            "full_name": "Juan Carlos Pérez López",
+            "profile_image_url": "https://s3.amazonaws.com/..."
         }
         ```
     """
     full_name: Optional[str] = Field(
-        None, 
-        max_length=255, 
+        None,
+        max_length=255,
         description="Nombre completo del usuario"
     )
-    
+    profile_image_url: Optional[str] = Field(
+        None,
+        description="URL de la imagen de perfil en S3"
+    )
+    bio: Optional[str] = Field(
+        None,
+        max_length=1000,
+        description="Biografía del vendedor - información pública sobre el negocio"
+    )
+
     model_config = ConfigDict(
         from_attributes=True,
         json_schema_extra={
             "example": {
-                "full_name": "Juan Carlos Pérez López"
+                "full_name": "Juan Carlos Pérez López",
+                "profile_image_url": "https://s3.amazonaws.com/bucket/profile/user123.jpg",
+                "bio": "Vendo productos reciclados y artesanías hechas a mano"
             }
         }
     )
@@ -139,18 +164,24 @@ class UserAdminUpdate(BaseModel):
         ```json
         {
             "full_name": "Juan Pérez",
+            "profile_image_url": "https://s3.amazonaws.com/...",
             "role": "ADMIN",
             "status": "ACTIVE"
         }
         ```
     """
     full_name: Optional[str] = Field(None, max_length=255)
+    profile_image_url: Optional[str] = Field(
+        None,
+        description="URL de la imagen de perfil en S3"
+    )
+    bio: Optional[str] = Field(None, max_length=1000)
     role: Optional[UserRoleEnum] = Field(
-        None, 
+        None,
         description="Rol del usuario (solo admins pueden cambiar)"
     )
     status: Optional[UserStatusEnum] = Field(
-        None, 
+        None,
         description="Estado del usuario (solo admins pueden cambiar)"
     )
     
@@ -159,6 +190,7 @@ class UserAdminUpdate(BaseModel):
         json_schema_extra={
             "example": {
                 "full_name": "Juan Pérez",
+                "profile_image_url": "https://s3.amazonaws.com/bucket/profile/user123.jpg",
                 "role": "USER",
                 "status": "ACTIVE"
             }
