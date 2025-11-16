@@ -62,18 +62,18 @@ class ReviewInDB(ReviewBase):
     """
     Esquema que representa cómo se almacena Review en la base de datos.
     
-    Incluye campos autogenerados como ID, reviewer_id, listing_id y timestamps.
+    Incluye campos autogenerados como ID, buyer_id, listing_id y timestamps.
     """
     review_id: int = Field(..., description="Identificador único de la reseña")
-    reviewer_id: UUID = Field(..., description="UUID del usuario que reseña")
+    buyer_id: UUID = Field(..., description="UUID del usuario que reseña (comprador)", alias="reviewer_id")
     listing_id: int = Field(..., description="ID de la publicación reseñada")
     order_item_id: int = Field(..., description="ID del item de orden")
     created_at: datetime = Field(..., description="Fecha de creación")
-    updated_at: datetime = Field(..., description="Última actualización")
     
     model_config = ConfigDict(
         from_attributes=True,
-        populate_by_name=True
+        populate_by_name=True,
+        populate_by_alias=True
     )
 
 
@@ -109,8 +109,7 @@ class ReviewList(BaseModel):
 class ReviewerBasic(BaseModel):
     """Esquema simplificado del usuario que reseña."""
     user_id: UUID = Field(..., description="UUID del usuario")
-    first_name: str = Field(..., description="Nombre")
-    last_name: str = Field(..., description="Apellido")
+    full_name: Optional[str] = Field(None, description="Nombre completo del usuario")
     
     model_config = ConfigDict(from_attributes=True)
 
@@ -126,18 +125,18 @@ class ReviewWithReviewer(ReviewInDB):
         ```python
         stmt = select(Review).options(selectinload(Review.buyer))
         ```
-        El campo reviewer mapea a buyer en el modelo de base de datos.
+        El campo buyer del modelo se serializa como 'reviewer' en el JSON.
     """
     reviewer: Optional[ReviewerBasic] = Field(
         None,
         description="Información básica del usuario que reseñó",
-        alias="buyer"
+        validation_alias="buyer",
+        serialization_alias="reviewer"
     )
 
     model_config = ConfigDict(
         from_attributes=True,
-        populate_by_name=True,
-        populate_by_alias=True
+        populate_by_name=True
     )
 
 

@@ -61,14 +61,6 @@ apiClient.interceptors.request.use(
     // Obtener token fresco de Cognito en cada request
     const token = await getFreshToken()
 
-    console.log('[API Client] ======= REQUEST DEBUG =======')
-    console.log('[API Client] Base URL:', config.baseURL)
-    console.log('[API Client] Request URL:', config.url)
-    console.log('[API Client] URL completa:', `${config.baseURL}${config.url}`)
-    console.log('[API Client] Method:', config.method)
-    console.log('[API Client] Params:', config.params)
-    console.log('[API Client] Token presente:', token ? 'SI (longitud: ' + token.length + ')' : 'NO')
-
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -110,7 +102,7 @@ apiClient.interceptors.response.use(
           // Solo redirigir si estamos en una página que requiere auth
           // Las páginas públicas pueden manejar el 401 sin redirect
           if (typeof window !== 'undefined') {
-            const publicRoutes = ['/', '/login', '/register', '/marketplace', '/about']
+            const publicRoutes = ['/', '/login', '/register', '/marketplace', '/about', '/materials', '/products', '/sellers']
             const currentPath = window.location.pathname
             const isPublicRoute = publicRoutes.some(route => 
               currentPath === route || currentPath.startsWith(route + '/')

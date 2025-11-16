@@ -37,6 +37,11 @@ export default function MaterialCard({ material }) {
   const price = Number.isFinite(Number(material.price)) ? parseFloat(material.price).toFixed(2) : '0.00'
   const available = material.available ?? material.quantity ?? 0
   const unit = material.unit_measure ?? material.price_unit ?? material.unit ?? ''
+  
+  // Resolve seller name from different possible fields
+  const sellerName = typeof material.seller === 'string'
+    ? material.seller
+    : material.seller_name || material.seller?.full_name || material.user?.full_name || material.user?.username || 'Vendedor anónimo'
 
   return (
     <Link
@@ -61,9 +66,7 @@ export default function MaterialCard({ material }) {
             {material.title}
           </h3>
           <p className="font-inter text-sm text-neutral-600">
-            {typeof material.seller === 'string'
-              ? material.seller
-              : material.seller?.full_name || material.user?.full_name || material.user?.username || 'Vendedor anónimo'}
+            {sellerName}
           </p>
         </div>
         <div className="mt-4 flex flex-col gap-3">

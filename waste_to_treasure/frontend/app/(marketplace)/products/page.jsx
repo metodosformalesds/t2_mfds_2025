@@ -202,18 +202,22 @@ export default function ProductsPage() {
                 // El backend devuelve primary_image_url directamente en el ListingCardRead
                 const imageUrl = product.primary_image_url || '/images/placeholder-product.jpg'
                 
-                console.log(`[Product ${product.listing_id}] primary_image_url:`, product.primary_image_url)
+                console.log(`[Product ${product.listing_id}] Datos completos:`, product)
 
                 return (
                   <ProductCard
                     key={product.listing_id}
                     product={{
                       id: product.listing_id,
+                      listing_id: product.listing_id,
                       title: product.title,
-                      seller: product.seller_id,
+                      seller: product.seller_name || 'Vendedor anónimo',
                       price: parseFloat(product.price),
+                      quantity: product.quantity,
                       available: product.quantity,
                       imageUrl: imageUrl,
+                      primary_image_url: imageUrl,
+                      category: product.category_name ? { name: product.category_name } : { name: 'Sin categoría' },
                     }}
                   />
                 )

@@ -82,58 +82,55 @@ export default function PricingCard({ listing, onAddToCart }) {
         {isAddingToCart ? 'Agregando...' : 'AGREGAR AL CARRITO'}
       </button>
 
-      {isProduct && (
-        <>
-          <button className="mb-6 w-full rounded-lg border border-primary-500 bg-white px-6 py-3 font-inter text-base font-medium text-primary-500 transition-colors hover:bg-primary-50">
-            Gestionar mi carrito
-          </button>
+      {/* Policies section - shown for both products and materials */}
+      <div className="mb-4 space-y-3 border-t border-neutral-200 pt-4">
+        <h4 className="font-inter text-sm font-semibold text-neutral-900">
+          Políticas de este {isProduct ? 'producto' : 'material'}
+        </h4>
 
-          <div className="mb-4 space-y-3 border-t border-neutral-200 pt-4">
-            <h4 className="font-inter text-sm font-semibold text-neutral-900">
-              Políticas de este producto
-            </h4>
-
-            <button className="flex w-full items-center justify-between rounded-lg border border-neutral-300 bg-white px-4 py-3 text-left transition-colors hover:bg-neutral-50">
-              <div className="flex items-center gap-3">
-                <Truck size={18} className="text-primary-500" />
-                <span className="font-inter text-sm text-neutral-900">Política de envíos</span>
-              </div>
-              <span className="text-neutral-400">›</span>
-            </button>
-
-            <button className="flex w-full items-center justify-between rounded-lg border border-neutral-300 bg-white px-4 py-3 text-left transition-colors hover:bg-neutral-50">
-              <div className="flex items-center gap-3">
-                <ShieldCheck size={18} className="text-primary-500" />
-                <span className="font-inter text-sm text-neutral-900">Política de garantía</span>
-              </div>
-              <span className="text-neutral-400">›</span>
-            </button>
-
-            <button className="flex w-full items-center justify-between rounded-lg border border-neutral-300 bg-white px-4 py-3 text-left transition-colors hover:bg-neutral-50">
-              <div className="flex items-center gap-3">
-                <RotateCcw size={18} className="text-primary-500" />
-                <span className="font-inter text-sm text-neutral-900">
-                  Política de devolución
-                </span>
-              </div>
-              <span className="text-neutral-400">›</span>
-            </button>
+        <button className="flex w-full items-center justify-between rounded-lg border border-neutral-300 bg-white px-4 py-3 text-left transition-colors hover:bg-neutral-50">
+          <div className="flex items-center gap-3">
+            <Truck size={18} className="text-primary-500" />
+            <span className="font-inter text-sm text-neutral-900">Política de envíos</span>
           </div>
+          <span className="text-neutral-400">›</span>
+        </button>
 
-          <button
-            onClick={() => setIsReportModalOpen(true)}
-            className="flex w-full items-center justify-center gap-2 font-inter text-sm text-red-600 transition-colors hover:text-red-700"
-          >
-            🚩 Reportar
-          </button>
+        <button className="flex w-full items-center justify-between rounded-lg border border-neutral-300 bg-white px-4 py-3 text-left transition-colors hover:bg-neutral-50">
+          <div className="flex items-center gap-3">
+            <ShieldCheck size={18} className="text-primary-500" />
+            <span className="font-inter text-sm text-neutral-900">Política de garantía</span>
+          </div>
+          <span className="text-neutral-400">›</span>
+        </button>
 
-          <ReportModal
-            isOpen={isReportModalOpen}
-            onClose={() => setIsReportModalOpen(false)}
-            listingId={listing?.listing_id}
-          />
-        </>
-      )}
+        <button className="flex w-full items-center justify-between rounded-lg border border-neutral-300 bg-white px-4 py-3 text-left transition-colors hover:bg-neutral-50">
+          <div className="flex items-center gap-3">
+            <RotateCcw size={18} className="text-primary-500" />
+            <span className="font-inter text-sm text-neutral-900">
+              Política de devolución
+            </span>
+          </div>
+          <span className="text-neutral-400">›</span>
+        </button>
+      </div>
+
+      {/* Report button - shown for both products and materials */}
+      <button 
+        onClick={() => setIsReportModalOpen(true)}
+        className="flex w-full items-center justify-center gap-2 font-inter text-sm text-red-600 transition-colors hover:text-red-700"
+      >
+        <Flag size={16} />
+        Reportar
+      </button>
+
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        listingId={listing?.listing_id}
+        listingTitle={listing?.title}
+      />
     </div>
   )
 }

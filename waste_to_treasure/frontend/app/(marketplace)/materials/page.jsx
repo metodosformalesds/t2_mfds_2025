@@ -201,21 +201,26 @@ export default function MaterialsPage() {
                 // El backend devuelve primary_image_url directamente en el ListingCardRead
                 const imageUrl = material.primary_image_url || '/images/placeholder-material.jpg'
                 
-                console.log(`[Material ${material.listing_id}] primary_image_url:`, material.primary_image_url)
+                console.log(`[Material ${material.listing_id}] Datos completos:`, material)
 
                 return (
                   <MaterialCard
                     key={material.listing_id}
                     material={{
                       id: material.listing_id,
+                      listing_id: material.listing_id,
                       title: material.title,
-                      seller: material.seller_id,
+                      seller: material.seller_name || 'Vendedor anónimo',
                       price: parseFloat(material.price),
                       unit: material.price_unit || 'unidad',
                       available: material.quantity,
+                      quantity: material.quantity,
                       unit_measure: material.price_unit || 'unidad',
+                      price_unit: material.price_unit || 'unidad',
                       isResidue: material.listing_type === 'MATERIAL',
                       imageUrl: imageUrl,
+                      primary_image_url: imageUrl,
+                      category: material.category_name ? { name: material.category_name } : null,
                     }}
                   />
                 )
