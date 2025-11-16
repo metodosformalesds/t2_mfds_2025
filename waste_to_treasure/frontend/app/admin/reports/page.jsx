@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react' // Agregar useMemo
+import { useState, useEffect, useMemo } from 'react'
 import ReportList from '@/components/admin/ReportList'
 import ReviewReportModal from '@/components/admin/ReviewReportModal'
+import Toast from '@/components/ui/Toast'
 import { useConfirmStore } from '@/stores/useConfirmStore'
 import { adminService } from '@/lib/api/admin'
 
@@ -14,18 +15,42 @@ export default function AdminReportsPage() {
   const [selectedReport, setSelectedReport] = useState(null)
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false)
   const [error, setError] = useState('')
+  const [toast, setToast] = useState(null)
+  
+  // Nuevos estados para filtros
+  const [statusFilter, setStatusFilter] = useState('pending')
+  const [stats, setStats] = useState({ pending: 0, resolved: 0, dismissed: 0 })
 
   const itemsPerPage = 6
   const openConfirmModal = useConfirmStore(state => state.open)
 
-  // Cargar reportes con paginación
+  // Cargar estadísticas
+  const fetchStats = async () => {
+    try {
+      const [pendingData, resolvedData, dismissedData] = await Promise.all([
+        adminService.getReports({ status: 'pending', skip: 0, limit: 1 }),
+        adminService.getReports({ status: 'resolved', skip: 0, limit: 1 }),
+        adminService.getReports({ status: 'dismissed', skip: 0, limit: 1 })
+      ])
+      
+      setStats({
+        pending: pendingData.total || 0,
+        resolved: resolvedData.total || 0,
+        dismissed: dismissedData.total || 0
+      })
+    } catch (error) {
+      console.error('Error al cargar estadísticas:', error)
+    }
+  }
+
+  // Cargar reportes con paginación y filtros
   const fetchReports = async (page = 1) => {
     try {
       setIsLoading(true)
       setError('')
       const skip = (page - 1) * itemsPerPage
       const data = await adminService.getReports({ 
-        status: 'pending',
+        status: statusFilter,
         skip,
         limit: itemsPerPage 
       })
@@ -41,8 +66,12 @@ export default function AdminReportsPage() {
   }
 
   useEffect(() => {
-    fetchReports(1)
+    fetchStats()
   }, [])
+
+  useEffect(() => {
+    fetchReports(1)
+  }, [statusFilter])
   
   // Mapear datos al formato esperado
   const formattedReports = useMemo(() => {
@@ -72,22 +101,29 @@ export default function AdminReportsPage() {
     setSelectedReport(null)
   }
   
-  // Acción de Borrar Reporte - La API no tiene DELETE /reports/{id}
-  // Dejamos el borrado local por ahora
-  const createDeleteHandler = report => {
-    return () => {
-      console.log('Eliminando reporte (localmente):', report.id)
-      setReports(prevReports =>
-        prevReports.filter(r => r.report_id !== report.id)
-      )
-    }
-  }
-  
+  // Acción de Desestimar Reporte usando la API
   const handleOpenDelete = (report) => {
     openConfirmModal(
-      'Eliminar Reporte',
-      `¿Estás seguro de que quieres eliminar este reporte?`,
-      createDeleteHandler(report),
+      'Desestimar Reporte',
+      `¿Estás seguro de que quieres desestimar este reporte? Esta acción marcará el reporte como desestimado.`,
+      async () => {
+        try {
+          await adminService.resolveReport(report.id, {
+            action: 'dismissed',
+            resolution_notes: 'Reporte desestimado por administrador'
+          })
+          setToast({ message: 'Reporte desestimado correctamente', type: 'info' })
+          // Recargar reportes y estadísticas
+          await fetchReports(currentPage)
+          await fetchStats()
+        } catch (error) {
+          console.error('Error al desestimar reporte:', error)
+          setToast({ 
+            message: `Error al desestimar reporte: ${error.response?.data?.detail || error.message}`, 
+            type: 'error' 
+          })
+        }
+      },
       { danger: true }
     )
   }
@@ -105,18 +141,29 @@ export default function AdminReportsPage() {
           resolution_notes: `Reporte ${action === 'resolve' ? 'resuelto' : 'desestimado'} por administrador.`
         })
         
-        // Recargar la página actual
+        setToast({ 
+          message: `Reporte ${action === 'resolve' ? 'resuelto' : 'desestimado'} correctamente`, 
+          type: 'success' 
+        })
+        
+        // Recargar la página actual y estadísticas
         await fetchReports(currentPage)
+        await fetchStats()
         setError('')
       } else {
         // Otras acciones (suspend_user, warn_user, remove_listing)
         // TODO: Implementar cuando el backend tenga estos endpoints
         console.log(`Acción ${action} pendiente de implementación en backend`)
-        setError(`La acción "${action}" aún no está implementada en el backend`)
+        setToast({ 
+          message: `La acción "${action}" aún no está implementada en el backend`, 
+          type: 'warning' 
+        })
       }
     } catch (error) {
       console.error("Error al procesar acción:", error)
-      setError(error.response?.data?.detail || 'Error al procesar la acción')
+      const errorMsg = error.response?.data?.detail || 'Error al procesar la acción'
+      setError(errorMsg)
+      setToast({ message: errorMsg, type: 'error' })
     } finally {
       handleCloseModals()
     }
@@ -143,14 +190,84 @@ export default function AdminReportsPage() {
 
   return (
     <div>
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
+      {/* Header con título y descripción */}
+      <div className="mb-6 sm:mb-8">
         <h1 className="font-poppins text-3xl sm:text-4xl lg:text-5xl font-bold text-primary-500">
           Gestión de reportes
         </h1>
-        <div className="flex items-center gap-2 text-neutral-600">
-          <span className="font-roboto text-lg font-semibold">{totalReports}</span>
-          <span className="font-inter text-sm">reportes pendientes</span>
+        <p className="mt-2 text-neutral-600 font-inter">
+          Administra los reportes de usuarios y toma acciones sobre contenido reportado
+        </p>
+      </div>
+      
+      {/* Filtros y estadísticas integrados */}
+      <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6">
+        <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
+          {/* Filtros de estado */}
+          <div className="flex-1 w-full lg:w-auto">
+            <label className="block text-sm font-medium text-neutral-700 mb-3">
+              Estado de reportes
+            </label>
+            <div className="flex gap-2 flex-wrap">
+              <button
+                onClick={() => setStatusFilter('pending')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  statusFilter === 'pending'
+                    ? 'bg-primary-500 text-white shadow-sm'
+                    : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                }`}
+              >
+                Pendientes
+              </button>
+              <button
+                onClick={() => setStatusFilter('resolved')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  statusFilter === 'resolved'
+                    ? 'bg-primary-500 text-white shadow-sm'
+                    : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                }`}
+              >
+                Resueltos
+              </button>
+              <button
+                onClick={() => setStatusFilter('dismissed')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  statusFilter === 'dismissed'
+                    ? 'bg-primary-500 text-white shadow-sm'
+                    : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                }`}
+              >
+                Desestimados
+              </button>
+            </div>
+          </div>
+          
+          {/* Estadísticas compactas */}
+          <div className="flex gap-6 items-center">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-red-600">{stats.pending}</div>
+              <div className="text-xs text-neutral-600 mt-0.5">Pendientes</div>
+            </div>
+            <div className="h-10 w-px bg-neutral-200"></div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">{stats.resolved}</div>
+              <div className="text-xs text-neutral-600 mt-0.5">Resueltos</div>
+            </div>
+            <div className="h-10 w-px bg-neutral-200"></div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-neutral-600">{stats.dismissed}</div>
+              <div className="text-xs text-neutral-600 mt-0.5">Desestimados</div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Contador actual */}
+        <div className="mt-4 pt-4 border-t border-neutral-200">
+          <p className="text-sm text-neutral-600">
+            Mostrando <span className="font-semibold text-neutral-900">{totalReports}</span> reportes{' '}
+            {statusFilter === 'pending' ? 'pendientes de revisión' : 
+             statusFilter === 'resolved' ? 'resueltos' : 'desestimados'}
+          </p>
         </div>
       </div>
 
@@ -179,6 +296,10 @@ export default function AdminReportsPage() {
         report={selectedReport}
         onModerationAction={handleModerationAction}
       />
+
+      {toast && (
+        <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
+      )}
     </div>
   )
 }

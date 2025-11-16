@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { ChevronDown, Search, ChevronLeft, ChevronRight } from 'lucide-react'
 import UserList from '@/components/admin/UserList'
 import UserDetailModal from '@/components/admin/UserDetailModal'
+import Toast from '@/components/ui/Toast'
 import { useConfirmStore } from '@/stores/useConfirmStore'
 import { adminService } from '@/lib/api/admin'
 
@@ -13,8 +14,10 @@ export default function AdminUsersPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState(null)
+  const [toast, setToast] = useState(null)
 
   const [searchTerm, setSearchTerm] = useState('')
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
   
@@ -23,6 +26,20 @@ export default function AdminUsersPage() {
   const [itemsPerPage] = useState(8)
 
   const openConfirmModal = useConfirmStore(state => state.open)
+  
+  // Debounce para el searchTerm
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      // Solo actualizamos la version 'debounced' cuando haya al menos 2
+      // caracteres (para evitar peticiones al backend con 1 letra)
+      // o cuando el string esté vacío (para limpiar la búsqueda)
+      if (searchTerm.length >= 2 || searchTerm.length === 0) {
+        setDebouncedSearchTerm(searchTerm)
+      }
+    }, 500) // Esperar 500ms después de que el usuario deje de escribir
+
+    return () => clearTimeout(timer)
+  }, [searchTerm])
 
   // Cargar usuarios desde la API
   const fetchUsers = async () => {
@@ -44,10 +61,15 @@ export default function AdminUsersPage() {
         params.status = statusFilter.toUpperCase()
       }
       
-      if (searchTerm && searchTerm.trim()) {
-        params.search = searchTerm.trim()
+      if (debouncedSearchTerm && debouncedSearchTerm.trim()) {
+        params.search = debouncedSearchTerm.trim()
       }
       
+      if (process.env.NODE_ENV === 'development') {
+        // Debug: help debugging debounce/Enter triggers in dev
+        // eslint-disable-next-line no-console
+        console.debug('[Admin Users] fetchUsers params', params)
+      }
       const data = await adminService.getUsersList(params)
       
       setTotalUsers(data.total || 0)
@@ -73,12 +95,12 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     fetchUsers()
-  }, [searchTerm, roleFilter, statusFilter, currentPage])
+  }, [debouncedSearchTerm, roleFilter, statusFilter, currentPage]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Resetear a página 1 cuando cambian los filtros
   useEffect(() => {
     setCurrentPage(1)
-  }, [searchTerm, roleFilter, statusFilter])
+  }, [debouncedSearchTerm, roleFilter, statusFilter])
 
   // Lógica de Modales
   const handleOpenDetail = (user) => {
@@ -110,14 +132,25 @@ export default function AdminUsersPage() {
       console.log(`Cambiando estado de ${userId} a ${newStatus}`)
       
       // Llamada a la API
-      const updatedUser = await usersService.updateUser(userId, { 
+      const updatedUser = await adminService.updateUser(userId, { 
         status: newStatus.toUpperCase() 
+      })
+      
+      // Mostrar toast de éxito
+      const statusText = newStatus === 'BLOCKED' ? 'bloqueado' : 'activado'
+      setToast({ 
+        message: `Usuario ${statusText} correctamente`, 
+        type: 'success' 
       })
       
       // Recargar la lista
       await fetchUsers()
     } catch (error) {
       console.error("Error al actualizar estado de usuario", error)
+      setToast({ 
+        message: `Error al actualizar usuario: ${error.response?.data?.detail || error.message}`, 
+        type: 'error' 
+      })
     }
   }
 
@@ -137,6 +170,36 @@ export default function AdminUsersPage() {
       () => setUserStatus(user.id, 'ACTIVE'),
       { danger: false }
     )
+  }
+
+  const handleChangeRole = async (user, newRole) => {
+    try {
+      console.log(`Cambiando rol de ${user.id} a ${newRole}`)
+      
+      // Normalizar rol a formato esperado por backend
+      const normalizedRole = newRole.toUpperCase()
+      
+      // Llamada a la API
+      await adminService.updateUser(user.id, { 
+        role: normalizedRole 
+      })
+      
+      // Mostrar toast de éxito
+      const roleText = normalizedRole === 'ADMIN' ? 'Administrador' : 'Usuario'
+      setToast({ 
+        message: `Rol cambiado a ${roleText} correctamente`, 
+        type: 'success' 
+      })
+      
+      // Recargar la lista
+      await fetchUsers()
+    } catch (error) {
+      console.error("Error al cambiar rol de usuario", error)
+      setToast({ 
+        message: `Error al cambiar rol: ${error.response?.data?.detail || error.message}`, 
+        type: 'error' 
+      })
+    }
   }
 
   // Calcular información de paginación
@@ -170,6 +233,13 @@ export default function AdminUsersPage() {
             placeholder="Buscar por nombre o email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                // For users we allow Enter to force a search immediately
+                setDebouncedSearchTerm(searchTerm)
+                setCurrentPage(1)
+              }
+            }}
             className="w-full rounded-lg border border-neutral-300 py-2 pl-10 pr-4 font-inter text-sm focus:border-primary-500 focus:outline-none"
           />
         </div>
@@ -282,7 +352,12 @@ export default function AdminUsersPage() {
         user={selectedUser}
         onBlock={handleBlockUser}
         onUnblock={handleUnblockUser}
+        onChangeRole={handleChangeRole}
       />
+
+      {toast && (
+        <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
+      )}
     </>
   )
 }

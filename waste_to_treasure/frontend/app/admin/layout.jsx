@@ -12,8 +12,10 @@ import QuickNavigation from '@/components/admin/QuickNavigation'
 export default function AdminLayout({ children }) {
   const router = useRouter()
   const { user, isAuthenticated, isLoading } = useAuth()
-  const [isAuthorized, setIsAuthorized] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+
+  // Derive isAuthorized instead of using setState in effect
+  const isAuthorized = !isLoading && isAuthenticated && user?.role === 'ADMIN'
 
   useEffect(() => {
     // Esperar a que termine de cargar el estado de autenticación
@@ -33,10 +35,9 @@ export default function AdminLayout({ children }) {
       return
     }
 
-    // Si está autenticado y es ADMIN, autorizar acceso
+    // Si está autenticado y es ADMIN, log autorización
     if (user && user.role === 'ADMIN') {
       console.log('[AdminLayout] Usuario ADMIN autorizado')
-      setIsAuthorized(true)
     }
   }, [isAuthenticated, isLoading, user, router])
 

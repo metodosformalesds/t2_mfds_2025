@@ -15,42 +15,36 @@ export default function SubscriptionPaymentPage() {
   const { subscribe } = useSubscription(false)
   const openConfirmModal = useConfirmStore(state => state.open)
 
-  const [selectedPlan, setSelectedPlan] = useState(null)
-  const [paymentMethodId, setPaymentMethodId] = useState(null)
   const [savedCard, setSavedCard] = useState(null)
-  const [isAddCardVisible, setIsAddCardVisible] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
+  
+  // Initialize isAddCardVisible based on whether we have a saved card (lazy init)
+  const [isAddCardVisible, setIsAddCardVisible] = useState(() => !savedCard)
 
-  // Cargar el plan seleccionado desde sessionStorage
+  // Cargar el plan seleccionado desde sessionStorage usando lazy initialization
+  const [selectedPlan, setSelectedPlan] = useState(() => {
+    if (typeof window === 'undefined') return null
+    const planData = sessionStorage.getItem('selectedSubscriptionPlan')
+    if (!planData) return null
+    try {
+      return JSON.parse(planData)
+    } catch (error) {
+      console.error('Error al cargar plan:', error)
+      return null
+    }
+  })
+
+  // Derive paymentMethodId from savedCard instead of using setState in effect
+  const paymentMethodId = savedCard?.id || null
+
+  // Cargar el plan y verificar autorización (no setState here)
   useEffect(() => {
     if (!isAuthorized) return
 
-    const planData = sessionStorage.getItem('selectedSubscriptionPlan')
-    if (!planData) {
-      router.push('/dashboard/subscription/select')
-      return
-    }
-
-    try {
-      const plan = JSON.parse(planData)
-      setSelectedPlan(plan)
-    } catch (error) {
-      console.error('Error al cargar plan:', error)
+    if (!selectedPlan) {
       router.push('/dashboard/subscription/select')
     }
-
-    // Si no hay tarjeta guardada, mostrar formulario
-    if (!savedCard) {
-      setIsAddCardVisible(true)
-    }
-  }, [isAuthorized, router, savedCard])
-
-  // Sincronizar la selección si hay una tarjeta guardada
-  useEffect(() => {
-    if (!paymentMethodId && savedCard) {
-      setPaymentMethodId(savedCard.id)
-    }
-  }, [savedCard, paymentMethodId])
+  }, [isAuthorized, router, selectedPlan])
 
   const handleSaveCard = async (tokenId, last4) => {
     setIsAddCardVisible(false)
@@ -73,7 +67,6 @@ export default function SubscriptionPaymentPage() {
       }
 
       setSavedCard(newCard)
-      setPaymentMethodId(newCard.id)
       setIsProcessing(false)
 
       openConfirmModal(
@@ -104,7 +97,6 @@ export default function SubscriptionPaymentPage() {
       `¿Estás seguro de que deseas eliminar la tarjeta que termina en **** ${savedCard.last4}?`,
       () => {
         setSavedCard(null)
-        setPaymentMethodId(null)
         setIsAddCardVisible(true)
       },
       { danger: true, confirmText: 'Eliminar' }
@@ -141,7 +133,6 @@ export default function SubscriptionPaymentPage() {
       // Limpiar sessionStorage y tarjeta guardada
       sessionStorage.removeItem('selectedSubscriptionPlan')
       setSavedCard(null)
-      setPaymentMethodId(null)
 
       setIsProcessing(false)
 
@@ -223,8 +214,8 @@ export default function SubscriptionPaymentPage() {
                   icon={CreditCard}
                   title="Tarjeta de crédito o débito"
                   description={`Terminación **** ${savedCard.last4}`}
-                  isSelected={paymentMethodId === savedCard.id}
-                  onSelect={() => setPaymentMethodId(savedCard.id)}
+                  isSelected={true}
+                  onSelect={() => {}}
                   onDelete={handleDeleteCard}
                 />
               ) : (

@@ -13,7 +13,8 @@ import { useAuth } from '@/context/AuthContext'
 export function useAdminGuard() {
   const router = useRouter()
   const { user, isAuthenticated, isLoading } = useAuth()
-  const [isAuthorized, setIsAuthorized] = useState(false)
+  // isAuthorized is derived from auth state; compute it instead of storing it
+  const isAuthorized = !isLoading && isAuthenticated && user?.role === 'ADMIN'
 
   useEffect(() => {
     // Esperar a que termine de cargar
@@ -33,10 +34,9 @@ export function useAdminGuard() {
       return
     }
 
-    // Si está autenticado y es ADMIN, autorizar
+    // Si está autenticado y es ADMIN, queda autorizado (no usamos setState)
     if (user && user.role === 'ADMIN') {
       console.log('✅ Acceso autorizado: Usuario ADMIN')
-      setIsAuthorized(true)
     }
   }, [isAuthenticated, isLoading, user, router])
 
@@ -51,7 +51,8 @@ export function useAdminGuard() {
 export function useAuthGuard() {
   const router = useRouter()
   const { isAuthenticated, isLoading } = useAuth()
-  const [isAuthorized, setIsAuthorized] = useState(false)
+  // Derivar isAuthorized del estado en lugar de usar setState en el efecto
+  const isAuthorized = !isLoading && isAuthenticated
 
   useEffect(() => {
     if (isLoading) return
@@ -64,7 +65,7 @@ export function useAuthGuard() {
       return
     }
 
-    setIsAuthorized(true)
+  // no usamos setState aquí; isAuthorized es derivado
   }, [isAuthenticated, isLoading, router])
 
   return { isAuthorized, isLoading }

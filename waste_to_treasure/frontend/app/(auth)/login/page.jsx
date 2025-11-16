@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react' // 1. Importar useContext
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Eye, EyeOff } from 'lucide-react'
+import Image from 'next/image'
 
 import { signIn, signInWithProvider } from '@/lib/auth/cognito'
-import { useAuth } from '@/context/AuthContext' // 2. Importar el Contexto
+import { useAuth } from '@/context/AuthContext'
 import Link from 'next/link'
 
 export default function LoginPage() {
@@ -163,10 +164,13 @@ export default function LoginPage() {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[611px] p-8 md:p-10 relative z-10">
         <div className="flex justify-center mb-6">
           <Link href={'/'} className="flex-shrink-0">
-            <img
-              src="images/LogoFondoBlanco.webp"
+            <Image
+              src="/images/LogoFondoBlanco.webp"
               alt="Waste to Treasure Logo"
-              className="w-28 h-24 object-contain"
+              width={112}
+              height={96}
+              className="object-contain"
+              priority
             />
           </Link>
         </div>

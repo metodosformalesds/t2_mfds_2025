@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import ModerationQueue from '@/components/admin/ModerationQueue'
 import ModerationDetail from '@/components/admin/ModerationDetail'
+import Toast from '@/components/ui/Toast'
 import { useConfirmStore } from '@/stores/useConfirmStore'
 import { adminService } from '@/lib/api/admin'
 
@@ -15,17 +16,41 @@ export default function AdminModerationPage() {
   const [selectedListingDetails, setSelectedListingDetails] = useState(null)
   const [rejectionReason, setRejectionReason] = useState('')
   const [error, setError] = useState('')
+  const [toast, setToast] = useState(null)
+  
+  // Nuevos estados para filtros
+  const [statusFilter, setStatusFilter] = useState('pending')
+  const [stats, setStats] = useState({ pending: 0, approved: 0, rejected: 0 })
 
   const itemsPerPage = 10
   const openConfirmModal = useConfirmStore(state => state.open)
 
-  // Cargar cola de moderación con paginación
+  // Cargar estadísticas
+  const fetchStats = async () => {
+    try {
+      const [pendingData, approvedData, rejectedData] = await Promise.all([
+        adminService.getModerationListings({ status: 'pending', skip: 0, limit: 1 }),
+        adminService.getModerationListings({ status: 'approved', skip: 0, limit: 1 }),
+        adminService.getModerationListings({ status: 'rejected', skip: 0, limit: 1 })
+      ])
+      
+      setStats({
+        pending: pendingData.total || 0,
+        approved: approvedData.total || 0,
+        rejected: rejectedData.total || 0
+      })
+    } catch (error) {
+      console.error('Error al cargar estadísticas:', error)
+    }
+  }
+
+  // Cargar cola de moderación con paginación y filtros
   const fetchQueue = async (page = 1) => {
     try {
       setIsLoading(true)
       const skip = (page - 1) * itemsPerPage
       const data = await adminService.getModerationListings({ 
-        status: 'pending',
+        status: statusFilter,
         skip,
         limit: itemsPerPage 
       })
@@ -50,8 +75,12 @@ export default function AdminModerationPage() {
   }
   
   useEffect(() => {
-    fetchQueue(1)
+    fetchStats()
   }, [])
+  
+  useEffect(() => {
+    fetchQueue(1)
+  }, [statusFilter])
 
   // Mapear datos al formato esperado por los componentes
   const formattedQueue = useMemo(() => {
@@ -116,6 +145,7 @@ export default function AdminModerationPage() {
   const removeItemFromQueue = async (itemId) => {
     // Recargar la cola completa para reflejar cambios
     await fetchQueue(currentPage)
+    await fetchStats() // Actualizar estadísticas
     setRejectionReason('')
     setError('')
   }
@@ -131,8 +161,11 @@ export default function AdminModerationPage() {
           await adminService.approveListing(selectedItem.id, 'Aprobado por moderador')
           await removeItemFromQueue(selectedItem.id)
           setError('')
+          setToast({ message: `Publicación "${selectedItem.title}" aprobada correctamente`, type: 'success' })
         } catch (error) {
-          setError(error.response?.data?.detail || 'Error al aprobar la publicación')
+          const errorMsg = error.response?.data?.detail || 'Error al aprobar la publicación'
+          setError(errorMsg)
+          setToast({ message: errorMsg, type: 'error' })
         }
       },
       false
@@ -143,7 +176,9 @@ export default function AdminModerationPage() {
     if (!selectedItem) return
     
     if (!rejectionReason.trim()) {
-      setError('Debes proporcionar una razón para rechazar la publicación.')
+      const errorMsg = 'Debes proporcionar una razón para rechazar la publicación.'
+      setError(errorMsg)
+      setToast({ message: errorMsg, type: 'warning' })
       return
     }
     
@@ -155,8 +190,11 @@ export default function AdminModerationPage() {
           await adminService.rejectListing(selectedItem.id, rejectionReason)
           await removeItemFromQueue(selectedItem.id)
           setError('')
+          setToast({ message: `Publicación "${selectedItem.title}" rechazada`, type: 'info' })
         } catch (error) {
-          setError(error.response?.data?.detail || 'Error al rechazar la publicación')
+          const errorMsg = error.response?.data?.detail || 'Error al rechazar la publicación'
+          setError(errorMsg)
+          setToast({ message: errorMsg, type: 'error' })
         }
       },
       true
@@ -184,14 +222,84 @@ export default function AdminModerationPage() {
 
   return (
     <div>
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
+      {/* Header con título y descripción */}
+      <div className="mb-6 sm:mb-8">
         <h1 className="font-poppins text-3xl sm:text-4xl lg:text-5xl font-bold text-primary-500">
           Moderación de contenido
         </h1>
-        <div className="flex items-center gap-2 text-neutral-600">
-          <span className="font-roboto text-lg font-semibold">{totalItems}</span>
-          <span className="font-inter text-sm">publicaciones pendientes</span>
+        <p className="mt-2 text-neutral-600 font-inter">
+          Revisa y gestiona las publicaciones antes de que sean visibles en la plataforma
+        </p>
+      </div>
+      
+      {/* Filtros y estadísticas integrados */}
+      <div className="bg-white rounded-xl border border-neutral-200 p-6 mb-6">
+        <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
+          {/* Filtros de estado */}
+          <div className="flex-1 w-full lg:w-auto">
+            <label className="block text-sm font-medium text-neutral-700 mb-3">
+              Estado de publicaciones
+            </label>
+            <div className="flex gap-2 flex-wrap">
+              <button
+                onClick={() => setStatusFilter('pending')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  statusFilter === 'pending'
+                    ? 'bg-primary-500 text-white shadow-sm'
+                    : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                }`}
+              >
+                Pendientes
+              </button>
+              <button
+                onClick={() => setStatusFilter('approved')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  statusFilter === 'approved'
+                    ? 'bg-primary-500 text-white shadow-sm'
+                    : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                }`}
+              >
+                Aprobadas
+              </button>
+              <button
+                onClick={() => setStatusFilter('rejected')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  statusFilter === 'rejected'
+                    ? 'bg-primary-500 text-white shadow-sm'
+                    : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                }`}
+              >
+                Rechazadas
+              </button>
+            </div>
+          </div>
+          
+          {/* Estadísticas compactas */}
+          <div className="flex gap-6 items-center">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
+              <div className="text-xs text-neutral-600 mt-0.5">Pendientes</div>
+            </div>
+            <div className="h-10 w-px bg-neutral-200"></div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">{stats.approved}</div>
+              <div className="text-xs text-neutral-600 mt-0.5">Aprobadas</div>
+            </div>
+            <div className="h-10 w-px bg-neutral-200"></div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-red-600">{stats.rejected}</div>
+              <div className="text-xs text-neutral-600 mt-0.5">Rechazadas</div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Contador actual */}
+        <div className="mt-4 pt-4 border-t border-neutral-200">
+          <p className="text-sm text-neutral-600">
+            Mostrando <span className="font-semibold text-neutral-900">{totalItems}</span> publicaciones{' '}
+            {statusFilter === 'pending' ? 'pendientes de revisión' : 
+             statusFilter === 'approved' ? 'aprobadas' : 'rechazadas'}
+          </p>
         </div>
       </div>
 
@@ -235,6 +343,10 @@ export default function AdminModerationPage() {
           )}
         </div>
       </div>
+
+      {toast && (
+        <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
+      )}
     </div>
   )
 }

@@ -24,6 +24,21 @@ export const adminService = {
   },
 
   /**
+   * Actualiza un usuario (Admin only).
+   * @param {string} userId - UUID del usuario
+   * @param {Object} updateData - Datos a actualizar (status, role, etc.)
+   * @returns {Promise<Object>} Usuario actualizado
+   */
+  updateUser: async (userId, updateData) => {
+    try {
+      const { data } = await apiClient.patch(`/users/${userId}`, updateData)
+      return data
+    } catch (error) {
+      throw error
+    }
+  },
+
+  /**
    * Obtiene las estadísticas de un usuario específico.
    * TODO: Implementar en backend GET /admin/users/{user_id}/stats
    * 
