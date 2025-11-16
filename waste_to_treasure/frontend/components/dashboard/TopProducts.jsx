@@ -20,9 +20,9 @@ export default function TopProducts({ products = [] }) {
         Mis Productos Más Vendidos
       </h2>
       <div className="space-y-4">
-        {products.map((product) => (
+        {products.map((product, index) => (
           <div
-            key={product.listing_id}
+            key={product.listing_id || `product-${index}`}
             className="flex items-center justify-between rounded-lg border border-neutral-200 p-4 transition-colors hover:border-primary-500"
           >
             <div className="flex items-center gap-4">
@@ -42,7 +42,7 @@ export default function TopProducts({ products = [] }) {
                   {product.title}
                 </p>
                 <p className="font-inter text-sm text-neutral-600 font-bold">
-                  {product.totalSales} ventas • ${product.totalRevenue.toFixed(2)} generados
+                  {product.totalSales || 0} ventas • ${(product.totalRevenue || 0).toFixed(2)} generados
                 </p>
               </div>
             </div>

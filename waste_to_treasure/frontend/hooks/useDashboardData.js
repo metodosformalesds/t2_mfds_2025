@@ -95,13 +95,6 @@ export function useDashboardData() {
       const topProducts = Object.values(productSales)
         .sort((a, b) => b.totalRevenue - a.totalRevenue)
         .slice(0, 5)
-        .map(p => ({
-          id: p.listing_id,
-          title: p.title,
-          stats: `${p.totalSales} ventas • $${p.totalRevenue.toFixed(2)} generados`,
-          price: `$${(p.totalRevenue / 1000).toFixed(1)}k`,
-          imageUrl: p.image_url || 'https://via.placeholder.com/100x100.png?text=No+Image',
-       }))
 
       // Actividad reciente (combinar notificaciones y ventas recientes)
       const recentActivity = []
