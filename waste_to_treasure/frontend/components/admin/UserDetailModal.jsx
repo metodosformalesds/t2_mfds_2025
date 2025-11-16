@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: UserDetailModal
+ * Descripción: modal que muestra detalles completos del usuario con estadísticas, historial de incidencias y opciones de moderación
+ */
+
 'use client'
 
 import { X } from 'lucide-react'

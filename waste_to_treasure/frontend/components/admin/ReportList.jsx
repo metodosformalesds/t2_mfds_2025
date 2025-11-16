@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: ReportList
+ * Descripción: tabla que muestra los reportes de usuarios con estados, información del reporte y acciones para revisar o eliminar con paginación
+ */
+
 import React from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import clsx from 'clsx'

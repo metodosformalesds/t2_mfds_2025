@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: CreateCategoryForm
+ * Descripción: formulario para crear nuevas categorías con campos de nombre y tipo (Material/Producto)
+ */
+
 'use client'
 
 import { useState } from 'react'

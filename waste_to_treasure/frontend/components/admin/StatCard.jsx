@@ -1,7 +1,9 @@
 /**
- * Tarjeta de estadística para el Dashboard de Admin.
- * Muestra un título y un valor grande.
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: StatCard
+ * Descripción: tarjeta de estadística que muestra un título descriptivo y un valor numérico grande para el dashboard
  */
+
 export default function StatCard({ title, value }) {
   return (
     <div className="flex h-[180px] flex-col justify-between rounded-xl bg-white p-6 shadow-md">

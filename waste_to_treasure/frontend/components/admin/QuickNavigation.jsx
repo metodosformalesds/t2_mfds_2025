@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: QuickNavigation
+ * Descripción: barra de navegación rápida con enlaces a la homepage y panel de usuario del admin
+ */
+
 'use client'
 
 import Link from 'next/link'

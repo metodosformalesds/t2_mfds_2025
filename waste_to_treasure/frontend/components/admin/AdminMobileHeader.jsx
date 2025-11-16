@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: AdminMobileHeader
+ * Descripción: encabezado móvil de la consola admin con logo y botón hamburguesa para abrir el sidebar
+ */
+
 'use client'
 
 import { Menu } from 'lucide-react'
