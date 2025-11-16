@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: Cta
+ * Descripción: sección de llamada a la acción que invita a los usuarios a explorar los planes de negocio disponibles con título, descripción y botón de enlace
+ */
+
 import Link from 'next/link'
 
 export default function Cta() {

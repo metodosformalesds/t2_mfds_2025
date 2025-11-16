@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: Footer
+ * Descripción: pie de página con logo, descripción de plataforma, enlaces a secciones (explorar, participar, compañía), información legal y derechos de autor
+ */
+
 import Link from 'next/link'
 import Image from 'next/image'
 

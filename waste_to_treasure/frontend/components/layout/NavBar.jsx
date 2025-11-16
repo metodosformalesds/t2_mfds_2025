@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: NavBar
+ * Descripción: barra de navegación responsiva con menú principal (materiales, productos, planes), carrito de compras con contador, menú de usuario autenticado con acceso a dashboard/ventas/suscripciones, panel admin condicional, y versión móvil con hamburguesa
+ */
+
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
