@@ -73,17 +73,14 @@ export default function ProductsPage() {
       // Llamar a la API
       const response = await listingsService.getAll(params)
 
-      console.log('[Products] Respuesta completa de API:', response)
-      console.log('[Products] Total items:', response.items?.length || 0)
-      
-      // Log detallado del primer producto para ver estructura
-      if (response.items && response.items.length > 0) {
-        console.log('[Products] Primer producto completo:', response.items[0])
-        console.log('[Products] primary_image_url:', response.items[0].primary_image_url)
-      }
+      // Filtrar productos sin stock (quantity <= 0)
+      const productsInStock = (response.items || []).filter(item => {
+        const quantity = item.quantity ?? item.available ?? 0
+        return quantity > 0
+      })
 
-      // Actualizar estados con la respuesta
-      setProducts(response.items || [])
+      // Actualizar estados con la respuesta filtrada
+      setProducts(productsInStock)
       setTotalProducts(response.total || 0)
       setTotalPages(Math.ceil(response.total / pageSize) || 1)
     } catch (err) {
@@ -198,30 +195,12 @@ export default function ProductsPage() {
           ) : (
             /* Products Grid */
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
-              {products.map((product) => {
-                // El backend devuelve primary_image_url directamente en el ListingCardRead
-                const imageUrl = product.primary_image_url || '/images/placeholder-product.jpg'
-                
-                console.log(`[Product ${product.listing_id}] Datos completos:`, product)
-
-                return (
-                  <ProductCard
-                    key={product.listing_id}
-                    product={{
-                      id: product.listing_id,
-                      listing_id: product.listing_id,
-                      title: product.title,
-                      seller: product.seller_name || 'Vendedor anónimo',
-                      price: parseFloat(product.price),
-                      quantity: product.quantity,
-                      available: product.quantity,
-                      imageUrl: imageUrl,
-                      primary_image_url: imageUrl,
-                      category: product.category_name ? { name: product.category_name } : { name: 'Sin categoría' },
-                    }}
-                  />
-                )
-              })}
+              {products.map((product) => (
+                <ProductCard
+                  key={product.listing_id}
+                  product={product}
+                />
+              ))}
             </div>
           )}
 

@@ -61,26 +61,14 @@ export default function LoginPage() {
         localStorage.removeItem('userEmail')
       }
 
-      console.log('Login en Cognito exitoso:', result)
-
-      // --- MODIFICADO ---
-      // 4. Llamar a la función login del contexto.
-      // Esta función (actualizada en AuthContext.jsx) ahora
-      // llama a checkAuthStatus(), que fetchea /users/me
-      // y obtiene el rol de la BD.
+      // Actualizar usuario en contexto y redirigir según rol
       const updatedUser = await login()
-      // 5. Redirigir según el rol
-      // Asumimos que `updatedUser` (del AuthContext) tiene el 'role'
       if (updatedUser && updatedUser.role === 'ADMIN') {
         window.location.href = '/admin'
       } else {
-        window.location.href = '/materials' // Redirección estándar
+        window.location.href = '/materials'
       }
-      // --- FIN DE MODIFICACIÓN ---
     } catch (err) {
-      console.error('Error al iniciar sesión:', err)
-
-      // Handle specific Cognito errors
       if (err.code === 'UserNotConfirmedException') {
         setError(
           'Por favor verifica tu correo electrónico antes de iniciar sesión'
