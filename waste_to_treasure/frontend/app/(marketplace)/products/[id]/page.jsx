@@ -5,7 +5,10 @@ import { useSearchParams, useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronRight, ArrowLeft } from 'lucide-react'
 import listingsService from '@/lib/api/listings'
+import ordersService from '@/lib/api/orders'
+import reviewsService from '@/lib/api/reviews'
 import { useCartStore } from '@/stores/useCartStore'
+import { useAuth } from '@/context/AuthContext'
 import ImageGallery from '@/components/details/ImageGallery'
 import PricingCard from '@/components/details/PricingCard'
 import SellerCard from '@/components/details/SellerCard'
@@ -20,10 +23,13 @@ export default function ProductDetailPage() {
   const productId = searchParams.get('id') || params?.id
 
   const { addItem } = useCartStore()
+  const { isAuthenticated } = useAuth()
   const [product, setProduct] = useState(null)
   const [similarProducts, setSimilarProducts] = useState([])
   const [reviews, setReviews] = useState([])
   const [reviewStats, setReviewStats] = useState({ average_rating: 0, total_reviews: 0 })
+  const [sellerStats, setSellerStats] = useState({ average_rating: 0, total_reviews: 0 })
+  const [userPurchase, setUserPurchase] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [addToCartMessage, setAddToCartMessage] = useState(null)
@@ -45,7 +51,54 @@ export default function ProductDetailPage() {
       try {
         // Fetch main product data
         const productData = await listingsService.getById(productId)
+        console.log('[ProductDetail] Datos completos del producto:', productData)
+        console.log('[ProductDetail] Categoría:', productData.category_name)
+        console.log('[ProductDetail] Vendedor ID:', productData.seller_id)
         setProduct(productData)
+
+        // Fetch reviews and stats for the listing
+        try {
+          const reviewsData = await reviewsService.getListingReviews(productId)
+          const statsData = await reviewsService.getListingReviewStatistics(productId)
+          setReviews(reviewsData.items || [])
+          setReviewStats(statsData)
+        } catch (reviewError) {
+          console.error('Error al cargar reseñas:', reviewError)
+          // Continue even if reviews fail
+        }
+
+        // Fetch seller review statistics
+        console.log('[ProductDetail] Intentando obtener stats del vendedor:', productData.seller_id)
+        if (productData.seller_id) {
+          try {
+            console.log('[ProductDetail] Llamando a getSellerReviewSummary...')
+            const sellerReviewData = await reviewsService.getSellerReviewSummary(productData.seller_id)
+            console.log('[ProductDetail] Datos del vendedor recibidos:', sellerReviewData)
+            setSellerStats(sellerReviewData)
+          } catch (sellerError) {
+            console.error('[ProductDetail] Error al cargar estadísticas del vendedor:', sellerError)
+            // Continue even if seller stats fail
+          }
+        } else {
+          console.log('[ProductDetail] No hay seller_id disponible')
+        }
+
+        // Check if user has purchased this item (only if authenticated)
+        if (isAuthenticated) {
+          try {
+            console.log('[ProductDetail] Verificando compra para listing:', productId)
+            const purchaseStatus = await ordersService.checkPurchase(productId)
+            console.log('[ProductDetail] Estado de compra:', purchaseStatus)
+            setUserPurchase(purchaseStatus)
+          } catch (purchaseError) {
+            console.error('[ProductDetail] Error al verificar compra:', purchaseError)
+            console.error('[ProductDetail] Error completo:', purchaseError.response?.data || purchaseError.message)
+            // Set purchase as false in case of error
+            setUserPurchase({ purchased: false, order_item_id: null })
+          }
+        } else {
+          console.log('[ProductDetail] Usuario no autenticado, no se verifica compra')
+        }
 
         // Fetch similar products (same category)
         if (productData.category_id) {
@@ -70,7 +123,7 @@ export default function ProductDetailPage() {
     }
 
     fetchProductData()
-  }, [productId])
+  }, [productId, isAuthenticated])
 
   /**
    * Handle add to cart
@@ -85,6 +138,20 @@ export default function ProductDetailPage() {
       console.error('Error al agregar al carrito:', err)
       setAddToCartMessage({ type: 'error', text: 'Error al agregar al carrito. Intenta de nuevo.' })
       setTimeout(() => setAddToCartMessage(null), 3000)
+    }
+  }
+
+  /**
+   * Handle review submission - refresh reviews
+   */
+  const handleReviewSubmitted = async () => {
+    try {
+      const reviewsData = await reviewsService.getListingReviews(productId)
+      const statsData = await reviewsService.getListingReviewStatistics(productId)
+      setReviews(reviewsData.items || [])
+      setReviewStats(statsData)
+    } catch (error) {
+      console.error('Error al actualizar reseñas:', error)
     }
   }
 
@@ -196,20 +263,29 @@ export default function ProductDetailPage() {
               <h1 className="mb-2 font-roboto text-3xl font-bold text-neutral-900">
                 {product.title}
               </h1>
-              <p className="font-inter text-sm text-neutral-600">Producto</p>
+              <p className="font-inter text-sm text-neutral-600">
+                {product.category_name || product.category?.name || 'Producto'}
+              </p>
             </div>
 
             <PricingCard listing={product} onAddToCart={handleAddToCart} />
-            <SellerCard sellerId={product.seller_id} sellerStats={reviewStats} />
+            <SellerCard 
+              sellerId={product.seller_id} 
+              seller={product.seller}
+              sellerStats={sellerStats} 
+            />
           </div>
         </div>
 
         {/* Reviews Section */}
         <div className="mb-8">
           <ReviewsSection
+            listingId={productId}
             reviews={reviews}
             averageRating={reviewStats.average_rating}
             totalReviews={reviewStats.total_reviews}
+            userPurchase={userPurchase}
+            onReviewSubmitted={handleReviewSubmitted}
           />
         </div>
 

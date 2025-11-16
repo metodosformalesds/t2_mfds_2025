@@ -110,13 +110,20 @@ export const sellersService = {
    */
   getReviews: async (sellerId, params = {}) => {
     try {
-      // TODO: Implementar cuando el endpoint de reviews esté disponible
-      // const { data } = await apiClient.get(`/reviews/seller/${sellerId}`)
+      const { page = 1, page_size = 20 } = params
+      const skip = (page - 1) * page_size
+      
+      // Usar el endpoint de reviews del vendedor
+      const { data } = await apiClient.get(`/reviews/user/${sellerId}`, {
+        params: { skip, limit: page_size }
+      })
+      
       return {
-        total: 0,
-        page: params.page || 1,
-        page_size: params.page_size || 10,
-        items: [],
+        total: data.total || 0,
+        page: data.page || page,
+        page_size: data.page_size || page_size,
+        items: data.items || [],
+        average_rating: data.average_rating || 0,
       }
     } catch (error) {
       console.error(`Error al obtener reseñas del seller ${sellerId}:`, error)
@@ -125,6 +132,7 @@ export const sellersService = {
         page: 1,
         page_size: 10,
         items: [],
+        average_rating: 0,
       }
     }
   },
@@ -137,14 +145,22 @@ export const sellersService = {
    */
   getStats: async (sellerId) => {
     try {
-      // Obtener listings del seller para calcular estadísticas
-      const listings = await sellersService.getListings(sellerId, { page_size: 100 })
+      // Obtener listings del seller y resumen de reseñas en paralelo
+      const [listings, reviewSummary] = await Promise.all([
+        sellersService.getListings(sellerId, { page_size: 100 }),
+        apiClient.get(`/reviews/seller/${sellerId}/summary`).then(res => res.data).catch(() => ({
+          total_reviews: 0,
+          average_rating: 0,
+          total_listings_reviewed: 0,
+        }))
+      ])
 
       return {
-        average_rating: 4.2,
-        total_reviews: 0,
+        average_rating: reviewSummary.average_rating || 0,
+        total_reviews: reviewSummary.total_reviews || 0,
         total_listings: listings.items.length,
-        total_sales: 0,
+        total_listings_reviewed: reviewSummary.total_listings_reviewed || 0,
+        total_sales: 0, // TODO: Implementar cuando esté disponible
         response_time: '24h',
       }
     } catch (error) {
@@ -153,6 +169,7 @@ export const sellersService = {
         average_rating: 0,
         total_reviews: 0,
         total_listings: 0,
+        total_listings_reviewed: 0,
         total_sales: 0,
         response_time: '24h',
       }

@@ -107,7 +107,8 @@ async def create_review(
     
     # Crear la reseña
     db_review = Review(
-        reviewer_id=current_user.user_id,
+        buyer_id=current_user.user_id,
+        seller_id=order_item.listing.seller_id,
         listing_id=order_item.listing_id,
         order_item_id=review_data.order_item_id,
         rating=review_data.rating,
@@ -238,7 +239,7 @@ async def get_seller_reviews(
     
     # Query base con eager loading
     stmt = select(Review).options(
-        selectinload(Review.reviewer),
+        selectinload(Review.buyer),
         selectinload(Review.listing)
     ).where(Review.listing_id.in_(select(seller_listings_subquery)))
     
@@ -295,7 +296,7 @@ async def get_user_reviews(
     # Query base con eager loading
     stmt = select(Review).options(
         selectinload(Review.listing)
-    ).where(Review.reviewer_id == user_id)
+    ).where(Review.buyer_id == user_id)
     
     # Contar total
     count_stmt = select(func.count()).select_from(stmt.subquery())

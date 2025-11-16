@@ -39,8 +39,17 @@ export default function ProductCard({ product }) {
 
   // Resolve ID from possible shapes coming from different endpoints
   const resolvedId =
-    product.id ?? product.listing_id ?? product.listingId ?? product.listingId ?? ''
+    product.id ?? product.listing_id ?? product.listingId ?? ''
   const href = `/products/${resolvedId}`
+  
+  // Resolve quantity from different possible fields
+  const quantity = product.quantity ?? product.available ?? 0
+  
+  // Resolve category name
+  const categoryName = product.category?.name || product.category_name || 'Sin categoría'
+  
+  // Safely parse price
+  const price = Number.isFinite(Number(product.price)) ? parseFloat(product.price) : 0
 
   return (
     <Link
@@ -65,17 +74,17 @@ export default function ProductCard({ product }) {
             {product.title}
           </h3>
           <p className="font-inter text-sm text-neutral-600">
-            {product.category?.name || 'Sin categoría'}
+            {categoryName}
           </p>
         </div>
         <div className="mt-4 flex flex-col gap-3">
           <p className="font-roboto text-lg font-medium text-primary-500">
-            ${parseFloat(product.price).toFixed(2)} MXN
+            ${price.toFixed(2)} MXN
           </p>
           <div className="flex items-center gap-2">
             <BoxIcon />
             <span className="font-inter text-sm text-neutral-900">
-              {product.quantity} piezas disponibles
+              {quantity} {quantity === 1 ? 'pieza disponible' : 'piezas disponibles'}
             </span>
           </div>
         </div>
