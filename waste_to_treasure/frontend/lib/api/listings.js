@@ -28,7 +28,6 @@ export const listingsService = {
       const { data } = await apiClient.get('/listings', { params })
       return data
     } catch (error) {
-      console.error('Error al obtener listings:', error)
       throw error
     }
   },
@@ -44,7 +43,6 @@ export const listingsService = {
       const { data } = await apiClient.get(`/listings/${listingId}`)
       return data
     } catch (error) {
-      console.error(`Error al obtener listing ${listingId}:`, error)
       throw error
     }
   },
@@ -63,7 +61,6 @@ export const listingsService = {
       const { data } = await apiClient.get('/listings/me', { params })
       return data
     } catch (error) {
-      console.error('Error al obtener mis listings:', error)
       throw error
     }
   },
@@ -88,7 +85,6 @@ export const listingsService = {
       const { data } = await apiClient.post('/listings', listingData)
       return data
     } catch (error) {
-      console.error('Error al crear listing:', error)
       throw error
     }
   },
@@ -105,7 +101,6 @@ export const listingsService = {
       const { data } = await apiClient.patch(`/listings/${listingId}`, updates)
       return data
     } catch (error) {
-      console.error(`Error al actualizar listing ${listingId}:`, error)
       throw error
     }
   },
@@ -120,7 +115,6 @@ export const listingsService = {
     try {
       await apiClient.delete(`/listings/${listingId}`)
     } catch (error) {
-      console.error(`Error al eliminar listing ${listingId}:`, error)
       throw error
     }
   },
@@ -129,7 +123,7 @@ export const listingsService = {
    * Agrega imágenes a un listing.
    *
    * @param {number} listingId - ID del listing
-   * @param {string[]} imageUrls - URLs de imágenes en S3
+   * @param {string[]} imageUrls - URLs de imágenes
    * @returns {Promise<Array>} Lista de imágenes agregadas
    */
   addImages: async (listingId, imageUrls) => {
@@ -142,7 +136,6 @@ export const listingsService = {
       )
       return data
     } catch (error) {
-      console.error(`Error al agregar imágenes al listing ${listingId}:`, error)
       throw error
     }
   },

@@ -15,7 +15,6 @@ export const shippingService = {
       const { data } = await apiClient.get('/shipping/me/shipping_methods')
       return data
     } catch (error) {
-      console.error('Error al obtener métodos de envío:', error)
       throw error
     }
   },

@@ -49,14 +49,12 @@ export function configureAmplify() {
     }
 
     Amplify.configure(config, {
-      ssr: false, // Deshabilitar SSR para cliente
+      ssr: false,
     })
 
     isConfigured = true
-    console.log('✅ Amplify configurado correctamente')
-    console.log('📍 Redirect URLs:', { redirectSignIn, redirectSignOut })
   } catch (error) {
-    console.error('❌ Error al configurar Amplify:', error)
+    // Configuración fallida
   }
 }
 

@@ -1,6 +1,7 @@
 import { Poppins, Roboto, Inter } from 'next/font/google'
 import { AuthProvider } from '@/context/AuthContext'
 import { AmplifyProvider } from '@/lib/AmplifyProvider'
+import ErrorBoundary from '@/components/ErrorBoundary'
 import '../styles/global.css'
 
 const poppins = Poppins({
@@ -43,9 +44,11 @@ export default function RootLayout({ children }) {
       --- FIN DE LA CORRECCIÓN ---
       */}
       <body className="font-inter antialiased bg-neutral-75">
-        <AmplifyProvider>
-          <AuthProvider>{children}</AuthProvider>
-        </AmplifyProvider>
+        <ErrorBoundary fallbackMessage="Ocurrió un error al cargar la aplicación. Por favor, recarga la página.">
+          <AmplifyProvider>
+            <AuthProvider>{children}</AuthProvider>
+          </AmplifyProvider>
+        </ErrorBoundary>
       </body>
     </html>
   )

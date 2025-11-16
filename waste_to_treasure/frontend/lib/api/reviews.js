@@ -20,7 +20,6 @@ export const reviewsService = {
       const { data } = await apiClient.get(`/reviews/listing/${listingId}`, { params })
       return data
     } catch (error) {
-      console.error('Error al obtener reseñas:', error)
       throw error
     }
   },
@@ -35,7 +34,6 @@ export const reviewsService = {
       const { data } = await apiClient.get(`/reviews/listing/${listingId}/statistics`)
       return data
     } catch (error) {
-      console.error('Error al obtener estadísticas de reseñas:', error)
       throw error
     }
   },
@@ -53,7 +51,6 @@ export const reviewsService = {
       const { data } = await apiClient.post('/reviews', reviewData)
       return data
     } catch (error) {
-      console.error('Error al crear reseña:', error)
       throw error
     }
   },
@@ -68,7 +65,6 @@ export const reviewsService = {
       const { data } = await apiClient.get('/reviews/my-reviews', { params })
       return data
     } catch (error) {
-      console.error('Error al obtener mis reseñas:', error)
       throw error
     }
   },
@@ -84,7 +80,6 @@ export const reviewsService = {
       const { data } = await apiClient.get(`/reviews/user/${userId}`, { params })
       return data
     } catch (error) {
-      console.error('Error al obtener reseñas del vendedor:', error)
       throw error
     }
   },
@@ -99,7 +94,6 @@ export const reviewsService = {
       const { data } = await apiClient.get(`/reviews/seller/${userId}/summary`)
       return data
     } catch (error) {
-      console.error('Error al obtener resumen del vendedor:', error)
       throw error
     }
   },

@@ -51,9 +51,6 @@ export default function MaterialDetailPage() {
       try {
         // Fetch main material data
         const materialData = await listingsService.getById(materialId)
-        console.log('[MaterialDetail] Datos completos del material:', materialData)
-        console.log('[MaterialDetail] Categoría:', materialData.category_name)
-        console.log('[MaterialDetail] Vendedor ID:', materialData.seller_id)
         setMaterial(materialData)
 
         // Fetch reviews and stats for the listing
@@ -68,36 +65,23 @@ export default function MaterialDetailPage() {
         }
 
         // Fetch seller review statistics
-        console.log('[MaterialDetail] Intentando obtener stats del vendedor:', materialData.seller_id)
         if (materialData.seller_id) {
           try {
-            console.log('[MaterialDetail] Llamando a getSellerReviewSummary...')
             const sellerReviewData = await reviewsService.getSellerReviewSummary(materialData.seller_id)
-            console.log('[MaterialDetail] Datos del vendedor recibidos:', sellerReviewData)
             setSellerStats(sellerReviewData)
           } catch (sellerError) {
-            console.error('[MaterialDetail] Error al cargar estadísticas del vendedor:', sellerError)
             // Continue even if seller stats fail
           }
-        } else {
-          console.log('[MaterialDetail] No hay seller_id disponible')
         }
 
         // Check if user has purchased this item (only if authenticated)
         if (isAuthenticated) {
           try {
-            console.log('[MaterialDetail] Verificando compra para listing:', materialId)
             const purchaseStatus = await ordersService.checkPurchase(materialId)
-            console.log('[MaterialDetail] Estado de compra:', purchaseStatus)
             setUserPurchase(purchaseStatus)
           } catch (purchaseError) {
-            console.error('[MaterialDetail] Error al verificar compra:', purchaseError)
-            console.error('[MaterialDetail] Error completo:', purchaseError.response?.data || purchaseError.message)
-            // Set purchase as false in case of error
             setUserPurchase({ purchased: false, order_item_id: null })
           }
-        } else {
-          console.log('[MaterialDetail] Usuario no autenticado, no se verifica compra')
         }
 
         // Fetch similar materials (same category)

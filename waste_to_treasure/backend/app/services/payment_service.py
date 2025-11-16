@@ -187,6 +187,8 @@ class PaymentService:
         Obtiene o crea un customer de Stripe para el usuario.
         
         Helper method que simplifica la creación de customers.
+        Valida que el customer exista en Stripe antes de retornarlo.
+        Si el customer fue eliminado de Stripe, crea uno nuevo.
         
         Args:
             db: Sesión de base de datos.
@@ -201,9 +203,22 @@ class PaymentService:
         )
         
         if customer:
-            return customer
+            # Validar que el customer exista en Stripe
+            try:
+                await stripe_service.get_customer(customer.gateway_customer_id)
+                # Customer existe en Stripe, retornarlo
+                return customer
+            except Exception as e:
+                # Customer no existe en Stripe (eliminado o de otra cuenta)
+                logger.warning(
+                    f"Customer {customer.gateway_customer_id} no existe en Stripe. "
+                    f"Eliminando registro y creando nuevo. Error: {e}"
+                )
+                # Eliminar registro obsoleto
+                await db.delete(customer)
+                await db.commit()
         
-        # Crear en Stripe
+        # Crear nuevo customer en Stripe
         stripe_customer = await stripe_service.create_customer(
             email=user.email,
             name=user.full_name,

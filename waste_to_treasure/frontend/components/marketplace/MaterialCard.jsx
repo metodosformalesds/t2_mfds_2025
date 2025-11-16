@@ -21,41 +21,41 @@ const BoxIcon = () => (
 )
 
 export default function MaterialCard({ material }) {
-  // Resolve possible image URL fields and fallbacks
-  const imageUrl =
-    material.primary_image_url ||
-    material.listing_image_url ||
-    material.imageUrl ||
-    (material.images && material.images.length > 0 && (material.images[0].image_url || material.images[0])) ||
-    '/placeholder-material.jpg'
+  // Resolve image URL
+  const imageUrl = material.primary_image_url || 
+                   material.listing_image_url || 
+                   material.imageUrl || 
+                   '/placeholder-material.jpg'
   const resolvedImageUrl = typeof imageUrl === 'string' ? imageUrl : String(imageUrl)
 
-  // Resolve ID fields used across different endpoints
+  // Resolve ID
   const resolvedId = material.id ?? material.listing_id ?? material.listingId ?? ''
   const href = `/materials/${resolvedId}`
 
+  // Price and unit
   const price = Number.isFinite(Number(material.price)) ? parseFloat(material.price).toFixed(2) : '0.00'
   const available = material.available ?? material.quantity ?? 0
   const unit = material.unit_measure ?? material.price_unit ?? material.unit ?? ''
   
-  // Resolve seller name from different possible fields
-  const sellerName = typeof material.seller === 'string'
-    ? material.seller
-    : material.seller_name || material.seller?.full_name || material.user?.full_name || material.user?.username || 'Vendedor anónimo'
+  // Use backend fields directly
+  const sellerName = material.seller_name || material.seller?.full_name || 'Vendedor'
+  const categoryName = material.category_name || material.category?.name || 'Sin categoría'
 
   return (
     <Link
       href={href}
       className="flex h-full w-full min-w-[240px] flex-col rounded-lg border border-primary-500 bg-white shadow-sm transition-all hover:shadow-lg"
     >
-      {/* Imagen - Usando placeholder de gradiente como en tu diseño */}
-      <div className="relative h-40 w-full overflow-hidden rounded-t-lg">
+      {/* Imagen */}
+      <div className="relative h-40 w-full overflow-hidden rounded-t-lg bg-neutral-100">
         <Image
           src={resolvedImageUrl}
           alt={material.title}
-          layout="fill"
-          objectFit="cover"
-          className="transition-transform duration-300 group-hover:scale-105"
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
+          loading="lazy"
+          quality={85}
         />
       </div>
 
@@ -66,7 +66,10 @@ export default function MaterialCard({ material }) {
             {material.title}
           </h3>
           <p className="font-inter text-sm text-neutral-600">
-            {sellerName}
+            {categoryName}
+          </p>
+          <p className="font-inter text-xs text-neutral-500">
+            Vendido por: {sellerName}
           </p>
         </div>
         <div className="mt-4 flex flex-col gap-3">

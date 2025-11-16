@@ -33,8 +33,6 @@ export const uploadService = {
       const formData = new FormData();
       formData.append('file', file);
 
-      console.log(`Subiendo imagen: ${file.name} (${(file.size / 1024).toFixed(2)}KB)`);
-
       // Llamar al endpoint
       const { data } = await apiClient.post(
         `/listings/upload-image?listing_id=${listingId}&is_primary=${isPrimary}`,
@@ -48,12 +46,8 @@ export const uploadService = {
         }
       );
 
-      console.log('Imagen subida exitosamente:', data.url);
-
       return data.url;
     } catch (error) {
-      console.error('Error al subir imagen:', error);
-
       // Extraer mensaje de error del backend
       if (error.response?.data?.detail) {
         throw new Error(error.response.data.detail);
@@ -82,7 +76,6 @@ export const uploadService = {
         const url = await uploadService.uploadImage(file, listingId, isPrimary);
         uploadedUrls.push(url);
       } catch (error) {
-        console.error(`Error subiendo archivo ${file.name}:`, error);
         errors.push({
           fileName: file.name,
           error: error.message,
@@ -95,8 +88,6 @@ export const uploadService = {
       const errorMsg = errors
         .map(e => `${e.fileName}: ${e.error}`)
         .join('\n');
-      
-      console.warn(`Errores en upload:\n${errorMsg}`);
       
       // Si todas fallaron, lanzar error
       if (uploadedUrls.length === 0) {

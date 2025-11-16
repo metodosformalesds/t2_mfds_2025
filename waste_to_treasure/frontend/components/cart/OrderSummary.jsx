@@ -1,21 +1,25 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { Lock, ChevronDown } from 'lucide-react'
+import { Lock, ChevronDown, AlertTriangle } from 'lucide-react'
 
-export default function OrderSummary({ items = [] }) {
+export default function OrderSummary({ items = [], hasUnavailableItems = false }) {
   const [showDetails, setShowDetails] = useState(false)
 
-  // Calcular totales basados en items seleccionados
-  const subtotal = items.reduce((sum, item) => {
-    const itemPrice = parseFloat(item.listing_price || 0)
-    const itemQty = parseFloat(item.quantity || 0)
-    return sum + (itemPrice * itemQty)
-  }, 0)
+  // Calcular totales basados en items disponibles
+  const subtotal = useMemo(() => {
+    return items.reduce((sum, item) => {
+      const itemPrice = parseFloat(item.listing_price || 0)
+      const itemQty = parseFloat(item.quantity || 0)
+      return sum + (itemPrice * itemQty)
+    }, 0)
+  }, [items])
 
   const shippingCost = items.length > 0 ? 150.0 : 0.0
   const total = subtotal + shippingCost
+  
+  const canCheckout = items.length > 0 && !hasUnavailableItems
 
   return (
     <div className="w-full max-w-sm rounded-lg bg-white p-5 shadow-2xl lg:sticky lg:top-32 lg:max-w-xs">
@@ -90,18 +94,30 @@ export default function OrderSummary({ items = [] }) {
         </p>
       </div>
 
+      {hasUnavailableItems && (
+        <div className="mt-4 rounded-lg bg-red-50 border-2 border-red-300 p-3">
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
+            <p className="font-inter text-xs text-red-700">
+              Elimina los productos sin stock para continuar con tu compra.
+            </p>
+          </div>
+        </div>
+      )}
+
       <Link
         href="/checkout"
         className={`mt-4 flex w-full items-center justify-center rounded-lg px-4 py-3 text-center font-inter text-base font-semibold transition ${
-          items.length > 0
+          canCheckout
             ? 'bg-primary-500 text-white hover:bg-primary-600'
             : 'bg-neutral-300 text-neutral-600 cursor-not-allowed'
         }`}
         onClick={(e) => {
-          if (items.length === 0) {
+          if (!canCheckout) {
             e.preventDefault()
           }
         }}
+        aria-disabled={!canCheckout}
       >
         Proceder compra
       </Link>

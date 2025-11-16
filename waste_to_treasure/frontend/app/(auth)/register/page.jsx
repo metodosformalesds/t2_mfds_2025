@@ -81,7 +81,6 @@ export default function RegisterPage() {
     e.preventDefault()
 
     if (!validateForm()) {
-      console.log('Validación fallida')
       return
     }
 
@@ -98,14 +97,12 @@ export default function RegisterPage() {
     setErrors({})
 
     try {
-      // Registrar usuario en AWS Cognito con los atributos requeridos
+      // Registrar nuevo usuario
       const result = await signUp({
         email: formData.email,
         password: formData.password,
         name: formData.name,
       })
-
-      console.log('Registration successful:', result)
 
       // Guardar email temporalmente para la página de verificación
       if (typeof window !== 'undefined') {
@@ -115,11 +112,10 @@ export default function RegisterPage() {
       // Redirigir a página de verificación de email
       router.push('/verify-email')
     } catch (error) {
-      console.error('Registration error:', error)
 
       let errorMessage = 'Error al crear la cuenta. Intenta de nuevo.'
 
-      // Manejar errores específicos de Cognito
+      // Manejar errores específicos
       if (error.code === 'UsernameExistsException') {
         errorMessage = 'Este correo electrónico ya está registrado'
       } else if (error.code === 'InvalidPasswordException') {
@@ -143,14 +139,12 @@ export default function RegisterPage() {
         setIsLoading(true)
         await signInWithProvider('Google')
       } catch (err) {
-        console.error('Error al registrarse con Google:', err)
         setErrors({
           submit: 'No se pudo registrar con Google. Intenta de nuevo.',
         })
         setIsLoading(false)
       }
     } else {
-      console.log(`Register with ${provider} - Coming soon`)
       setErrors({ submit: `Registro con ${provider} próximamente` })
     }
   }

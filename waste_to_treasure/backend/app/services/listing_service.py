@@ -165,6 +165,7 @@ async def get_public_listings(
         select(Listing)
         .options(
             selectinload(Listing.images),
+            selectinload(Listing.category),
             selectinload(Listing.seller)
         )
         .where(Listing.status == ListingStatusEnum.ACTIVE)
@@ -229,6 +230,7 @@ async def get_seller_listings(
         select(Listing)
         .options(
             selectinload(Listing.images),
+            selectinload(Listing.category),
             selectinload(Listing.seller)
         )
         .where(Listing.seller_id == seller_id)
@@ -498,10 +500,12 @@ def convert_to_card_response(listing: Listing) -> dict:
         "price": listing.price,
         "price_unit": listing.price_unit,
         "listing_type": listing.listing_type,
-        "status": listing.status,  # Agregado para que el frontend pueda filtrar por estado
+        "status": listing.status,
         "primary_image_url": primary_image,
         "seller_id": listing.seller_id,
-        "seller": listing.seller,  # Incluir la relación seller
+        "seller": listing.seller,
+        "seller_name": listing.seller.full_name if listing.seller else None,
+        "category_name": listing.category.name if listing.category else None,
         "quantity": listing.quantity,
         "created_at": listing.created_at
     }

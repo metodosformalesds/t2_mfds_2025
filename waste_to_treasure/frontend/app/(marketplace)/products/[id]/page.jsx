@@ -51,9 +51,6 @@ export default function ProductDetailPage() {
       try {
         // Fetch main product data
         const productData = await listingsService.getById(productId)
-        console.log('[ProductDetail] Datos completos del producto:', productData)
-        console.log('[ProductDetail] Categoría:', productData.category_name)
-        console.log('[ProductDetail] Vendedor ID:', productData.seller_id)
         setProduct(productData)
 
         // Fetch reviews and stats for the listing
@@ -68,36 +65,23 @@ export default function ProductDetailPage() {
         }
 
         // Fetch seller review statistics
-        console.log('[ProductDetail] Intentando obtener stats del vendedor:', productData.seller_id)
         if (productData.seller_id) {
           try {
-            console.log('[ProductDetail] Llamando a getSellerReviewSummary...')
             const sellerReviewData = await reviewsService.getSellerReviewSummary(productData.seller_id)
-            console.log('[ProductDetail] Datos del vendedor recibidos:', sellerReviewData)
             setSellerStats(sellerReviewData)
           } catch (sellerError) {
-            console.error('[ProductDetail] Error al cargar estadísticas del vendedor:', sellerError)
             // Continue even if seller stats fail
           }
-        } else {
-          console.log('[ProductDetail] No hay seller_id disponible')
         }
 
         // Check if user has purchased this item (only if authenticated)
         if (isAuthenticated) {
           try {
-            console.log('[ProductDetail] Verificando compra para listing:', productId)
             const purchaseStatus = await ordersService.checkPurchase(productId)
-            console.log('[ProductDetail] Estado de compra:', purchaseStatus)
             setUserPurchase(purchaseStatus)
           } catch (purchaseError) {
-            console.error('[ProductDetail] Error al verificar compra:', purchaseError)
-            console.error('[ProductDetail] Error completo:', purchaseError.response?.data || purchaseError.message)
-            // Set purchase as false in case of error
             setUserPurchase({ purchased: false, order_item_id: null })
           }
-        } else {
-          console.log('[ProductDetail] Usuario no autenticado, no se verifica compra')
         }
 
         // Fetch similar products (same category)

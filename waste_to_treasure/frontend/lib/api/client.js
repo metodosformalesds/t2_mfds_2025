@@ -2,19 +2,13 @@
  * Cliente HTTP configurado con Axios para comunicación con el backend.
  *
  * Configuración centralizada de:
- * - Base URL del backend (vía API Gateway en producción)
+ * - Base URL del backend
  * - Interceptors de autenticación
  * - Manejo global de errores
- * 
- * IMPORTANTE: En producción, API_BASE_URL debe apuntar al API Gateway,
- * NO directamente a la Elastic IP del backend.
  */
 
 import axios from 'axios'
 
-// Base URL del backend desde variables de entorno
-// DESARROLLO: http://localhost:8000/api/v1
-// PRODUCCIÓN: https://4vopem29wa.execute-api.us-east-1.amazonaws.com (API Gateway)
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
 /**
@@ -22,23 +16,20 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/a
  */
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000, // 30 segundos
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
   },
 })
 
 /**
- * Obtener token fresco de Cognito
- * Esta función debe ser llamada antes de cada request para asegurar que el token esté actualizado
+ * Obtener token de autenticación
  */
 const getFreshToken = async () => {
   try {
-    // Importación dinámica para evitar problemas con SSR
     const { getAuthToken } = await import('@/lib/auth/cognito')
     const token = await getAuthToken()
     
-    // Actualizar localStorage si hay un token válido
     if (token) {
       localStorage.setItem('auth-token', token)
     } else {
@@ -47,8 +38,6 @@ const getFreshToken = async () => {
     
     return token
   } catch (error) {
-    console.error('[API Client] Error obteniendo token:', error)
-    // Si hay error, intentar usar el token de localStorage como fallback
     return localStorage.getItem('auth-token')
   }
 }
@@ -58,7 +47,6 @@ const getFreshToken = async () => {
  */
 apiClient.interceptors.request.use(
   async (config) => {
-    // Obtener token fresco de Cognito en cada request
     const token = await getFreshToken()
 
     if (token) {
@@ -68,7 +56,6 @@ apiClient.interceptors.request.use(
     return config
   },
   (error) => {
-    console.error('[API Client] Error en request interceptor:', error)
     return Promise.reject(error)
   }
 )
@@ -81,26 +68,15 @@ apiClient.interceptors.response.use(
     return response
   },
   (error) => {
-    // Manejo de errores comunes
     if (error.response) {
-      // El servidor respondió con un código de error
-      const { status, data } = error.response
-
-      console.error('[API Client] Error Response:', {
-        status,
-        url: error.config?.url,
-        method: error.config?.method,
-        data: data
-      })
+      const { status } = error.response
 
       switch (status) {
         case 401:
-          // No autenticado - limpiar tokens y silent fail si es esperado
-          console.warn('⚠️ No autenticado - sesión expirada o no iniciada')
+          // No autenticado - limpiar tokens
           localStorage.removeItem('auth-token')
           
-          // Solo redirigir si estamos en una página que requiere auth
-          // Las páginas públicas pueden manejar el 401 sin redirect
+          // Redirigir solo si no estamos en una ruta pública
           if (typeof window !== 'undefined') {
             const publicRoutes = ['/', '/login', '/register', '/marketplace', '/about', '/materials', '/products', '/sellers']
             const currentPath = window.location.pathname
@@ -109,63 +85,37 @@ apiClient.interceptors.response.use(
             )
             
             if (!isPublicRoute) {
-              console.log('Redirigiendo a login desde ruta protegida:', currentPath)
               window.location.href = '/login'
             }
           }
           break
 
         case 403:
-          console.error('❌ Sin permisos para acceder a este recurso')
+          // Sin permisos
           break
 
         case 404:
-          console.error('❌ Recurso no encontrado:', error.config?.url)
+          // Recurso no encontrado
           break
 
         case 422:
           // Error de validación
-          console.error('❌ Error de validación en:', error.config?.url)
-          console.error('   Parámetros enviados:', error.config?.params)
-          console.error('   Detalles:', data.detail || data.errors)
-          if (data.detail && Array.isArray(data.detail)) {
-            data.detail.forEach(err => {
-              console.error(`   - ${err.loc?.join('.')}: ${err.msg}`)
-            })
-          }
           break
 
         case 500:
-          console.error('❌ Error interno del servidor')
-          console.error('   URL:', error.config?.url)
-          console.error('   Método:', error.config?.method)
-          console.error('   Detalles:', data)
+          // Error del servidor
           break
 
         case 502:
         case 503:
         case 504:
-          console.error('❌ Error de API Gateway o Backend no disponible')
-          console.error('   Verifica que:')
-          console.error('   1. El backend esté corriendo en EC2')
-          console.error('   2. API Gateway esté configurado correctamente')
-          console.error('   3. El Security Group permita tráfico en puerto 8000')
+          // Servicio no disponible
           break
 
         default:
-          console.error('❌ Error en la petición:', data.detail || error.message)
+          // Otro error
+          break
       }
-    } else if (error.request) {
-      // La petición fue hecha pero no hubo respuesta
-      console.error('❌ No se pudo conectar con el servidor.')
-      console.error('   API URL configurada:', API_BASE_URL)
-      console.error('   Verifica:')
-      console.error('   1. La variable NEXT_PUBLIC_API_URL en Amplify')
-      console.error('   2. Que apunte al API Gateway (no a localhost ni Elastic IP)')
-      console.error('   3. Tu conexión a internet')
-    } else {
-      // Algo pasó al configurar la petición
-      console.error('❌ Error al configurar la petición:', error.message)
     }
 
     return Promise.reject(error)

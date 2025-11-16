@@ -42,8 +42,6 @@ export const sellersService = {
         profile_image_url: null,
       }
     } catch (error) {
-      console.error(`Error al obtener seller ${sellerId}:`, error)
-
       // Si el usuario no existe (404), retornar fallback
       if (error.response?.status === 404) {
         return {
@@ -94,7 +92,6 @@ export const sellersService = {
         items: sellerListings,
       }
     } catch (error) {
-      console.error(`Error al obtener listings del seller ${sellerId}:`, error)
       throw error
     }
   },
@@ -126,7 +123,6 @@ export const sellersService = {
         average_rating: data.average_rating || 0,
       }
     } catch (error) {
-      console.error(`Error al obtener reseñas del seller ${sellerId}:`, error)
       return {
         total: 0,
         page: 1,
@@ -164,7 +160,6 @@ export const sellersService = {
         response_time: '24h',
       }
     } catch (error) {
-      console.error(`Error al obtener estadísticas del seller ${sellerId}:`, error)
       return {
         average_rating: 0,
         total_reviews: 0,
