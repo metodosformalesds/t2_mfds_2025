@@ -1,3 +1,9 @@
+# Autor: Alejandro Campa Alonso 215833
+# Fecha: 2025-11-08
+# Descripción: Schemas Pydantic para el modelo Subscription.
+#              Define los contratos de entrada (request) y salida (response)
+#              para las operaciones de suscripción a planes de pago.
+
 """
 Schemas Pydantic para el modelo Subscription.
 
