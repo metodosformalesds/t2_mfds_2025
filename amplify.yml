@@ -1,6 +1,12 @@
 version: 1
 applications:
   - appRoot: waste_to_treasure/frontend
+    backend:
+      phases:
+        build:
+          commands:
+            - nvm use 20
+            - amplifyPush --simple
     frontend:
       phases:
         preBuild:
