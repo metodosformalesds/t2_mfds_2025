@@ -1,6 +1,11 @@
 """
-Modelo de base de datos para Planes.
-Implementa la tabla 'plans'
+# Autor: Alejandro Campa Alonso 215833
+
+# Fecha: 2025-11-05
+
+# Descripción: Modelo de base de datos para Planes.
+Implementa la tabla 'plans' que define los diferentes planes de suscripción disponibles en la plataforma,
+con sus características, precios y ciclos de facturación. Cada plan puede tener múltiples suscriptores.
 """
 from typing import Optional, TYPE_CHECKING 
 from sqlalchemy import String, Integer, Numeric, Enum

@@ -1,7 +1,11 @@
 """
-Modelo de base de datos para Suscripciones.
+# Autor: Alejandro Campa Alonso 215833
 
-Implementa la tabla 'suscripciones'
+# Fecha: 2025-11-08
+
+# Descripción: Modelo de base de datos para Suscripciones.
+Implementa la tabla 'subscriptions' que guarda el plan al que un usuario está suscrito,
+su estado, fechas de facturación y el ID de la suscripción en la pasarela de pago.
 """
 import uuid
 import enum

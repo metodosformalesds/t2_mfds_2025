@@ -1,8 +1,11 @@
 """
-Modelo de base de datos para OrderItem.
+# Autor: Alejandro Campa Alonso 215833
 
-Implementa la tabla 'order_items'
-Representa un ítem dentro de una orden de compra.
+# Fecha: 2025-11-05
+
+# Descripción: Modelo de base de datos para OrderItem.
+Implementa la tabla 'order_items' que representa un ítem (producto/material) dentro de una orden de compra.
+Guarda un "snapshot" del precio para mantener la integridad histórica. Cada orden puede contener múltiples items.
 """
 from decimal import Decimal
 from sqlalchemy import Integer, Numeric, ForeignKey

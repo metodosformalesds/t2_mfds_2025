@@ -1,8 +1,12 @@
 """
-Modelo de base de datos para Order.
+# Autor: Alejandro Campa Alonso 215833
 
-Implementa la tabla 'orders'
-Almacena las órdenes de compra completadas (transacciones).
+# Fecha: 2025-11-05
+
+# Descripción: Modelo de base de datos para Order.
+Implementa la tabla 'orders' que almacena las órdenes de compra completadas (transacciones).
+Define el estado de la orden, montos totales, información de pago y relaciones con usuarios,
+items de orden, reportes y transacciones de pago.
 """
 import uuid
 from typing import Optional, List, TYPE_CHECKING
@@ -163,11 +167,19 @@ class Order(BaseModel):
     # MÉTODOS DE INSTANCIA
     def calculate_totals(self) -> None:
         """
-        Calcula y actualiza subtotal, comisión y total basándose en los order_items.
+        Autor: Alejandro Campa Alonso 215833
         
-        Note:
+        Descripción: Calcula y actualiza subtotal, comisión y total basándose en los order_items.
+        La comisión es del 10% según especificación GEMINI.md (RF-25).
+        
+        Parámetros:
+            self: Instancia de la orden.
+        
+        Retorna:
+            None. Modifica los atributos subtotal, commission_amount y total_amount.
+        
+        Nota:
             Este método debe llamarse después de agregar/modificar items.
-            La comisión es del 10% según especificación GEMINI.md (RF-25).
         """
         if not self.order_items:
             self.subtotal = Decimal("0.00")
@@ -189,37 +201,57 @@ class Order(BaseModel):
     
     def get_item_count(self) -> int:
         """
-        Obtiene el número total de items en la orden.
+        Autor: Alejandro Campa Alonso 215833
         
-        Returns:
-            Cantidad total de items (sumando las cantidades de cada OrderItem).
+        Descripción: Obtiene el número total de items en la orden.
+        
+        Parámetros:
+            self: Instancia de la orden.
+        
+        Retorna:
+            int: Cantidad total de items (sumando las cantidades de cada OrderItem).
         """
         return sum(item.quantity for item in self.order_items)
     
     def can_be_cancelled(self) -> bool:
         """
-        Verifica si la orden puede ser cancelada.
+        Autor: Alejandro Campa Alonso 215833
         
-        Returns:
-            True si la orden está en estado PAID (aún no enviada).
+        Descripción: Verifica si la orden puede ser cancelada.
+        
+        Parámetros:
+            self: Instancia de la orden.
+        
+        Retorna:
+            bool: True si la orden está en estado PAID (aún no enviada), False en caso contrario.
         """
         return self.order_status == OrderStatusEnum.PAID
     
     def can_be_reviewed(self) -> bool:
         """
-        Verifica si la orden puede ser reseñada.
+        Autor: Alejandro Campa Alonso 215833
         
-        Returns:
-            True si la orden está en estado DELIVERED.
+        Descripción: Verifica si la orden puede ser reseñada.
+        
+        Parámetros:
+            self: Instancia de la orden.
+        
+        Retorna:
+            bool: True si la orden está en estado DELIVERED, False en caso contrario.
         """
         return self.order_status == OrderStatusEnum.DELIVERED
     
     def get_status_display(self) -> str:
         """
-        Obtiene el estado de la orden en formato legible.
+        Autor: Alejandro Campa Alonso 215833
         
-        Returns:
-            String con el estado traducido al español.
+        Descripción: Obtiene el estado de la orden en formato legible en español.
+        
+        Parámetros:
+            self: Instancia de la orden.
+        
+        Retorna:
+            str: String con el estado traducido al español (ej. 'Pagada', 'Entregada').
         """
         status_map = {
             OrderStatusEnum.PAID: "Pagada",
