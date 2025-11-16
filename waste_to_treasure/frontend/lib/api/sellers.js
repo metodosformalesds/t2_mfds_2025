@@ -25,7 +25,7 @@ export const sellersService = {
       // Usar el endpoint público de usuarios
       const { data } = await apiClient.get(`/users/${sellerId}/public`)
 
-      // El backend retorna UserPublic schema con: user_id, email, full_name, role, created_at
+      // El backend retorna UserPublic schema con: user_id, email, full_name, bio, role, created_at
       return {
         user_id: data.user_id,
         // Usar full_name como business_name
@@ -34,11 +34,12 @@ export const sellersService = {
         email: data.email || null,
         role: data.role || 'USER',
         created_at: data.created_at || new Date().toISOString(),
+        // Usar el campo bio del backend como description
+        description: data.bio || `Proveedor de materiales y productos reciclados de alta calidad`,
         // Campos adicionales con valores por defecto (no están en UserPublic schema)
         seller_type: 'INDUSTRIAL',
         city: 'Ciudad Juárez',
         state: 'Chihuahua',
-        description: `Proveedor de materiales y productos reciclados de alta calidad`,
         // Mapear profile_image_url si el backend lo devuelve
         profile_image_url: data.profile_image_url || null,
       }

@@ -66,6 +66,23 @@ export const listingsService = {
   },
 
   /**
+   * Obtiene un listing específico del usuario autenticado.
+   * Útil para editar publicaciones inactivas o rechazadas.
+   *
+   * @param {number} listingId - ID del listing
+   * @returns {Promise<Object>} Datos completos del listing
+   */
+  getMyListingById: async (listingId) => {
+    try {
+      // Usar el endpoint específico /listings/me/{id}
+      const { data } = await apiClient.get(`/listings/me/${listingId}`)
+      return data
+    } catch (error) {
+      throw error
+    }
+  },
+
+  /**
    * Crea un nuevo listing.
    *
    * @param {Object} listingData - Datos del listing a crear
@@ -114,6 +131,24 @@ export const listingsService = {
   delete: async (listingId) => {
     try {
       await apiClient.delete(`/listings/${listingId}`)
+    } catch (error) {
+      throw error
+    }
+  },
+
+  /**
+   * Reactiva un listing inactivo.
+   * Cambia el status a PENDING para re-aprobación.
+   *
+   * @param {number} listingId - ID del listing
+   * @returns {Promise<Object>} Listing reactivado
+   */
+  reactivate: async (listingId) => {
+    try {
+      const { data } = await apiClient.patch(`/listings/${listingId}`, {
+        status: 'PENDING',
+      })
+      return data
     } catch (error) {
       throw error
     }

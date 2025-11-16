@@ -47,13 +47,18 @@ class UserRead(BaseModel):
         description="Email del usuario (único)"
     )
     full_name: Optional[str] = Field(
-        None, 
-        max_length=255, 
+        None,
+        max_length=255,
         description="Nombre completo del usuario"
     )
     profile_image_url: Optional[str] = Field(
         None,
         description="URL de la imagen de perfil en S3"
+    )
+    bio: Optional[str] = Field(
+        None,
+        max_length=1000,
+        description="Biografía del vendedor - información pública sobre el negocio"
     )
     role: UserRoleEnum = Field(
         ..., 
@@ -95,8 +100,9 @@ class UserPublic(BaseModel):
     user_id: UUID
     full_name: Optional[str] = None
     profile_image_url: Optional[str] = None
+    bio: Optional[str] = None
     role: UserRoleEnum
-    
+
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -120,21 +126,27 @@ class UserUpdate(BaseModel):
         ```
     """
     full_name: Optional[str] = Field(
-        None, 
-        max_length=255, 
+        None,
+        max_length=255,
         description="Nombre completo del usuario"
     )
     profile_image_url: Optional[str] = Field(
         None,
         description="URL de la imagen de perfil en S3"
     )
-    
+    bio: Optional[str] = Field(
+        None,
+        max_length=1000,
+        description="Biografía del vendedor - información pública sobre el negocio"
+    )
+
     model_config = ConfigDict(
         from_attributes=True,
         json_schema_extra={
             "example": {
                 "full_name": "Juan Carlos Pérez López",
-                "profile_image_url": "https://s3.amazonaws.com/bucket/profile/user123.jpg"
+                "profile_image_url": "https://s3.amazonaws.com/bucket/profile/user123.jpg",
+                "bio": "Vendo productos reciclados y artesanías hechas a mano"
             }
         }
     )
@@ -163,12 +175,13 @@ class UserAdminUpdate(BaseModel):
         None,
         description="URL de la imagen de perfil en S3"
     )
+    bio: Optional[str] = Field(None, max_length=1000)
     role: Optional[UserRoleEnum] = Field(
-        None, 
+        None,
         description="Rol del usuario (solo admins pueden cambiar)"
     )
     status: Optional[UserStatusEnum] = Field(
-        None, 
+        None,
         description="Estado del usuario (solo admins pueden cambiar)"
     )
     

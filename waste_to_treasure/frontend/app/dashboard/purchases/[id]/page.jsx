@@ -1,15 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import PurchaseDetails from '@/components/dashboard/PurchaseDetails';
 import { ordersService } from '@/lib/api/orders';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
 
 export default function PurchaseDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const orderId = params.id;
-  
+
   const [order, setOrder] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -58,5 +59,16 @@ export default function PurchaseDetailPage() {
     );
   }
 
-  return <PurchaseDetails order={order} />;
+  return (
+    <div>
+      <button
+        onClick={() => router.push('/dashboard/purchases')}
+        className="mb-6 flex items-center gap-2 text-gray-600 hover:text-primary-600 transition-colors"
+      >
+        <ArrowLeft className="w-5 h-5" />
+        <span>Volver a mis compras</span>
+      </button>
+      <PurchaseDetails order={order} />
+    </div>
+  );
 }

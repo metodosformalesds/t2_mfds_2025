@@ -130,8 +130,7 @@ export default function ProfileForm() {
       const profileUpdateData = {
         full_name: formData.fullName,
         profile_image_url: profileImageUrl,
-        // TODO: Agregar bio cuando esté disponible en el backend
-        // bio: formData.bio,
+        bio: formData.bio,
       };
 
       await updateProfile(profileUpdateData);
@@ -313,7 +312,31 @@ export default function ProfileForm() {
           <p className="text-sm text-gray-600 mb-4 font-inter">
             Describe brevemente tu negocio o lo que vendes
           </p>
+
+          {/* Mostrar BIO actual */}
+          {profile?.bio && (
+            <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+              <p className="text-xs font-semibold text-gray-600 mb-2 font-inter uppercase">
+                BIO actual (visible al público)
+              </p>
+              <p className="text-gray-700 font-inter whitespace-pre-wrap">
+                {profile.bio}
+              </p>
+            </div>
+          )}
+
+          {!profile?.bio && (
+            <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+              <p className="text-sm text-amber-700 font-inter">
+                No tienes una BIO configurada. Los compradores no verán información adicional sobre ti.
+              </p>
+            </div>
+          )}
+
           <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2 font-inter">
+              Actualizar BIO
+            </label>
             <textarea
               name="bio"
               value={formData.bio}

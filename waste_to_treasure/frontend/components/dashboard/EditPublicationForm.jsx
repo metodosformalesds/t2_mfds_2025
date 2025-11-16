@@ -31,21 +31,21 @@ export default function EditPublicationForm({ listingId }) {
       try {
         setIsLoading(true)
         setError(null)
-        
-        // Validar que el ID sea válido
-        if (!listingId || listingId === 'undefined' || listingId === 'null') {
-          setError('ID de publicación inválido')
-          setIsLoading(false)
-          return
-        }
-        
-        const listing = await listingsService.getById(listingId)
-        
-        // Validar que el listing existe
-        if (!listing) {
-          setError('Publicación no encontrada')
-          setIsLoading(false)
-          return
+
+        console.log('[EditForm] Intentando cargar listing ID:', listingId)
+        console.log('[EditForm] Tipo de listingId:', typeof listingId)
+
+        // Intentar primero obtener desde las publicaciones del usuario
+        // Esto permite editar publicaciones inactivas o rechazadas
+        let listing
+        try {
+          listing = await listingsService.getMyListingById(listingId)
+          console.log('[EditForm] Listing obtenido desde /listings/me:', listing)
+        } catch (err) {
+          // Si falla, intentar con el endpoint público (para publicaciones activas)
+          console.log('[EditForm] Intentando con endpoint público...')
+          listing = await listingsService.getById(listingId)
+          console.log('[EditForm] Listing obtenido desde endpoint público:', listing)
         }
 
         setFormData({
@@ -53,7 +53,7 @@ export default function EditPublicationForm({ listingId }) {
           description: listing.description || '',
           price: listing.price || '',
           price_unit: listing.price_unit || '',
-          quantity: listing.quantity || 0,
+          quantity: listing.quantity || listing.available_quantity || 0,
           origin_description: listing.origin_description || '',
         })
         setOriginalData(listing)
@@ -274,6 +274,68 @@ export default function EditPublicationForm({ listingId }) {
         </div>
       )}
 
+      {/* Mensaje informativo para publicaciones rechazadas */}
+      {originalData?.status === 'REJECTED' && (
+        <div className="space-y-4">
+          {/* Banner de estado rechazado */}
+          <div className="bg-red-50 border-2 border-red-300 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-red-900 font-bold font-poppins text-lg mb-1">
+                  Publicación Rechazada
+                </p>
+                <p className="text-red-800 font-inter text-sm">
+                  Esta publicación fue rechazada por un administrador. Revisa la razón del rechazo a continuación y realiza las correcciones necesarias.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Apartado de razón de rechazo */}
+          {originalData?.rejection_reason ? (
+            <div className="bg-white border-2 border-red-300 rounded-lg p-6 shadow-md">
+              <div className="flex items-start gap-3 mb-3">
+                <div className="flex-shrink-0 w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                  <AlertCircle className="w-6 h-6 text-red-600" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-red-900 font-bold font-poppins text-base mb-1">
+                    Razón del Rechazo
+                  </h4>
+                  <p className="text-gray-600 font-inter text-xs">
+                    Proporcionada por el administrador
+                  </p>
+                </div>
+              </div>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 ml-13">
+                <p className="text-red-900 font-inter text-base leading-relaxed whitespace-pre-wrap">
+                  {originalData.rejection_reason}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-gray-50 border border-gray-300 rounded-lg p-4">
+              <p className="text-gray-600 font-inter text-sm text-center italic">
+                No se proporcionó una razón específica para el rechazo
+              </p>
+            </div>
+          )}
+
+          {/* Mensaje de acción */}
+          <div className="bg-blue-50 border border-blue-300 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center mt-0.5">
+                <span className="text-white text-xs font-bold">i</span>
+              </div>
+              <p className="text-blue-900 font-inter text-sm">
+                <span className="font-semibold">Próximos pasos:</span> Realiza las correcciones sugeridas y guarda los cambios. Tu publicación se enviará automáticamente a revisión nuevamente.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Formulario */}
       <div className="bg-white rounded-lg shadow-md p-6">
         <h3 className="text-xl font-semibold font-poppins text-gray-900 mb-6">
@@ -416,16 +478,6 @@ export default function EditPublicationForm({ listingId }) {
             </Link>
           </div>
         </form>
-      </div>
-
-      {/* Información adicional */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h3 className="font-semibold text-blue-900 mb-1 font-inter">
-          ℹ️ Información importante
-        </h3>
-        <p className="text-sm text-blue-700 font-inter">
-          Los cambios en la publicación pueden requerir una nueva revisión por parte del equipo de moderación dependiendo de las modificaciones realizadas.
-        </p>
       </div>
     </div>
   )

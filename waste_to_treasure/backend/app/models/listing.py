@@ -170,7 +170,13 @@ class Listing(BaseModel):
         nullable=True,
         comment="UUID del administrador que aprobó la publicación"
     )
-    
+
+    rejection_reason: Mapped[Optional[str]] = mapped_column(
+        Text,
+        nullable=True,
+        comment="Razón por la cual la publicación fue rechazada (proporcionada por admin)"
+    )
+
     # RELACIONES
     seller: Mapped["User"] = relationship(
         "User",

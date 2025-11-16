@@ -85,6 +85,11 @@ class User(BaseModel):
         nullable=True,
         comment="URL de la imagen de perfil del usuario en S3"
     )
+    bio: Mapped[Optional[str]] = mapped_column(
+        String(1000),
+        nullable=True,
+        comment="Biografía del vendedor - información pública sobre el negocio"
+    )
     role: Mapped[UserRoleEnum] = mapped_column(
         SQLEnum(UserRoleEnum, name="user_role_enum", create_constraint=True),
         nullable=False,

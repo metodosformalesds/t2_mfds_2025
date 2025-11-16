@@ -98,6 +98,7 @@ class ListingRead(ListingBase):
     seller: Optional[UserPublic] = None
     status: ListingStatusEnum
     approved_by_admin_id: Optional[UUID] = None
+    rejection_reason: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
