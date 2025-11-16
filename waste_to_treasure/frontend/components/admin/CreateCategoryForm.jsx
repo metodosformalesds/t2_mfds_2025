@@ -5,7 +5,7 @@ import { ChevronDown } from 'lucide-react'
 
 export default function CreateCategoryForm({ onSubmit }) {
   const [name, setName] = useState('')
-  const [type, setType] = useState('Material') // Valor por defecto
+  const [type, setType] = useState('MATERIAL') // Valor por defecto (usar enum del backend)
 
   const handleSubmit = e => {
     e.preventDefault()
@@ -56,8 +56,8 @@ export default function CreateCategoryForm({ onSubmit }) {
             onChange={e => setType(e.target.value)}
             className="w-full appearance-none rounded-xl border border-neutral-900 bg-white px-4 py-2.5 pr-10 font-inter text-neutral-900/70 focus:ring-2 focus:ring-primary-500"
           >
-            <option value="Material">Material</option>
-            <option value="Producto">Producto</option>
+            <option value="MATERIAL">Material</option>
+            <option value="PRODUCT">Producto</option>
           </select>
           <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-900" />
         </div>

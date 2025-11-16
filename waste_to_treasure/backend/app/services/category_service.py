@@ -290,8 +290,11 @@ async def get_categories(
     Returns:
         Tupla (lista de categorías, total de registros).
     """
-    # Construir query base
-    stmt = select(Category)
+    # Construir query base con carga eager de listings y children para contar
+    stmt = select(Category).options(
+        selectinload(Category.listings),
+        selectinload(Category.children)
+    )
     
     # Aplicar filtros
     filters = []
@@ -311,7 +314,9 @@ async def get_categories(
         stmt = stmt.where(and_(*filters))
     
     # Contar total (antes de paginación)
-    count_stmt = select(func.count()).select_from(stmt.subquery())
+    count_stmt = select(func.count()).select_from(
+        select(Category).where(and_(*filters) if filters else True).subquery()
+    )
     count_result = await db.execute(count_stmt)
     total = count_result.scalar() or 0
     

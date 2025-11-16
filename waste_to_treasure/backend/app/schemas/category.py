@@ -104,6 +104,18 @@ class CategoryRead(CategoryInDB):
         None,
         description="Ruta completa en la jerarquía (ej: 'Electrónica > Móviles')"
     )
+    
+    # Campos de conteo para validación en frontend
+    listing_count: int = Field(
+        0,
+        ge=0,
+        description="Número de publicaciones asociadas a esta categoría"
+    )
+    children_count: int = Field(
+        0,
+        ge=0,
+        description="Número de subcategorías hijas"
+    )
 
 
 class Category(CategoryInDB):

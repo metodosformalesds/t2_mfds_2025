@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { ChevronDown, X } from 'lucide-react'
 
 export default function EditCategoryModal({
@@ -9,19 +9,9 @@ export default function EditCategoryModal({
   category,
   onUpdate,
 }) {
-  const [newName, setNewName] = useState('')
-  const [newType, setNewType] = useState('Material')
-
-  // Sincronizar estado del formulario cuando la categoría seleccionada cambia
-  useEffect(() => {
-    if (category) {
-      // --- INICIO DE LA CORRECCIÓN ---
-      // Aseguramos que el estado NUNCA sea undefined, incluso si category.name es nulo/undefined
-      setNewName(category.name || '')
-      setNewType(category.type || 'Material')
-      // --- FIN DE LA CORRECCIÓN ---
-    }
-  }, [category])
+  // Use lazy initialization - el componente se resetea cuando cambia la key
+  const [newName, setNewName] = useState(() => category?.name || '')
+  const [newType, setNewType] = useState(() => (category?.type || 'MATERIAL').toUpperCase())
 
   const handleSubmit = e => {
     e.preventDefault()
@@ -111,8 +101,8 @@ export default function EditCategoryModal({
                 onChange={e => setNewType(e.target.value)}
                 className="w-full appearance-none rounded-xl border border-neutral-900 bg-white px-4 py-2.5 pr-10 font-inter text-neutral-900/70 focus:ring-2 focus:ring-primary-500"
               >
-                <option value="Material">Material</option>
-                <option value="Producto">Producto</option>
+                <option value="MATERIAL">Material</option>
+                <option value="PRODUCT">Producto</option>
               </select>
               <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-900" />
             </div>

@@ -157,8 +157,27 @@ async def get_categories(
     # Calcular página actual
     page = (skip // limit) + 1 if limit > 0 else 1
     
+    # Convertir a CategoryRead y agregar conteos
+    items_with_counts = []
+    for category in categories:
+        # Crear diccionario con todos los datos de la categoría
+        category_dict = {
+            "category_id": category.category_id,
+            "name": category.name,
+            "slug": category.slug,
+            "type": category.type,
+            "parent_category_id": category.parent_category_id,
+            "created_at": category.created_at,
+            "updated_at": category.updated_at,
+            "full_path": getattr(category, 'full_path', None),
+            # Añadir conteos de listings y children
+            "listing_count": len(category.listings) if hasattr(category, 'listings') and category.listings else 0,
+            "children_count": len(category.children) if hasattr(category, 'children') and category.children else 0
+        }
+        items_with_counts.append(CategoryRead(**category_dict))
+    
     return CategoryList(
-        items=categories,
+        items=items_with_counts,
         total=total,
         page=page,
         page_size=limit

@@ -23,7 +23,16 @@ export const categoriesService = {
    */
   getAll: async (params = {}) => {
     try {
-      const { data } = await apiClient.get('/categories', { params })
+      // Normalizar filtro type si viene en params
+      const normalizedParams = { ...params }
+      if (typeof normalizedParams.type === 'string') {
+        const t = normalizedParams.type.trim().toLowerCase()
+        if (t === 'material' || t === 'materiales') normalizedParams.type = 'MATERIAL'
+        else if (t === 'producto' || t === 'productos' || t === 'product') normalizedParams.type = 'PRODUCT'
+        else normalizedParams.type = normalizedParams.type.toUpperCase()
+      }
+
+      const { data } = await apiClient.get('/categories', { params: normalizedParams })
       return data
     } catch (error) {
       throw error
@@ -70,7 +79,20 @@ export const categoriesService = {
    */
   create: async (categoryData) => {
     try {
-      const { data } = await apiClient.post('/categories', categoryData)
+      // Normalizar el tipo a valores esperados por el backend
+      const normalized = { ...categoryData }
+      if (typeof normalized.type === 'string') {
+        const t = normalized.type.trim().toLowerCase()
+        if (t === 'material' || t === 'materiales') normalized.type = 'MATERIAL'
+        else if (t === 'producto' || t === 'productos' || t === 'product') normalized.type = 'PRODUCT'
+        else normalized.type = normalized.type.toUpperCase()
+      }
+
+      const { data } = await apiClient.post('/categories', normalized)
+      // Debug: show normalized type being sent to backend
+      try {
+        console.debug('[categoriesService.create] Enviando tipo normalizado:', normalized.type)
+      } catch (e) { /* ignore in older environments */ }
       return data
     } catch (error) {
       throw error
@@ -86,7 +108,16 @@ export const categoriesService = {
    */
   update: async (categoryId, updates) => {
     try {
-      const { data } = await apiClient.patch(`/categories/${categoryId}`, updates)
+      // Normalizar el tipo si se envía en updates
+      const normalized = { ...updates }
+      if (typeof normalized.type === 'string') {
+        const t = normalized.type.trim().toLowerCase()
+        if (t === 'material' || t === 'materiales') normalized.type = 'MATERIAL'
+        else if (t === 'producto' || t === 'productos' || t === 'product') normalized.type = 'PRODUCT'
+        else normalized.type = normalized.type.toUpperCase()
+      }
+
+      const { data } = await apiClient.patch(`/categories/${categoryId}`, normalized)
       return data
     } catch (error) {
       throw error
