@@ -6,11 +6,7 @@ import ReportModal from '@/components/reports/ReportModal'
 
 export default function PricingCard({ listing, onAddToCart }) {
   const [quantity, setQuantity] = useState(1)
-<<<<<<< HEAD
-  const [isReportModalOpen, setIsReportModalOpen] = useState(false)
-=======
   const [isAddingToCart, setIsAddingToCart] = useState(false)
->>>>>>> develop
 
   const price = parseFloat(listing?.price || 0)
   const priceUnit = listing?.price_unit || 'unidad'
