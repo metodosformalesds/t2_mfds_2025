@@ -1,5 +1,6 @@
 import { Poppins, Roboto, Inter } from 'next/font/google'
 import { AuthProvider } from '@/context/AuthContext'
+import { AmplifyProvider } from '@/lib/AmplifyProvider'
 import '../styles/global.css'
 
 const poppins = Poppins({
@@ -42,7 +43,9 @@ export default function RootLayout({ children }) {
       --- FIN DE LA CORRECCIÓN ---
       */}
       <body className="font-inter antialiased bg-neutral-75">
-        <AuthProvider>{children}</AuthProvider>
+        <AmplifyProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </AmplifyProvider>
       </body>
     </html>
   )

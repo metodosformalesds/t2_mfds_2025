@@ -6,11 +6,8 @@ import ReportModal from '@/components/reports/ReportModal'
 
 export default function PricingCard({ listing, onAddToCart }) {
   const [quantity, setQuantity] = useState(1)
-<<<<<<< HEAD
   const [isReportModalOpen, setIsReportModalOpen] = useState(false)
-=======
   const [isAddingToCart, setIsAddingToCart] = useState(false)
->>>>>>> develop
 
   const price = parseFloat(listing?.price || 0)
   const priceUnit = listing?.price_unit || 'unidad'
@@ -85,13 +82,12 @@ export default function PricingCard({ listing, onAddToCart }) {
         {isAddingToCart ? 'Agregando...' : 'AGREGAR AL CARRITO'}
       </button>
 
-      {isProduct ? (
-        <button className="mb-6 w-full rounded-lg border border-primary-500 bg-white px-6 py-3 font-inter text-base font-medium text-primary-500 transition-colors hover:bg-primary-50">
-          Gestionar mi carrito
-        </button>
-
       {isProduct && (
         <>
+          <button className="mb-6 w-full rounded-lg border border-primary-500 bg-white px-6 py-3 font-inter text-base font-medium text-primary-500 transition-colors hover:bg-primary-50">
+            Gestionar mi carrito
+          </button>
+
           <div className="mb-4 space-y-3 border-t border-neutral-200 pt-4">
             <h4 className="font-inter text-sm font-semibold text-neutral-900">
               Políticas de este producto
@@ -124,9 +120,18 @@ export default function PricingCard({ listing, onAddToCart }) {
             </button>
           </div>
 
-          <button className="flex w-full items-center justify-center gap-2 font-inter text-sm text-red-600 transition-colors hover:text-red-700">
+          <button
+            onClick={() => setIsReportModalOpen(true)}
+            className="flex w-full items-center justify-center gap-2 font-inter text-sm text-red-600 transition-colors hover:text-red-700"
+          >
             🚩 Reportar
           </button>
+
+          <ReportModal
+            isOpen={isReportModalOpen}
+            onClose={() => setIsReportModalOpen(false)}
+            listingId={listing?.listing_id}
+          />
         </>
       )}
     </div>
