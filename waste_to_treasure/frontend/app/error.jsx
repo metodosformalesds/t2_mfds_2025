@@ -1,3 +1,8 @@
+// Autor: Gabriel Florentino Reyes
+// Fecha: 13-11-2025
+// Descripción: Componente de manejo de errores para la aplicación.
+//              Muestra una página de error amigable cuando ocurre un fallo en la aplicación.
+
 'use client'
 
 import { useEffect } from 'react'

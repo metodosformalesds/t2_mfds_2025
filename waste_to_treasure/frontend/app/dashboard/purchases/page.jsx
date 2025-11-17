@@ -1,3 +1,9 @@
+// Autor: Gabriel Florentino Reyes
+// Fecha: 12-11-2025
+// Descripción: Esta página muestra el historial de compras y pedidos del usuario en el dashboard. 
+//              Utiliza el componente PurchasesList para listar todas las compras realizadas, permitiendo al usuario 
+//              revisar el estado y detalles de cada pedido.
+
 import PurchasesList from '@/components/dashboard/PurchasesList';
 
 export const metadata = {

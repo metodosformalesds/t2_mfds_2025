@@ -1,3 +1,11 @@
+# Autor: Gabriel Florentino Reyes
+# Fecha: 08-11-2025
+# Descripción: Servicio de administración para la plataforma.
+#              Contiene lógica de negocio para:
+#               - Gestión y estadísticas de usuarios, listings, órdenes y reportes.
+#               - Moderación de listings y reportes.
+#               - Registro de acciones administrativas (logs).
+
 """
 Servicio para funcionalidades de administración.
 Contiene la lógica de negocio para moderación y estadísticas.
@@ -23,10 +31,20 @@ from app.schemas.admin import (
 
 
 class AdminService:
-    """Servicio para operaciones administrativas"""
-    
-    # ========== USER MANAGEMENT ==========
-    
+    """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Obtiene la lista de usuarios con filtros opcionales de rol, estado y búsqueda por término.
+    Parámetros:
+        db (AsyncSession): Sesión de base de datos asíncrona.
+        role_filter (Optional[str]): Filtrar por rol de usuario.
+        status_filter (Optional[str]): Filtrar por estado de usuario.
+        search_term (Optional[str]): Búsqueda por nombre o email.
+        skip (int): Número de registros a omitir.
+        limit (int): Número máximo de registros a retornar.
+    Retorna:
+        Tuple[List[Dict], int]: Lista de usuarios y total de registros.
+    """
     @staticmethod
     async def get_users_list(
         db: AsyncSession,
@@ -94,8 +112,16 @@ class AdminService:
         
         return items, total
     
-    # ========== STATISTICS ==========
-    
+    """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Obtiene estadísticas generales para el dashboard administrativo.
+    Parámetros:
+        db (AsyncSession): Sesión de base de datos asíncrona.
+    Retorna:
+        Dict: Estadísticas de usuarios, listings, órdenes, reportes y revenue.
+    """
+
     @staticmethod
     async def get_dashboard_stats(db: AsyncSession) -> Dict:
         """Obtener estadísticas generales del dashboard"""
@@ -162,6 +188,16 @@ class AdminService:
             "total_revenue": float(total_revenue)
         }
     
+    """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Obtiene estadísticas detalladas de usuarios por período y categoría.
+    Parámetros:
+        db (AsyncSession): Sesión de base de datos asíncrona.
+    Retorna:
+        Dict: Estadísticas de nuevos usuarios y conteos por rol y estado.
+    """
+    
     @staticmethod
     async def get_user_statistics(db: AsyncSession) -> Dict:
         """Obtener estadísticas de usuarios"""
@@ -204,6 +240,16 @@ class AdminService:
             "by_status": by_status
         }
     
+    """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Obtiene estadísticas de listings incluyendo estado y categoría.
+    Parámetros:
+        db (AsyncSession): Sesión de base de datos asíncrona.
+    Retorna:
+        Dict: Conteos de listings activos, pendientes, rechazados y por categoría.
+    """
+
     @staticmethod
     async def get_listing_statistics(db: AsyncSession) -> Dict:
         """Obtener estadísticas de listings"""
@@ -241,6 +287,16 @@ class AdminService:
             "by_category": by_category
         }
     
+    """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Obtiene estadísticas de órdenes por período y estado, incluyendo revenue.
+    Parámetros:
+        db (AsyncSession): Sesión de base de datos asíncrona.
+    Retorna:
+        Dict: Conteo de órdenes y revenue por día, semana, mes, y por estado.
+    """
+
     @staticmethod
     async def get_order_statistics(db: AsyncSession) -> Dict:
         """Obtener estadísticas de órdenes"""
@@ -302,6 +358,16 @@ class AdminService:
             "by_status": by_status
         }
     
+    """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Obtiene estadísticas de reportes por estado y tipo.
+    Parámetros:
+        db (AsyncSession): Sesión de base de datos asíncrona.
+    Retorna:
+        Dict: Conteo de reportes pendientes, en revisión, resueltos, desestimados y por tipo.
+    """
+
     @staticmethod
     async def get_report_statistics(db: AsyncSession) -> Dict:
         """Obtener estadísticas de reportes"""
@@ -343,7 +409,18 @@ class AdminService:
             "by_type": by_type
         }
     
-    # ========== LISTING MODERATION ==========
+    """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Obtiene la cola de moderación de listings con filtros opcionales de estado.
+    Parámetros:
+        db (AsyncSession): Sesión de base de datos asíncrona.
+        status_filter (Optional[str]): Filtrar por estado del listing.
+        skip (int): Número de registros a omitir.
+        limit (int): Número máximo de registros a retornar.
+    Retorna:
+        Tuple[List[Dict], int]: Lista de listings y total de registros.
+    """
     
     @staticmethod
     async def get_moderation_queue(
@@ -411,6 +488,19 @@ class AdminService:
         
         return items, total
     
+    """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Aprueba un listing pendiente y registra la acción administrativa.
+    Parámetros:
+        db (AsyncSession): Sesión de base de datos asíncrona.
+        listing_id (int): ID del listing a aprobar.
+        admin_user (User): Usuario administrador que aprueba.
+        action_data (ListingModerationAction): Datos de la acción.
+    Retorna:
+        Dict: Información del listing aprobado y log de la acción.
+    """
+
     @staticmethod
     async def approve_listing(
         db: AsyncSession,
@@ -462,6 +552,19 @@ class AdminService:
             "action_log_id": action_log.log_id
         }
     
+    """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Rechaza un listing pendiente, registra la razón y log de la acción.
+    Parámetros:
+        db (AsyncSession): Sesión de base de datos asíncrona.
+        listing_id (int): ID del listing a rechazar.
+        admin_user (User): Usuario administrador que rechaza.
+        action_data (ListingModerationAction): Datos de la acción incluyendo razón.
+    Retorna:
+        Dict: Información del listing rechazado y log de la acción.
+    """
+
     @staticmethod
     async def reject_listing(
         db: AsyncSession,
@@ -519,7 +622,18 @@ class AdminService:
             "action_log_id": action_log.log_id
         }
     
-    # ========== REPORT MODERATION ==========
+    """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Obtiene la cola de reportes con filtros opcionales de estado.
+    Parámetros:
+        db (AsyncSession): Sesión de base de datos asíncrona.
+        status_filter (Optional[str]): Filtrar por estado del reporte.
+        skip (int): Número de registros a omitir.
+        limit (int): Número máximo de registros a retornar.
+    Retorna:
+        Tuple[List[Dict], int]: Lista de reportes y total de registros.
+    """
     
     @staticmethod
     async def get_reports_queue(
@@ -586,6 +700,19 @@ class AdminService:
         
         return items, total
     
+    """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Resuelve o desestima un reporte pendiente y registra la acción administrativa.
+    Parámetros:
+        db (AsyncSession): Sesión de base de datos asíncrona.
+        report_id (int): ID del reporte.
+        admin_user (User): Usuario administrador que procesa el reporte.
+        resolution_data (ReportResolution): Datos de resolución.
+    Retorna:
+        Dict: Información del reporte procesado y log de la acción.
+    """
+
     @staticmethod
     async def resolve_report(
         db: AsyncSession,
@@ -644,8 +771,19 @@ class AdminService:
             "action_log_id": action_log.log_id
         }
     
-    # ========== ADMIN ACTION LOGS ==========
-    
+    """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Obtiene logs de acciones administrativas con filtros opcionales.
+    Parámetros:
+        db (AsyncSession): Sesión de base de datos asíncrona.
+        action_type_filter (Optional[str]): Filtrar por tipo de acción.
+        skip (int): Número de registros a omitir.
+        limit (int): Número máximo de registros a retornar.
+    Retorna:
+        Tuple[List[Dict], int]: Lista de logs y total de registros.
+    """
+
     @staticmethod
     async def get_admin_logs(
         db: AsyncSession,

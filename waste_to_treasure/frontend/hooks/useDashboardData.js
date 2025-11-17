@@ -1,3 +1,9 @@
+// Autor: Gabriel Florentino Reyes
+// Fecha: 13-11-2025
+// Descripción: Hook que obtiene y procesa todos los datos necesarios para el dashboard del usuario, 
+//              incluyendo estadísticas, publicaciones pendientes, productos con bajo stock, top productos y 
+//              actividad reciente.
+
 /**
  * Hook para obtener todos los datos del dashboard.
  * Combina información de listings, orders, sales y notificaciones.

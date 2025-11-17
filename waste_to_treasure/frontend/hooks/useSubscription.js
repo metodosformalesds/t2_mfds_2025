@@ -1,3 +1,9 @@
+// Autor: Gabriel Florentino Reyes
+// Fecha: 13-11-2025
+// Descripción: Hook para gestionar la suscripción del usuario. Permite obtener la suscripción 
+//              activa, crear o cambiar un plan, cancelarla, recargar información y verificar el 
+//              estado del plan.
+
 /**
  * Hook para gestionar la suscripción del usuario.
  * Proporciona funciones para obtener, crear y cancelar suscripciones.

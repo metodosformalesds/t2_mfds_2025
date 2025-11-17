@@ -1,3 +1,8 @@
+// Autor: Gabriel Florentino Reyes
+// Fecha: 13-11-2025
+// Descripción: Hook para gestionar las compras del usuario. Permite obtener las compras paginadas, 
+//              navegar entre páginas y recargar la información actual.
+
 /**
  * Hook para gestionar las compras del usuario.
  * Proporciona funciones para obtener y paginar compras.

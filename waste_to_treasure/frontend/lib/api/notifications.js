@@ -1,3 +1,9 @@
+// Autor: Gabriel Florentino Reyes
+// Fecha: 13-11-2025
+// Descripción: Servicio para manejar operaciones de notificaciones del usuario. Permite obtener 
+//              la lista de notificaciones, marcar una notificación específica como leída y marcar 
+//              todas las notificaciones como leídas.
+
 /**
  * Servicio para operaciones de Notificaciones.
  *

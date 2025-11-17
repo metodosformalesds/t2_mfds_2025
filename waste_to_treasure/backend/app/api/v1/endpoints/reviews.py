@@ -1,3 +1,11 @@
+# Autor: Gabriel Florentino Reyes
+# Fecha: 08-11-2025
+# Descripción: Endpoints para reseñas de productos
+#              Crear reseñas verificadas por compra
+#              Consultar reseñas de publicaciones o vendedores
+#              Listar mis reseñas y obtener estadísticas
+#              Requiere autenticación para crear o listar mis reseñas
+
 """
 Endpoints de la API para Review.
 
@@ -49,11 +57,23 @@ async def create_review(
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_active_user)
 ) -> ReviewRead:
-    """
-    Crea una nueva reseña para un item comprado.
     
-    **Requiere**: Usuario autenticado y haber comprado el item
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción:
+        Crea una nueva reseña para un item comprado. Valida que el usuario haya
+        adquirido el producto y que no exista una reseña previa.
+
+    Parámetros:
+        review_data (ReviewCreate): Información enviada por el usuario.
+        db (AsyncSession): Sesión de base de datos.
+        current_user (User): Usuario autenticado creador de la reseña.
+
+    Retorna:
+        ReviewRead: Datos completos de la reseña creada.
+    """
+    
     logger.info(
         f"Usuario {current_user.user_id} creando reseña para "
         f"order_item {review_data.order_item_id}"
@@ -80,11 +100,23 @@ async def get_listing_reviews(
     limit: int = Query(50, ge=1, le=100, description="Número máximo de registros"),
     db: AsyncSession = Depends(get_async_db)
 ) -> ReviewList:
-    """
-    Lista las reseñas de una publicación específica.
     
-    **No requiere autenticación** (endpoint público)
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción:
+        Lista las reseñas de una publicación específica. Endpoint público.
+
+    Parámetros:
+        listing_id (int): ID de la publicación.
+        skip (int): Cantidad de registros a omitir.
+        limit (int): Límite de registros devueltos.
+        db (AsyncSession): Sesión de base de datos.
+
+    Retorna:
+        ReviewList: Lista paginada de reseñas y promedio de calificación.
+    """
+
     logger.info(
         f"Listando reseñas del listing {listing_id} "
         f"(skip={skip}, limit={limit})"
@@ -124,11 +156,23 @@ async def get_seller_reviews(
     limit: int = Query(50, ge=1, le=100, description="Número máximo de registros"),
     db: AsyncSession = Depends(get_async_db)
 ) -> ReviewList:
-    """
-    Lista las reseñas recibidas por un vendedor.
     
-    **No requiere autenticación** (endpoint público)
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción:
+        Lista las reseñas recibidas por un vendedor. Endpoint público.
+
+    Parámetros:
+        user_id (str): UUID del vendedor.
+        skip (int): Registros a omitir.
+        limit (int): Registros a devolver.
+        db (AsyncSession): Sesión de base de datos.
+
+    Retorna:
+        ReviewList: Lista paginada con promedio de calificación del vendedor.
+    """
+    
     logger.info(
         f"Listando reseñas del vendedor {user_id} "
         f"(skip={skip}, limit={limit})"
@@ -178,11 +222,23 @@ async def get_my_reviews(
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_active_user)
 ) -> ReviewList:
-    """
-    Lista las reseñas creadas por el usuario actual.
     
-    **Requiere**: Usuario autenticado
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción:
+        Lista las reseñas creadas por el usuario autenticado.
+
+    Parámetros:
+        skip (int): Registros a omitir.
+        limit (int): Límite de registros.
+        db (AsyncSession): Sesión de base de datos.
+        current_user (User): Usuario autenticado solicitante.
+
+    Retorna:
+        ReviewList: Lista paginada de reseñas creadas por el usuario.
+    """
+    
     logger.info(
         f"Usuario {current_user.user_id} listando sus reseñas "
         f"(skip={skip}, limit={limit})"
@@ -220,11 +276,22 @@ async def get_listing_review_statistics(
     listing_id: int,
     db: AsyncSession = Depends(get_async_db)
 ) -> ReviewStatistics:
-    """
-    Obtiene estadísticas de reseñas de una publicación.
     
-    **No requiere autenticación** (endpoint público)
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción:
+        Obtiene estadísticas completas de las reseñas de una publicación
+        como promedio, cantidad por estrellas, etc.
+
+    Parámetros:
+        listing_id (int): ID de la publicación.
+        db (AsyncSession): Sesión de base de datos.
+
+    Retorna:
+        ReviewStatistics: Datos estadísticos de las reseñas.
+    """
+    
     logger.info(f"Obteniendo estadísticas de reseñas para listing {listing_id}")
     
     stats = await review_service.get_review_statistics(db, listing_id)
@@ -246,9 +313,21 @@ async def get_seller_review_summary(
     user_id: str,  # UUID como string en path
     db: AsyncSession = Depends(get_async_db)
 ) -> SellerReviewSummary:
+    
     """
-    Obtiene resumen de reseñas de un vendedor.
+    Autor: Gabriel Florentino Reyes
+
+    Descripción:
+        Obtiene un resumen consolidado de las reseñas de un vendedor.
+
+    Parámetros:
+        user_id (str): UUID del vendedor.
+        db (AsyncSession): Sesión de base de datos.
+
+    Retorna:
+        SellerReviewSummary: Resumen de reseñas del vendedor.
     """
+    
     logger.info(f"Obteniendo resumen de reseñas del vendedor {user_id}")
     
     try:

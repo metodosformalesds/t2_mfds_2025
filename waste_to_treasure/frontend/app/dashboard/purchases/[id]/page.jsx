@@ -1,3 +1,9 @@
+// Autor: Gabriel Florentino Reyes
+//Fecha: 12/11/2025
+// Descripción: Este archivo implementa la vista de detalles de una compra específica del usuario. 
+//              Permite mostrar información completa de la orden, manejar estados de carga y error, 
+//              y proporciona un botón para regresar al historial de compras.
+
 'use client';
 
 import { useEffect, useState } from 'react';

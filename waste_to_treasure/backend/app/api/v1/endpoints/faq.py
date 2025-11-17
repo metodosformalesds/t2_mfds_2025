@@ -1,3 +1,12 @@
+# Autor: Gabriel Florentino Reyes
+# Fecha: 08-11-2025
+# Descripción: Endpoints para preguntas frecuentes
+#               Lectura pública de FAQs
+#               Listar FAQs agrupadas por categoría
+#               Consultar FAQ por ID
+#               CRUD de FAQs para administradores
+#               Requiere rol ADMIN para endpoints de gestión
+
 """
 Endpoints de la API para FAQItem.
 
@@ -25,11 +34,6 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-
-# ============================================================================
-# ENDPOINTS PÚBLICOS (lectura)
-# ============================================================================
-
 @router.get(
     "",
     response_model=FAQItemList,
@@ -54,11 +58,19 @@ async def get_faqs_public(
     ),
     db: AsyncSession = Depends(get_async_db)
 ) -> FAQItemList:
-    """
-    Lista las preguntas frecuentes activas (endpoint público).
     
-    **No requiere autenticación**
     """
+    Autor: Gabriel Florentino Reyes
+    Descripción: Obtiene la lista paginada de FAQs activas para lectura pública.
+    Parámetros:
+        skip (int): Cantidad de elementos a omitir.
+        limit (int): Máximo de elementos a devolver.
+        category (str|None): Filtro opcional por categoría.
+        db (AsyncSession): Sesión asíncrona de base de datos.
+    Retorna:
+        FAQItemList: Lista de FAQs activas.
+    """
+    
     logger.info(f"Listando FAQs públicas (category={category})")
     
     faqs, total = await document_service.get_faq_items(
@@ -91,11 +103,16 @@ async def get_faqs_public(
 async def get_faqs_grouped_public(
     db: AsyncSession = Depends(get_async_db)
 ) -> FAQCategoryList:
-    """
-    Obtiene todas las FAQs agrupadas por categoría (endpoint público).
     
-    **No requiere autenticación**
     """
+    Autor: Gabriel Florentino Reyes
+    Descripción: Obtiene todas las FAQs agrupadas por categoría (público).
+    Parámetros:
+        db (AsyncSession): Sesión de base de datos.
+    Retorna:
+        FAQCategoryList: Categorías con sus FAQs correspondientes.
+    """
+    
     logger.info("Obteniendo FAQs agrupadas por categoría")
     
     grouped_faqs = await document_service.get_faqs_grouped_by_category(
@@ -136,11 +153,17 @@ async def get_faq_public(
     faq_id: int,
     db: AsyncSession = Depends(get_async_db)
 ) -> FAQItemRead:
-    """
-    Obtiene una FAQ específica por su ID (endpoint público).
     
-    **No requiere autenticación**
     """
+    Autor: Gabriel Florentino Reyes
+    Descripción: Retorna una FAQ en específico usando su ID (público).
+    Parámetros:
+        faq_id (int): ID de la FAQ.
+        db (AsyncSession): Sesión de base de datos.
+    Retorna:
+        FAQItemRead: FAQ encontrada.
+    """
+    
     logger.info(f"Obteniendo FAQ pública: {faq_id}")
     
     faq = await document_service.get_faq_by_id(
@@ -169,11 +192,18 @@ async def create_faq_admin(
     db: AsyncSession = Depends(get_async_db),
     current_admin: User = Depends(require_admin)
 ) -> FAQItemRead:
-    """
-    Crea una nueva FAQ (solo administradores).
     
-    **Requiere**: Rol ADMIN
     """
+    Autor: Gabriel Florentino Reyes
+    Descripción: Crea una nueva FAQ (solo ADMIN).
+    Parámetros:
+        faq_data (FAQItemCreate): Datos de la nueva FAQ.
+        db (AsyncSession): Sesión asíncrona.
+        current_admin (User): Usuario administrador autenticado.
+    Retorna:
+        FAQItemRead: FAQ creada.
+    """
+    
     logger.info(f"Admin {current_admin.user_id} creando FAQ")
     
     faq = await document_service.create_faq_item(db, faq_data, current_admin)
@@ -199,11 +229,20 @@ async def get_all_faqs_admin(
     db: AsyncSession = Depends(get_async_db),
     current_admin: User = Depends(require_admin)
 ) -> FAQItemList:
-    """
-    Lista todas las FAQs, incluyendo inactivas (solo administradores).
     
-    **Requiere**: Rol ADMIN
     """
+    Autor: Gabriel Florentino Reyes
+    Descripción: Lista todas las FAQs, incluyendo inactivas (solo ADMIN).
+    Parámetros:
+        skip (int): Elementos a omitir.
+        limit (int): Máximos elementos a mostrar.
+        category (str|None): Filtro opcional por categoría.
+        db (AsyncSession): Sesión de base de datos.
+        current_admin (User): Administrador autenticado.
+    Retorna:
+        FAQItemList: Lista completa de FAQs.
+    """
+    
     logger.info(f"Admin {current_admin.user_id} listando todas las FAQs")
     
     faqs, total = await document_service.get_faq_items(
@@ -243,11 +282,19 @@ async def update_faq_admin(
     db: AsyncSession = Depends(get_async_db),
     current_admin: User = Depends(require_admin)
 ) -> FAQItemRead:
-    """
-    Actualiza una FAQ existente (solo administradores).
     
-    **Requiere**: Rol ADMIN
     """
+    Autor: Gabriel Florentino Reyes
+    Descripción: Actualiza una FAQ existente (solo ADMIN).
+    Parámetros:
+        faq_id (int): ID de la FAQ a actualizar.
+        faq_data (FAQItemUpdate): Datos nuevos.
+        db (AsyncSession): Sesión de BD.
+        current_admin (User): Admin autenticado.
+    Retorna:
+        FAQItemRead: FAQ actualizada.
+    """
+    
     logger.info(f"Admin {current_admin.user_id} actualizando FAQ: {faq_id}")
     
     faq = await document_service.update_faq_item(db, faq_id, faq_data, current_admin)
@@ -272,11 +319,18 @@ async def delete_faq_admin(
     db: AsyncSession = Depends(get_async_db),
     current_admin: User = Depends(require_admin)
 ) -> None:
-    """
-    Elimina una FAQ (solo administradores).
     
-    **Requiere**: Rol ADMIN
     """
+    Autor: Gabriel Florentino Reyes
+    Descripción: Elimina una FAQ existente (solo ADMIN).
+    Parámetros:
+        faq_id (int): ID de la FAQ a eliminar.
+        db (AsyncSession): Sesión de BD.
+        current_admin (User): Admin autenticado.
+    Retorna:
+        None: No retorna contenido.
+    """
+    
     logger.info(f"Admin {current_admin.user_id} eliminando FAQ: {faq_id}")
     
     await document_service.delete_faq_item(db, faq_id, current_admin)

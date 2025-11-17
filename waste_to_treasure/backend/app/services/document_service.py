@@ -1,3 +1,14 @@
+# Autor: Gabriel Florentino Reyes
+# Fecha: 08-11-2025
+# Descripción: Servicio de gestión de documentos de la plataforma.
+#              Contiene la lógica de negocio para:
+#               - Crear, actualizar y eliminar documentos legales.
+#               - Crear, actualizar y eliminar FAQs.
+#               - Validar existencia y unicidad de documentos y FAQs.
+#               - Consultar documentos legales por slug y FAQs por categoría.
+#               - Agrupar FAQs por categoría.
+#               - Manejar excepciones y logging de acciones.
+
 """
 Capa de servicio para documentos (Legal y FAQ).
 
@@ -23,20 +34,21 @@ async def create_legal_document(
     document_data: LegalDocumentCreate,
     current_admin: User
 ) -> LegalDocument:
-    """
-    Crea un nuevo documento legal.
     
-    Args:
-        db: Sesión asíncrona de base de datos.
-        document_data: Datos del documento a crear.
-        current_admin: Usuario admin que crea el documento.
-        
-    Returns:
-        Documento creado.
-        
-    Raises:
-        HTTPException 400: Si el slug ya existe.
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Crea un nuevo documento legal en la plataforma.
+
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        document_data (LegalDocumentCreate): Datos del documento a crear.
+        current_admin (User): Usuario administrador que realiza la acción.
+
+    Retorna:
+        LegalDocument: Documento legal creado.
+    """
+    
     logger.info(
         f"Admin {current_admin.user_id} creando documento legal: {document_data.slug}"
     )
@@ -82,18 +94,22 @@ async def get_legal_documents(
     limit: int = 100,
     active_only: bool = True
 ) -> Tuple[List[LegalDocument], int]:
-    """
-    Obtiene lista paginada de documentos legales.
     
-    Args:
-        db: Sesión asíncrona de base de datos.
-        skip: Offset para paginación.
-        limit: Límite de resultados.
-        active_only: Si True, solo retorna documentos activos.
-        
-    Returns:
-        Tupla (lista de documentos, total).
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Obtiene una lista paginada de documentos legales.
+
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        skip (int): Número de registros a omitir (offset).
+        limit (int): Límite de registros a retornar.
+        active_only (bool): Filtra solo documentos activos si es True.
+
+    Retorna:
+        Tuple[List[LegalDocument], int]: Lista de documentos y total.
+    """
+    
     logger.info(f"Obteniendo documentos legales (active_only={active_only})")
     
     stmt = select(LegalDocument)
@@ -120,20 +136,21 @@ async def get_legal_document_by_slug(
     slug: str,
     active_only: bool = True
 ) -> LegalDocument:
-    """
-    Obtiene un documento legal por su slug.
     
-    Args:
-        db: Sesión asíncrona de base de datos.
-        slug: Slug del documento.
-        active_only: Si True, solo retorna si está activo.
-        
-    Returns:
-        Documento encontrado.
-        
-    Raises:
-        HTTPException 404: Si el documento no existe o no está activo.
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Obtiene un documento legal por su slug.
+
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        slug (str): Slug del documento.
+        active_only (bool): Retorna solo si el documento está activo.
+
+    Retorna:
+        LegalDocument: Documento legal encontrado.
+    """
+    
     logger.info(f"Obteniendo documento legal por slug: {slug}")
     
     stmt = select(LegalDocument).where(LegalDocument.slug == slug)
@@ -160,18 +177,22 @@ async def update_legal_document(
     document_data: LegalDocumentUpdate,
     current_admin: User
 ) -> LegalDocument:
-    """
-    Actualiza un documento legal existente.
     
-    Args:
-        db: Sesión asíncrona de base de datos.
-        slug: Slug del documento.
-        document_data: Datos a actualizar.
-        current_admin: Usuario admin.
-        
-    Returns:
-        Documento actualizado.
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Actualiza un documento legal existente.
+
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        slug (str): Slug del documento a actualizar.
+        document_data (LegalDocumentUpdate): Datos a actualizar.
+        current_admin (User): Usuario administrador que realiza la actualización.
+
+    Retorna:
+        LegalDocument: Documento actualizado.
+    """
+    
     logger.info(f"Admin {current_admin.user_id} actualizando documento: {slug}")
     
     document = await get_legal_document_by_slug(db, slug, active_only=False)
@@ -204,14 +225,21 @@ async def delete_legal_document(
     slug: str,
     current_admin: User
 ) -> None:
-    """
-    Elimina un documento legal.
     
-    Args:
-        db: Sesión asíncrona de base de datos.
-        slug: Slug del documento.
-        current_admin: Usuario admin.
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Elimina un documento legal.
+
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        slug (str): Slug del documento a eliminar.
+        current_admin (User): Usuario administrador que realiza la eliminación.
+
+    Retorna:
+        None
+    """
+
     logger.info(f"Admin {current_admin.user_id} eliminando documento: {slug}")
     
     document = await get_legal_document_by_slug(db, slug, active_only=False)
@@ -233,17 +261,21 @@ async def create_faq_item(
     faq_data: FAQItemCreate,
     current_admin: User
 ) -> FAQItem:
-    """
-    Crea un nuevo item de FAQ.
     
-    Args:
-        db: Sesión asíncrona de base de datos.
-        faq_data: Datos de la FAQ a crear.
-        current_admin: Usuario admin que crea la FAQ.
-        
-    Returns:
-        FAQ creada.
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Crea un nuevo item de FAQ.
+
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        faq_data (FAQItemCreate): Datos de la FAQ a crear.
+        current_admin (User): Usuario administrador que crea la FAQ.
+
+    Retorna:
+        FAQItem: FAQ creada.
+    """
+    
     logger.info(
         f"Admin {current_admin.user_id} creando FAQ: {faq_data.question[:50]}..."
     )
@@ -275,19 +307,23 @@ async def get_faq_items(
     active_only: bool = True,
     category: Optional[str] = None
 ) -> Tuple[List[FAQItem], int]:
-    """
-    Obtiene lista paginada de FAQs.
     
-    Args:
-        db: Sesión asíncrona de base de datos.
-        skip: Offset para paginación.
-        limit: Límite de resultados.
-        active_only: Si True, solo retorna FAQs activas.
-        category: Filtro opcional por categoría.
-        
-    Returns:
-        Tupla (lista de FAQs, total).
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Obtiene una lista paginada de FAQs, opcionalmente filtradas por categoría.
+
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        skip (int): Número de registros a omitir (offset).
+        limit (int): Límite de registros a retornar.
+        active_only (bool): Filtra solo FAQs activas si es True.
+        category (Optional[str]): Filtra por categoría si se proporciona.
+
+    Retorna:
+        Tuple[List[FAQItem], int]: Lista de FAQs y total.
+    """
+    
     logger.info(
         f"Obteniendo FAQs (active_only={active_only}, category={category})"
     )
@@ -323,20 +359,21 @@ async def get_faq_by_id(
     faq_id: int,
     active_only: bool = True
 ) -> FAQItem:
-    """
-    Obtiene una FAQ por su ID.
     
-    Args:
-        db: Sesión asíncrona de base de datos.
-        faq_id: ID de la FAQ.
-        active_only: Si True, solo retorna si está activa.
-        
-    Returns:
-        FAQ encontrada.
-        
-    Raises:
-        HTTPException 404: Si la FAQ no existe o no está activa.
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Obtiene una FAQ por su ID.
+
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        faq_id (int): ID de la FAQ.
+        active_only (bool): Retorna solo si la FAQ está activa.
+
+    Retorna:
+        FAQItem: FAQ encontrada.
+    """
+    
     logger.info(f"Obteniendo FAQ por ID: {faq_id}")
     
     stmt = select(FAQItem).where(FAQItem.faq_id == faq_id)
@@ -363,18 +400,22 @@ async def update_faq_item(
     faq_data: FAQItemUpdate,
     current_admin: User
 ) -> FAQItem:
-    """
-    Actualiza una FAQ existente.
     
-    Args:
-        db: Sesión asíncrona de base de datos.
-        faq_id: ID de la FAQ.
-        faq_data: Datos a actualizar.
-        current_admin: Usuario admin.
-        
-    Returns:
-        FAQ actualizada.
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Actualiza una FAQ existente.
+
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        faq_id (int): ID de la FAQ a actualizar.
+        faq_data (FAQItemUpdate): Datos a actualizar.
+        current_admin (User): Usuario administrador que realiza la actualización.
+
+    Retorna:
+        FAQItem: FAQ actualizada.
+    """
+    
     logger.info(f"Admin {current_admin.user_id} actualizando FAQ: {faq_id}")
     
     faq = await get_faq_by_id(db, faq_id, active_only=False)
@@ -407,14 +448,21 @@ async def delete_faq_item(
     faq_id: int,
     current_admin: User
 ) -> None:
-    """
-    Elimina una FAQ.
     
-    Args:
-        db: Sesión asíncrona de base de datos.
-        faq_id: ID de la FAQ.
-        current_admin: Usuario admin.
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Elimina una FAQ existente.
+
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        faq_id (int): ID de la FAQ a eliminar.
+        current_admin (User): Usuario administrador que realiza la eliminación.
+
+    Retorna:
+        None
+    """
+    
     logger.info(f"Admin {current_admin.user_id} eliminando FAQ: {faq_id}")
     
     faq = await get_faq_by_id(db, faq_id, active_only=False)
@@ -436,16 +484,20 @@ async def get_faqs_grouped_by_category(
     db: AsyncSession,
     active_only: bool = True
 ) -> Dict[str, List[FAQItem]]:
-    """
-    Obtiene FAQs agrupadas por categoría.
     
-    Args:
-        db: Sesión asíncrona de base de datos.
-        active_only: Si True, solo FAQs activas.
-        
-    Returns:
-        Diccionario {categoria: [lista de FAQs]}.
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Obtiene todas las FAQs agrupadas por categoría.
+
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        active_only (bool): Filtra solo FAQs activas si es True.
+
+    Retorna:
+        Dict[str, List[FAQItem]]: Diccionario donde la clave es la categoría y el valor la lista de FAQs.
+    """
+    
     logger.info("Obteniendo FAQs agrupadas por categoría")
     
     stmt = select(FAQItem)
