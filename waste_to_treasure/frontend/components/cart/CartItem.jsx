@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: CartItem
+ * Descripción: representa un item individual en el carrito de compras con controles para ajustar cantidad, remover item, mostrar disponibilidad, manejo de errores y notificaciones toast personalizadas
+ */
+
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
@@ -6,15 +12,6 @@ import Image from 'next/image'
 import { Trash2, AlertCircle, CheckCircle, AlertTriangle } from 'lucide-react'
 import QuantitySelector from './QuantitySelector'
 import { useCartStore } from '@/stores/useCartStore'
-
-/**
- * Autor: Alejandro Campa Alonso 215833
- * Componente: CartItem
- * Descripción: representa un item individual en el carrito de compras con controles para ajustar cantidad, remover item, mostrar disponibilidad, manejo de errores y notificaciones toast personalizadas
- */
-
-'use client'
-/* Lines 2-9 omitted */
 import Toast from '../ui/Toast'
 
 export default function CartItem({ item, isUnavailable = false }) {

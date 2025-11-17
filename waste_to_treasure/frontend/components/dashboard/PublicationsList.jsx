@@ -12,9 +12,6 @@ import ConfirmationModal from '@/components/ui/ConfirmationModal'
  * Descripción: tabla de publicaciones del usuario con pestañas de estado (activas, inactivas, rechazadas), acciones para editar, activar, desactivar y eliminar items
  */
 
-'use client'
-/* Lines 2-8 omitted */
-
 // Componente para la Fila de la Tabla
 function PublicationRow({ pub, onEdit, onDeactivate, onReactivate, onDelete, activeTab }) {
   const getStatusBadge = (status) => {
