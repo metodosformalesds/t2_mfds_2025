@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react' // useEffect añadido
 import { useRouter } from 'next/navigation'
 import { useAuthGuard } from '@/hooks/useAdminGuard'
 import { useCheckoutStore } from '@/stores/useCheckoutStore'
-import { useConfirmStore } from '@/stores/useConfirmStore' 
+import { useConfirmStore } from '@/stores/useConfirmStore'
+import { paymentsService } from '@/lib/api/payments'
 import CheckoutStepper from '@/components/checkout/CheckoutStepper'
 import CheckoutSummary from '@/components/checkout/CheckoutSummary'
 import PaymentMethodCard from '@/components/checkout/PaymentMethodCard'
@@ -14,29 +15,74 @@ import { CreditCard, Plus } from 'lucide-react'
 export default function PaymentPage() {
   const { isAuthorized, isLoading } = useAuthGuard()
   const router = useRouter()
-  const openConfirmModal = useConfirmStore(state => state.open) 
+  const openConfirmModal = useConfirmStore(state => state.open)
 
-  const { 
-    paymentMethodId, 
-    setPaymentMethod, 
-    savedCard, // Objeto singular
-    setSavedCard, 
-    clearSavedCard 
+  const {
+    paymentMethodId,
+    setPaymentMethod,
+    savedCard,
+    setSavedCard,
+    clearSavedCard
   } = useCheckoutStore()
-  
+
+  const [savedCards, setSavedCards] = useState([])
+  const [isLoadingCards, setIsLoadingCards] = useState(true)
   const [isAddCardVisible, setIsAddCardVisible] = useState(false)
   const [isCardLoading, setIsCardLoading] = useState(false)
 
-  // Sincronizar la selección si no hay nada seleccionado y SÍ hay una tarjeta guardada
+  // Cargar tarjetas guardadas al montar el componente
   useEffect(() => {
-    if (!paymentMethodId && savedCard) {
-      setPaymentMethod(savedCard.id)
+    if (!isAuthorized) return
+
+    const loadSavedCards = async () => {
+      try {
+        setIsLoadingCards(true)
+        const cards = await paymentsService.listPaymentMethods()
+        setSavedCards(cards)
+
+        // Si hay tarjetas y hay una seleccionada en el store, verificar que existe
+        if (cards.length > 0) {
+          if (savedCard) {
+            const cardExists = cards.find(c => c.id === savedCard.id)
+            if (cardExists) {
+              // La tarjeta guardada en el store existe en Stripe
+              setPaymentMethod(savedCard.id)
+            } else {
+              // La tarjeta del store ya no existe, seleccionar la primera disponible
+              const firstCard = cards[0]
+              const newCard = {
+                id: firstCard.id,
+                last4: firstCard.card.last4,
+                brand: firstCard.card.brand
+              }
+              setSavedCard(newCard)
+              setPaymentMethod(firstCard.id)
+            }
+          } else {
+            // No hay tarjeta seleccionada, seleccionar la primera
+            const firstCard = cards[0]
+            const newCard = {
+              id: firstCard.id,
+              last4: firstCard.card.last4,
+              brand: firstCard.card.brand
+            }
+            setSavedCard(newCard)
+            setPaymentMethod(firstCard.id)
+          }
+        } else {
+          // No hay tarjetas guardadas, mostrar formulario
+          setIsAddCardVisible(true)
+        }
+      } catch (error) {
+        console.error('Error cargando tarjetas:', error)
+        setIsAddCardVisible(true)
+      } finally {
+        setIsLoadingCards(false)
+      }
     }
-    // Si no hay tarjeta guardada, forzar mostrar el formulario
-    if (!savedCard) {
-      setIsAddCardVisible(true)
-    }
-  }, [savedCard, paymentMethodId, setPaymentMethod])
+
+    loadSavedCards()
+  }, [isAuthorized])
 
 
   const handleContinue = () => {
@@ -57,61 +103,72 @@ export default function PaymentPage() {
 
   /**
    * Esta función es llamada por AddCreditCardForm DESPUÉS de que Stripe
-   * ha validado y tokenizado la tarjeta exitosamente.
-   * @param {string} paymentMethodId - El ID real de Stripe (ej. "pm_123...")
+   * ha confirmado el SetupIntent y adjuntado el PaymentMethod al Customer.
+   *
+   * NOTA: Con el flujo de SetupIntent, el PaymentMethod ya está guardado
+   * en Stripe cuando esta función se ejecuta. No necesitamos hacer llamadas
+   * adicionales al backend.
+   *
+   * @param {string} paymentMethodId - El ID del PaymentMethod (pm_xxxxx)
    * @param {string} last4 - Los últimos 4 dígitos
+   * @param {string} brand - La marca de la tarjeta (visa, mastercard, etc.)
    */
-  const handleSaveCard = async (paymentMethodId, last4) => {
-    
-    // --- INICIO DE MODIFICACIÓN: Chequeo de duplicados por last4 ---
-    if (savedCard && savedCard.last4 === last4) {
-      // Si los últimos 4 dígitos coinciden, asumimos que es la misma tarjeta.
-      // No mostramos el loader, solo un modal de confirmación.
+  const handleSaveCard = async (paymentMethodId, last4, brand) => {
+
+    // Chequeo de duplicados por last4
+    const cardExists = savedCards.find(c => c.card.last4 === last4)
+    if (cardExists) {
       openConfirmModal(
         'Tarjeta ya Guardada',
         `La tarjeta que termina en **** ${last4} ya está guardada como tu método de pago.`,
         () => {
-          // Seleccionarla y cerrar el formulario
-          setPaymentMethod(savedCard.id)
+          const newCard = {
+            id: cardExists.id,
+            last4: cardExists.card.last4,
+            brand: cardExists.card.brand
+          }
+          setSavedCard(newCard)
+          setPaymentMethod(cardExists.id)
           setIsAddCardVisible(false)
         },
         { danger: false, confirmText: 'Usar esta tarjeta' }
       )
-      return; // No continuar con la validación de 2 segundos
+      return
     }
-    // --- FIN DE MODIFICACIÓN ---
 
     // Si es una tarjeta nueva, proceder con la validación y carga
-    setIsAddCardVisible(false) 
-    setIsCardLoading(true) 
+    setIsAddCardVisible(false)
+    setIsCardLoading(true)
     const startTime = Date.now()
 
     try {
-      // --- SIMULACIÓN DE GUARDADO EN BACKEND ---
-      await new Promise(resolve => setTimeout(resolve, 500)) 
-      // --- FIN SIMULACIÓN ---
-
+      // El PaymentMethod ya está guardado en Stripe gracias al SetupIntent
       const newCard = {
         id: paymentMethodId,
         last4: last4,
+        brand: brand,
       }
 
-      // Timer de 2 segundos
+      // Timer de 2 segundos para UX
       const elapsedTime = Date.now() - startTime
       if (elapsedTime < 2000) {
         await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime))
       }
-      
+
       setIsCardLoading(false)
 
-      // Reemplazar la tarjeta anterior
+      // Guardar en el store y actualizar la lista
       setSavedCard(newCard)
-      setPaymentMethod(newCard.id) 
-      
+      setPaymentMethod(newCard.id)
+
+      // Recargar la lista de tarjetas desde Stripe
+      const cards = await paymentsService.listPaymentMethods()
+      setSavedCards(cards)
+
       // Mostrar modal de éxito
       openConfirmModal(
         'Pago Guardado',
-        `Tu nueva tarjeta terminada en ${last4} se ha validado y guardado.`,
+        `Tu nueva tarjeta ${brand.toUpperCase()} terminada en ${last4} se ha validado y guardado.`,
         () => {
           router.push('/checkout/confirmation')
         },
@@ -119,24 +176,33 @@ export default function PaymentPage() {
       )
 
     } catch (error) {
-      // --- MANEJO DE ERROR (con timer de 2s) ---
       const elapsedTime = Date.now() - startTime
       if (elapsedTime < 2000) {
         await new Promise(resolve => setTimeout(resolve, 2000 - elapsedTime))
       }
       setIsCardLoading(false)
 
-      // Mostrar modal de error
+      const errorMessage = error.response?.data?.detail || error.message || 'Intenta de nuevo.'
       openConfirmModal(
         'Error al Guardar Tarjeta',
-        `No se pudo guardar tu método de pago. ${error.message || 'Intenta de nuevo.'}`,
-        () => {}, 
+        `No se pudo guardar tu método de pago. ${errorMessage}`,
+        () => {},
         {
           danger: true,
           confirmText: 'Entendido',
         }
       )
     }
+  }
+
+  const handleSelectCard = (card) => {
+    const selectedCard = {
+      id: card.id,
+      last4: card.card.last4,
+      brand: card.card.brand
+    }
+    setSavedCard(selectedCard)
+    setPaymentMethod(card.id)
   }
 
   /**
@@ -147,22 +213,40 @@ export default function PaymentPage() {
       'Eliminar Tarjeta',
       `¿Estás seguro de que deseas eliminar la tarjeta que termina en **** ${last4}?`,
       async () => {
-        setIsCardLoading(true) 
+        setIsCardLoading(true)
 
         try {
-          // --- SIMULACIÓN DE API DELETE ---
-          await new Promise(resolve => setTimeout(resolve, 700))
-          // --- FIN SIMULACIÓN ---
-          
-          clearSavedCard(); // Esto borra savedCard y paymentMethodId
+          // Eliminar la tarjeta en Stripe
+          await paymentsService.deletePaymentMethod(cardId)
 
-          // Forzar que se muestre el formulario de agregar
-          setIsAddCardVisible(true);
+          // Actualizar el estado local
+          const updatedCards = savedCards.filter(c => c.id !== cardId)
+          setSavedCards(updatedCards)
 
-        } catch (error) {
-          openConfirmModal('Error', 'No se pudo eliminar la tarjeta.', () => {}, { danger: true, confirmText: 'Entendido' })
-        } finally {
+          // Si la tarjeta eliminada era la seleccionada
+          if (savedCard?.id === cardId) {
+            if (updatedCards.length > 0) {
+              // Seleccionar la primera tarjeta disponible
+              const firstCard = updatedCards[0]
+              const newCard = {
+                id: firstCard.id,
+                last4: firstCard.card.last4,
+                brand: firstCard.card.brand
+              }
+              setSavedCard(newCard)
+              setPaymentMethod(firstCard.id)
+            } else {
+              // No quedan tarjetas, limpiar y mostrar formulario
+              clearSavedCard()
+              setIsAddCardVisible(true)
+            }
+          }
+
           setIsCardLoading(false)
+        } catch (error) {
+          setIsCardLoading(false)
+          const errorMessage = error.response?.data?.detail || 'No se pudo eliminar la tarjeta.'
+          openConfirmModal('Error', errorMessage, () => {}, { danger: true, confirmText: 'Entendido' })
         }
       },
       {
@@ -172,7 +256,7 @@ export default function PaymentPage() {
     )
   }
 
-  if (isLoading || !isAuthorized) {
+  if (isLoading || !isAuthorized || isLoadingCards) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
@@ -218,30 +302,34 @@ export default function PaymentPage() {
             </h2>
 
             <div className="mt-6 space-y-4">
-              
-              {/* Mostrar la tarjeta guardada si existe */}
-              {savedCard ? (
-                 <PaymentMethodCard
-                  key={savedCard.id}
+
+              {/* Mostrar todas las tarjetas guardadas */}
+              {savedCards.length > 0 && !isAddCardVisible && (
+                <>
+                  {savedCards.map((card) => (
+                    <PaymentMethodCard
+                      key={card.id}
+                      icon={CreditCard}
+                      title={`Tarjeta ${card.card.brand.toUpperCase()}`}
+                      description={`Terminación **** ${card.card.last4}`}
+                      isSelected={paymentMethodId === card.id}
+                      onSelect={() => handleSelectCard(card)}
+                      onDelete={() => handleDeleteCard(card.id, card.card.last4)}
+                    />
+                  ))}
+                </>
+              )}
+
+              {/* Si no hay tarjetas y no está mostrando el formulario */}
+              {savedCards.length === 0 && !isAddCardVisible && (
+                <PaymentMethodCard
                   icon={CreditCard}
                   title="Tarjeta de crédito o débito"
-                  description={`Terminación **** ${savedCard.last4}`}
-                  isSelected={paymentMethodId === savedCard.id}
-                  onSelect={() => setPaymentMethod(savedCard.id)}
-                  onDelete={() => handleDeleteCard(savedCard.id, savedCard.last4)}
+                  description="No hay tarjetas registradas"
+                  isSelected={false}
+                  onSelect={() => setIsAddCardVisible(true)}
+                  isDisabled={true}
                 />
-              ) : (
-                // Mostrar "placeholder" si no hay tarjeta Y el form está oculto
-                !isAddCardVisible && (
-                  <PaymentMethodCard
-                    icon={CreditCard}
-                    title="Tarjeta de crédito o débito"
-                    description="No hay tarjetas registradas"
-                    isSelected={false} 
-                    onSelect={() => setIsAddCardVisible(true)} 
-                    isDisabled={true} 
-                  />
-                )
               )}
 
               {/* Botón para agregar nueva tarjeta */}
@@ -252,7 +340,7 @@ export default function PaymentPage() {
                 >
                   <Plus size={20} />
                   <span className="font-roboto text-xl font-bold">
-                    {savedCard ? 'Usar otra tarjeta' : 'Agregar nueva tarjeta'}
+                    {savedCards.length > 0 ? 'Agregar otra tarjeta' : 'Agregar nueva tarjeta'}
                   </span>
                 </button>
               )}
