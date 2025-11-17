@@ -14,6 +14,10 @@ IMPORTANTE:
 - Cada test usa emails únicos (UUID) para evitar conflictos
 """
 
+# Autor: Oscar Alonso Nava Rivera
+# Fecha: 06/11/2025
+# Descripción: Configuración de pytest y fixtures compartidas para tests de integración y unidad.
+
 import pytest
 import pytest_asyncio
 from unittest.mock import patch
@@ -26,6 +30,8 @@ import os
 @pytest.fixture(scope="session")
 def db_url():
     """
+    Autor: Oscar Alonso Nava Rivera
+
     Obtiene la URL de la base de datos de desarrollo.
     
     Los tests usan la MISMA base de datos que desarrollo.
@@ -39,6 +45,8 @@ def db_url():
 @pytest_asyncio.fixture(scope="function")
 async def cleanup_database(db_url):
     """
+    Autor: Oscar Alonso Nava Rivera
+
     Limpia TODAS las tablas antes de cada test.
     
     Esto asegura que cada test empieza con una base de datos limpia.
@@ -72,6 +80,8 @@ async def cleanup_database(db_url):
 @pytest.fixture
 def mock_cognito_token_payload():
     """
+    Autor: Oscar Alonso Nava Rivera
+
     Mock de payload de JWT de Cognito.
     
     Cada invocación genera un UUID y email únicos para evitar conflictos.
@@ -102,6 +112,8 @@ def mock_cognito_token_payload():
 @pytest.fixture
 def mock_verify_cognito_token(mock_cognito_token_payload):
     """
+    Autor: Oscar Alonso Nava Rivera
+
     Mock de verify_cognito_token para tests.
     
     Retorna directamente el payload sin validar firma.
@@ -115,6 +127,8 @@ def mock_verify_cognito_token(mock_cognito_token_payload):
 @pytest.fixture
 def auth_headers_user(mock_verify_cognito_token):
     """
+    Autor: Oscar Alonso Nava Rivera
+
     Headers de autenticación para usuario normal.
     
     Usage:
@@ -126,6 +140,8 @@ def auth_headers_user(mock_verify_cognito_token):
 @pytest.fixture
 def auth_headers_admin(mock_cognito_token_payload):
     """
+    Autor: Oscar Alonso Nava Rivera
+
     Headers de autenticación para usuario ADMIN.
     
     IMPORTANTE: Crea un usuario con rol ADMIN en BD y mockea Cognito.
@@ -173,8 +189,10 @@ def auth_headers_admin(mock_cognito_token_payload):
 @pytest_asyncio.fixture(scope="function")
 async def client(cleanup_database):
     """
+    Autor: Oscar Alonso Nava Rivera
+
     AsyncClient fixture para tests de API.
-    
+
     Depende de cleanup_database para asegurar que cada test
     empieza con una base de datos limpia.
     """

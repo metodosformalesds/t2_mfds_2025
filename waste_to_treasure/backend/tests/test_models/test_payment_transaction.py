@@ -8,6 +8,9 @@ Cubre:
 - Métodos de negocio
 - Relaciones con Order, Subscription y User
 """
+# Autor: Oscar Alonso Nava Rivera
+# Fecha: 07/11/2025
+# Descripción: Tests para PaymentTransaction (creación, constraints, estados, métodos y relaciones).
 import pytest
 from uuid import uuid4
 from decimal import Decimal
@@ -25,7 +28,11 @@ from app.models.payment_enums import PaymentGatewayEnum, PaymentStatusEnum
 
 
 class TestPaymentTransactionModel:
-    """Tests básicos del modelo PaymentTransaction."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Tests básicos del modelo PaymentTransaction.
+    """
     
     def test_create_transaction_for_order(self, db, user, category):
         """Test crear una transacción para una orden."""
@@ -131,7 +138,11 @@ class TestPaymentTransactionModel:
 
 
 class TestPaymentTransactionConstraints:
-    """Tests de constraints del modelo PaymentTransaction."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Tests de constraints del modelo PaymentTransaction.
+    """
     
     def test_gateway_transaction_id_unique(self, db, user, category):
         """Test que gateway_transaction_id sea único."""
@@ -319,7 +330,11 @@ class TestPaymentTransactionConstraints:
 
 
 class TestPaymentTransactionMethods:
-    """Tests de métodos del modelo PaymentTransaction."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Tests de métodos del modelo PaymentTransaction.
+    """
     
     def test_is_successful_when_completed(self, db, user, category):
         """Test is_successful() cuando status es COMPLETED."""
@@ -611,7 +626,11 @@ class TestPaymentTransactionMethods:
 
 
 class TestPaymentTransactionRelationships:
-    """Tests de relaciones del modelo PaymentTransaction."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Tests de relaciones del modelo PaymentTransaction.
+    """
     
     def test_transaction_belongs_to_order(self, db, user, category):
         """Test relación con Order."""
@@ -750,7 +769,11 @@ class TestPaymentTransactionRelationships:
 
 
 class TestPaymentTransactionStatuses:
-    """Tests de transiciones de estado de PaymentTransaction."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Tests de transiciones de estado de PaymentTransaction.
+    """
     
     def test_pending_to_completed_flow(self, db, user, category):
         """Test flujo PENDING -> COMPLETED."""

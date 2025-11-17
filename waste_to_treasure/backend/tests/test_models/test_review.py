@@ -10,6 +10,10 @@ Conceptos clave:
 - order_item_id debe ser UNIQUE
 """
 
+# Autor: Oscar Alonso Nava Rivera
+# Fecha: 07/11/2025
+# Descripción: Tests para el modelo Review (rating, constraints, y relaciones con order_item, buyer y seller).
+
 import pytest
 from uuid import uuid4
 from decimal import Decimal
@@ -26,10 +30,18 @@ from app.models.category import ListingTypeEnum
 @pytest.mark.models
 @pytest.mark.unit
 class TestReviewModel:
-    """Test Review model creation and validation."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test Review model creation and validation.
+    """
 
     def test_create_review_basic(self, db, user, category):
-        """Test creating a review with required fields."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test creating a review with required fields.
+        """
         # Crear listing
         seller = User(
             user_id=uuid4(),
@@ -96,7 +108,11 @@ class TestReviewModel:
         assert review.seller_id == seller.user_id
 
     def test_review_rating_constraint_min(self, db, user, category):
-        """Test that rating must be >= 1."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that rating must be >= 1.
+        """
         seller = User(
             user_id=uuid4(),
             email="seller2@example.com",
@@ -157,7 +173,11 @@ class TestReviewModel:
             db.commit()
 
     def test_review_rating_constraint_max(self, db, user, category):
-        """Test that rating must be <= 5."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that rating must be <= 5.
+        """
         seller = User(
             user_id=uuid4(),
             email="seller3@example.com",
@@ -218,7 +238,11 @@ class TestReviewModel:
             db.commit()
 
     def test_review_order_item_unique_constraint(self, db, user, category):
-        """Test that order_item_id must be unique (one review per purchase)."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that order_item_id must be unique (one review per purchase).
+        """
         seller = User(
             user_id=uuid4(),
             email="seller4@example.com",
@@ -288,7 +312,11 @@ class TestReviewModel:
             db.commit()
 
     def test_review_comment_optional(self, db, user, category):
-        """Test that comment is optional."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that comment is optional.
+        """
         seller = User(
             user_id=uuid4(),
             email="seller5@example.com",
@@ -355,10 +383,18 @@ class TestReviewModel:
 @pytest.mark.integration
 @pytest.mark.db
 class TestReviewRelationships:
-    """Test Review relationships with other models."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test Review relationships with other models.
+    """
 
     def test_review_belongs_to_order_item(self, db, user, category):
-        """Test review has relationship with order_item."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test review has relationship with order_item.
+        """
         seller = User(
             user_id=uuid4(),
             email="seller6@example.com",
@@ -419,7 +455,11 @@ class TestReviewRelationships:
         assert review.order_item.order_item_id == order_item.order_item_id
 
     def test_review_belongs_to_buyer_and_seller(self, db, user, category):
-        """Test review has relationships with buyer and seller."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test review has relationships with buyer and seller.
+        """
         seller = User(
             user_id=uuid4(),
             email="seller7@example.com",

@@ -12,6 +12,10 @@ Conceptos clave:
 - Métodos: get_full_address(), get_short_address(), validate_postal_code_format()
 """
 
+# Autor: Oscar Alonso Nava Rivera
+# Fecha: 07/11/2025
+# Descripción: Tests unitarios e integración para el modelo Address (validaciones, relaciones y lógica de negocio).
+
 import pytest
 from uuid import uuid4
 from sqlalchemy.exc import IntegrityError
@@ -23,10 +27,18 @@ from app.models.user import User, UserRoleEnum, UserStatusEnum
 @pytest.mark.models
 @pytest.mark.unit
 class TestAddressModel:
-    """Test Address model creation and validation."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test Address model creation and validation.
+    """
 
     def test_create_address_basic(self, db, user):
-        """Test creating an address with required fields."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test creating an address with required fields.
+        """
         address = Address(
             user_id=user.user_id,
             street="123 Main Street",
@@ -50,7 +62,11 @@ class TestAddressModel:
         assert address.created_at is not None
 
     def test_create_address_with_notes(self, db, user):
-        """Test creating an address with additional notes."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test creating an address with additional notes.
+        """
         address = Address(
             user_id=user.user_id,
             street="456 Oak Avenue",
@@ -67,7 +83,11 @@ class TestAddressModel:
         assert address.notes == "Casa azul, portón negro"
 
     def test_create_default_address(self, db, user):
-        """Test creating a default address for user."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test creating a default address for user.
+        """
         address = Address(
             user_id=user.user_id,
             street="789 Pine Road",
@@ -84,7 +104,11 @@ class TestAddressModel:
         assert address.is_default is True
 
     def test_create_address_without_user(self, db):
-        """Test creating an address without user_id (for listings)."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test creating an address without user_id (for listings).
+        """
         address = Address(
             user_id=None,  # Sin usuario (para listing)
             street="Industrial Zone",
@@ -101,7 +125,11 @@ class TestAddressModel:
         assert address.street == "Industrial Zone"
 
     def test_address_country_default_mx(self, db, user):
-        """Test that country defaults to MX."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that country defaults to MX.
+        """
         address = Address(
             user_id=user.user_id,
             street="Test Street",
@@ -120,10 +148,18 @@ class TestAddressModel:
 @pytest.mark.models
 @pytest.mark.unit
 class TestAddressMethods:
-    """Test Address business logic methods."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test Address business logic methods.
+    """
 
     def test_get_full_address(self, db, user):
-        """Test get_full_address returns complete formatted address."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test get_full_address returns complete formatted address.
+        """
         address = Address(
             user_id=user.user_id,
             street="Av. Reforma 123",
@@ -143,7 +179,11 @@ class TestAddressMethods:
         assert "MX" in full
 
     def test_get_short_address(self, db, user):
-        """Test get_short_address returns city and state."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test get_short_address returns city and state.
+        """
         address = Address(
             user_id=user.user_id,
             street="Any Street",
@@ -159,7 +199,11 @@ class TestAddressMethods:
         assert short == "Guadalajara, Jalisco"
 
     def test_validate_postal_code_format_mx(self, db, user):
-        """Test validate_postal_code_format for Mexico (5 digits)."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test validate_postal_code_format for Mexico (5 digits).
+        """
         address = Address(
             user_id=user.user_id,
             street="Test",
@@ -174,7 +218,11 @@ class TestAddressMethods:
         assert address.validate_postal_code_format() is True
 
     def test_validate_postal_code_format_mx_invalid(self, db, user):
-        """Test validate_postal_code_format rejects invalid MX format."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test validate_postal_code_format rejects invalid MX format.
+        """
         # Nota: Este test valida la lógica del método, no el constraint de BD
         # El constraint de BD previene que se guarde postal_code < 4 caracteres
         address = Address(
@@ -191,7 +239,11 @@ class TestAddressMethods:
         assert address.validate_postal_code_format() is False
 
     def test_validate_postal_code_format_us(self, db, user):
-        """Test validate_postal_code_format for USA."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test validate_postal_code_format for USA.
+        """
         address = Address(
             user_id=user.user_id,
             street="123 Main St",
@@ -206,7 +258,11 @@ class TestAddressMethods:
         assert address.validate_postal_code_format() is True
 
     def test_validate_postal_code_format_us_extended(self, db, user):
-        """Test validate_postal_code_format for USA extended ZIP."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test validate_postal_code_format for USA extended ZIP.
+        """
         address = Address(
             user_id=user.user_id,
             street="456 Oak St",
@@ -225,10 +281,18 @@ class TestAddressMethods:
 @pytest.mark.integration
 @pytest.mark.db
 class TestAddressRelationships:
-    """Test Address relationships with other models."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test Address relationships with other models.
+    """
 
     def test_address_belongs_to_user(self, db, user):
-        """Test address has relationship with user."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test address has relationship with user.
+        """
         address = Address(
             user_id=user.user_id,
             street="Relationship Test",
@@ -246,7 +310,11 @@ class TestAddressRelationships:
         assert address.user.email == user.email
 
     def test_user_can_have_multiple_addresses(self, db, user):
-        """Test user can have multiple addresses in address book."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test user can have multiple addresses in address book.
+        """
         addr1 = Address(
             user_id=user.user_id,
             street="Home Address",
@@ -286,7 +354,11 @@ class TestAddressRelationships:
         assert "Warehouse Address" in address_streets
 
     def test_address_cascade_delete_with_user(self, db, user):
-        """Test address is deleted when user is deleted (CASCADE)."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test address is deleted when user is deleted (CASCADE).
+        """
         address = Address(
             user_id=user.user_id,
             street="Cascade Test",
@@ -310,10 +382,18 @@ class TestAddressRelationships:
 @pytest.mark.models
 @pytest.mark.unit
 class TestAddressConstraints:
-    """Test Address database constraints."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test Address database constraints.
+    """
 
     def test_postal_code_minimum_length(self, db, user):
-        """Test that postal_code must be at least 4 characters."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that postal_code must be at least 4 characters.
+        """
         address = Address(
             user_id=user.user_id,
             street="Test",
@@ -328,7 +408,11 @@ class TestAddressConstraints:
             db.commit()
 
     def test_country_iso_format(self, db, user):
-        """Test that country must be 2 uppercase letters."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that country must be 2 uppercase letters.
+        """
         # Este test verifica que el campo country tiene límite de 2 caracteres
         # La BD rechaza valores > 2 caracteres
         address = Address(
@@ -347,7 +431,11 @@ class TestAddressConstraints:
         assert len(address.country) == 2
 
     def test_country_lowercase_invalid(self, db, user):
-        """Test that country must be uppercase."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that country must be uppercase.
+        """
         address = Address(
             user_id=user.user_id,
             street="Test",
@@ -362,7 +450,11 @@ class TestAddressConstraints:
             db.commit()
 
     def test_required_fields(self, db, user):
-        """Test that required fields are enforced."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that required fields are enforced.
+        """
         # Falta city
         address = Address(
             user_id=user.user_id,
@@ -381,10 +473,16 @@ class TestAddressConstraints:
 @pytest.mark.models
 @pytest.mark.unit
 class TestAddressBusinessLogic:
-    """Test Address business logic scenarios."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test Address business logic scenarios.
+    """
 
     def test_only_one_default_address_business_logic(self, db, user):
         """
+        Autor: Oscar Alonso Nava Rivera
+
         Test business logic for ensuring only one default address per user.
         
         Note: La constraint real debe implementarse en lógica de negocio,
@@ -423,7 +521,11 @@ class TestAddressBusinessLogic:
         assert len(addresses) >= 2
 
     def test_address_for_listing_without_user(self, db, category, user):
-        """Test creating address for listing location (no user association)."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test creating address for listing location (no user association).
+        """
         from app.models.listing import Listing, ListingStatusEnum
         from app.models.category import ListingTypeEnum
         from decimal import Decimal
