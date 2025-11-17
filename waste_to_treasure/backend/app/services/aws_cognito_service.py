@@ -15,7 +15,9 @@ CONFIGURACIÓN REQUERIDA:
 
 IMPORTANTE: Este código NO se ejecutará hasta que configures AWS Cognito.
 """
-
+# Autor: Oscar Alonso Nava Rivera
+# Fecha: 06/11/2025
+# Descripción: Integración con AWS Cognito para sincronización y administración de usuarios.
 import logging
 from typing import Dict, Optional, List
 from uuid import UUID
@@ -30,6 +32,9 @@ settings = get_settings()
 
 class CognitoService:
     """
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Servicio para sincronizar y administrar usuarios a través de AWS Cognito.
+
     Servicio para interactuar con AWS Cognito User Pool.
     
     Example:
@@ -70,6 +75,8 @@ class CognitoService:
     
     async def get_user_info(self, user_id: UUID) -> Optional[Dict]:
         """
+        Autor: Oscar Alonso Nava Rivera
+
         Obtiene información de usuario desde Cognito por su UUID (sub).
         
         Args:
@@ -78,18 +85,6 @@ class CognitoService:
         Returns:
             Diccionario con información del usuario o None si no existe.
             
-        Example:
-            ```python
-            user_info = await cognito_service.get_user_info(
-                UUID("550e8400-e29b-41d4-a716-446655440000")
-            )
-            # {
-            #     "sub": "550e8400-e29b-41d4-a716-446655440000",
-            #     "email": "usuario@example.com",
-            #     "email_verified": "true",
-            #     "name": "Juan Pérez"
-            # }
-            ```
         """
         try:
             response = self.cognito_client.admin_get_user(
@@ -128,8 +123,8 @@ class CognitoService:
         attributes: Dict[str, str]
     ) -> bool:
         """
+        Autor: Oscar Alonso Nava Rivera
         Actualiza atributos de usuario en Cognito.
-        
         Args:
             user_id: UUID del usuario.
             attributes: Diccionario con atributos a actualizar.
@@ -140,17 +135,6 @@ class CognitoService:
                 
         Returns:
             True si se actualizó exitosamente.
-            
-        Example:
-            ```python
-            updated = await cognito_service.update_user_attributes(
-                user_id=UUID("550e8400..."),
-                attributes={
-                    "name": "Juan Carlos Pérez López",
-                    "phone_number": "+5215512345678"
-                }
-            )
-            ```
         """
         try:
             # Convertir diccionario a formato de Cognito
@@ -181,6 +165,7 @@ class CognitoService:
         pagination_token: Optional[str] = None
     ) -> Dict:
         """
+        Autor: Oscar Alonso Nava Rivera
         Lista usuarios del User Pool (solo para admins).
         
         Args:
@@ -190,14 +175,6 @@ class CognitoService:
         Returns:
             Diccionario con lista de usuarios y token de paginación.
             
-        Example:
-            ```python
-            result = await cognito_service.list_users(limit=20)
-            # {
-            #     "users": [...],
-            #     "pagination_token": "abc123..."
-            # }
-            ```
         """
         try:
             params = {
@@ -238,6 +215,7 @@ class CognitoService:
     
     async def disable_user(self, user_id: UUID) -> bool:
         """
+        Autor: Oscar Alonso Nava Rivera
         Deshabilita (bloquea) un usuario en Cognito.
         
         Args:
@@ -262,6 +240,7 @@ class CognitoService:
     
     async def enable_user(self, user_id: UUID) -> bool:
         """
+        Autor: Oscar Alonso Nava Rivera
         Habilita un usuario previamente deshabilitado en Cognito.
         
         Args:

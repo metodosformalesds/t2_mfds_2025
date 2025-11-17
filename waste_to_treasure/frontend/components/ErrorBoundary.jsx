@@ -1,3 +1,10 @@
+/**
+ * Autor: Oscar Alonso Nava Rivera
+ * Fecha: 15/11/2025
+ * Componente: ErrorBoundary
+ * Descripción: Componente Error Boundary para capturar errores en React y mostrar UI amigable.
+ */
+
 'use client'
 
 import React from 'react'

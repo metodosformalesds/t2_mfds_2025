@@ -7,6 +7,10 @@ de address book de usuarios.
 
 Este servicio está completamente asíncrono para aprovechar la arquitectura
 de FastAPI y SQLAlchemy 2.0 async.
+
+Autor: Oscar Alonso Nava Rivera
+Fecha: 06/11/2025
+Descripción: Lógica de negocio para CRUD de direcciones y helpers asociados.
 """
 import logging
 from typing import List, Optional, Tuple
@@ -27,8 +31,9 @@ async def create_address(
     current_user: User
 ) -> Address:
     """
-    Crea una nueva dirección para el usuario actual.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Crea una nueva dirección para el usuario actual.
+
     Args:
         db: Sesión asíncrona de base de datos.
         address_data: Datos de la dirección a crear.
@@ -81,8 +86,9 @@ async def get_user_addresses(
     limit: int = 100
 ) -> Tuple[List[Address], int]:
     """
-    Obtiene lista paginada de direcciones de un usuario.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Obtiene lista paginada de direcciones de un usuario.
+
     Args:
         db: Sesión asíncrona de base de datos.
         user_id: ID del usuario propietario.
@@ -124,8 +130,9 @@ async def get_address_by_id(
     current_user: User
 ) -> Address:
     """
-    Obtiene una dirección por su ID.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Obtiene una dirección por su ID y valida ownership.
+
     Args:
         db: Sesión asíncrona de base de datos.
         address_id: ID de la dirección.
@@ -175,8 +182,9 @@ async def update_address(
     current_user: User
 ) -> Address:
     """
-    Actualiza una dirección existente.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Actualiza una dirección existente y valida permisos.
+
     Args:
         db: Sesión asíncrona de base de datos.
         address_id: ID de la dirección a actualizar.
@@ -238,8 +246,9 @@ async def delete_address(
     current_user: User
 ) -> None:
     """
-    Elimina una dirección.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Elimina una dirección y gestiona el default si aplica.
+
     Args:
         db: Sesión asíncrona de base de datos.
         address_id: ID de la dirección a eliminar.
@@ -284,8 +293,9 @@ async def unset_default_addresses(
     exclude_id: Optional[int] = None
 ) -> None:
     """
-    Helper: Desmarca todas las direcciones default de un usuario.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Desmarca todas las direcciones default de un usuario (helper).
+
     Args:
         db: Sesión asíncrona de base de datos.
         user_id: ID del usuario.
@@ -314,8 +324,9 @@ async def set_first_address_as_default(
     user_id: int
 ) -> None:
     """
-    Helper: Marca la primera dirección disponible del usuario como default.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Marca la primera dirección disponible del usuario como default.
+
     Args:
         db: Sesión asíncrona de base de datos.
         user_id: ID del usuario.
@@ -350,8 +361,9 @@ async def get_default_address(
     user_id: int
 ) -> Optional[Address]:
     """
-    Obtiene la dirección default de un usuario.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Obtiene la dirección default de un usuario.
+
     Args:
         db: Sesión asíncrona de base de datos.
         user_id: ID del usuario.

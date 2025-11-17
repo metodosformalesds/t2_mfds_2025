@@ -13,8 +13,9 @@ from app.models.payment_enums import PaymentGatewayEnum
 
 class CheckoutLineItem(BaseModel):
     """
-    Item de línea para Stripe Checkout.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Item de línea para Stripe Checkout.
+
     Representa un producto/material en el checkout.
     """
     name: str = Field(
@@ -62,8 +63,9 @@ class CheckoutLineItem(BaseModel):
 
 class CheckoutRequest(BaseModel):
     """
-    Request para crear sesión de checkout.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Request para crear sesión de checkout.
+
     Usado en: POST /api/v1/payments/checkout
     """
     order_id: int = Field(
@@ -109,8 +111,9 @@ class CheckoutRequest(BaseModel):
 
 class CheckoutSessionResponse(BaseModel):
     """
-    Respuesta con sesión de checkout creada.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Respuesta con sesión de checkout creada.
+
     Contiene la URL de Stripe Checkout donde redirigir al usuario.
     """
     session_id: str = Field(
@@ -143,8 +146,9 @@ class CheckoutSessionResponse(BaseModel):
 
 class PaymentIntentRequest(BaseModel):
     """
-    Request para crear Payment Intent (pago directo).
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Request para crear Payment Intent (pago directo).
+
     Usado cuando el frontend ya capturó payment_method_id con Stripe Elements.
     Usado en: POST /api/v1/payments/process
     """
@@ -190,7 +194,8 @@ class PaymentIntentRequest(BaseModel):
 
 class PaymentIntentResponse(BaseModel):
     """
-    Respuesta con Payment Intent creado.
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Respuesta con Payment Intent creado.
     """
     payment_intent_id: str = Field(
         ...,
@@ -218,8 +223,9 @@ class PaymentIntentResponse(BaseModel):
 
 class PaymentConfirmation(BaseModel):
     """
-    Confirmación de pago exitoso.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Confirmación de pago exitoso.
+
     Respuesta final tras completar el pago.
     """
     success: bool = Field(..., description="Si el pago fue exitoso")
@@ -248,8 +254,9 @@ class PaymentConfirmation(BaseModel):
 
 class PaymentError(BaseModel):
     """
-    Esquema de error de pago.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Esquema de error de pago.
+
     Respuesta cuando el pago falla.
     """
     success: bool = Field(default=False, description="Siempre False")

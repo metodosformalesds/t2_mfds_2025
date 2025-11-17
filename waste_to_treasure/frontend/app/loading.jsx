@@ -1,3 +1,10 @@
+/**
+ * Autor: Oscar Alonso Nava Rivera
+ * Fecha: 08/11/2025
+ * Componente: Loading (loading.jsx)
+ * Descripción: Indicador de carga global de la app.
+ */
+
 export default function Loading() {
   return (
     <div className="min-h-screen flex items-center justify-center">

@@ -2,6 +2,9 @@
 Modelo de base de datos para Order.
 
 Implementa la tabla 'orders'
+Autor: Oscar Alonso Nava Rivera
+Fecha: 04/11/2025
+Descripción: Modelo Order y comportamiento asociado (estados, totals).
 Almacena las órdenes de compra completadas (transacciones).
 """
 import uuid
@@ -163,8 +166,9 @@ class Order(BaseModel):
     # MÉTODOS DE INSTANCIA
     def calculate_totals(self) -> None:
         """
-        Calcula y actualiza subtotal, comisión y total basándose en los order_items.
-        
+        Autor: Oscar Alonso Nava Rivera
+        Descripción: Calcula y actualiza subtotal, comisión y total basándose en los order_items.
+
         Note:
             Este método debe llamarse después de agregar/modificar items.
             La comisión es del 10% según especificación GEMINI.md (RF-25).
@@ -189,8 +193,9 @@ class Order(BaseModel):
     
     def get_item_count(self) -> int:
         """
-        Obtiene el número total de items en la orden.
-        
+        Autor: Oscar Alonso Nava Rivera
+        Descripción: Obtiene el número total de items en la orden.
+
         Returns:
             Cantidad total de items (sumando las cantidades de cada OrderItem).
         """
@@ -198,8 +203,9 @@ class Order(BaseModel):
     
     def can_be_cancelled(self) -> bool:
         """
-        Verifica si la orden puede ser cancelada.
-        
+        Autor: Oscar Alonso Nava Rivera
+        Descripción: Verifica si la orden puede ser cancelada.
+
         Returns:
             True si la orden está en estado PAID (aún no enviada).
         """
@@ -207,8 +213,9 @@ class Order(BaseModel):
     
     def can_be_reviewed(self) -> bool:
         """
-        Verifica si la orden puede ser reseñada.
-        
+        Autor: Oscar Alonso Nava Rivera
+        Descripción: Verifica si la orden puede ser reseñada.
+
         Returns:
             True si la orden está en estado DELIVERED.
         """
@@ -216,8 +223,9 @@ class Order(BaseModel):
     
     def get_status_display(self) -> str:
         """
-        Obtiene el estado de la orden en formato legible.
-        
+        Autor: Oscar Alonso Nava Rivera
+        Descripción: Obtiene el estado de la orden en formato legible.
+
         Returns:
             String con el estado traducido al español.
         """
@@ -231,6 +239,10 @@ class Order(BaseModel):
         return status_map.get(self.order_status, self.order_status.value)
     
     def __repr__(self) -> str:
+        """
+        Autor: Oscar Alonso Nava Rivera
+        Descripción: Representación en cadena de la orden para debugging.
+        """
         return (
             f"Order(order_id={self.order_id!r}, "
             f"buyer_id={self.buyer_id!r}, "

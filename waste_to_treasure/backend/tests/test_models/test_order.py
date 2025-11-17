@@ -10,6 +10,10 @@ Este archivo demuestra cómo probar el modelo Order, incluyendo:
 - Integración con pasarelas de pago (Stripe/PayPal via payment_charge_id)
 """
 
+# Autor: Oscar Alonso Nava Rivera
+# Fecha: 05/11/2025
+# Descripción: Tests para el modelo Order (cálculo de totales, estados, relaciones y lógica de negocio).
+
 import pytest
 from decimal import Decimal
 
@@ -19,10 +23,16 @@ from app.models.order import Order, OrderStatusEnum
 @pytest.mark.models
 @pytest.mark.unit
 class TestOrderModel:
-    """Test Order model creation and validation."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test Order model creation and validation.
+    """
 
     def test_create_order_with_required_fields(self, db, user):
         """
+        Autor: Oscar Alonso Nava Rivera
+
         Test creating an order with required fields.
         
         En el flujo real:
@@ -51,7 +61,11 @@ class TestOrderModel:
         assert order.updated_at is not None
 
     def test_create_order_with_payment_info(self, db, user):
-        """Test creating an order with payment gateway information."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test creating an order with payment gateway information.
+        """
         order = Order(
             buyer_id=user.user_id,
             order_status=OrderStatusEnum.PAID,
@@ -69,7 +83,11 @@ class TestOrderModel:
         assert order.payment_method == "stripe"
 
     def test_order_default_status(self, db, user):
-        """Test that default status is PAID."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that default status is PAID.
+        """
         order = Order(
             buyer_id=user.user_id,
             subtotal=Decimal("100.00"),
@@ -86,10 +104,18 @@ class TestOrderModel:
 @pytest.mark.models
 @pytest.mark.unit
 class TestOrderEnums:
-    """Test Order enum values."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test Order enum values.
+    """
 
     def test_order_status_enum_values(self):
-        """Test that OrderStatusEnum has expected values."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that OrderStatusEnum has expected values.
+        """
         assert OrderStatusEnum.PAID == "PAID"
         assert OrderStatusEnum.SHIPPED == "SHIPPED"
         assert OrderStatusEnum.DELIVERED == "DELIVERED"
@@ -97,7 +123,11 @@ class TestOrderEnums:
         assert OrderStatusEnum.REFUNDED == "REFUNDED"
 
     def test_order_status_transitions(self, db, user):
-        """Test changing order status through different states."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test changing order status through different states.
+        """
         order = Order(
             buyer_id=user.user_id,
             order_status=OrderStatusEnum.PAID,
@@ -122,10 +152,16 @@ class TestOrderEnums:
 @pytest.mark.models
 @pytest.mark.unit
 class TestOrderBusinessLogic:
-    """Test Order business logic methods."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test Order business logic methods.
+    """
 
     def test_calculate_totals_with_10_percent_commission(self, db, user, category):
         """
+        Autor: Oscar Alonso Nava Rivera
+
         Test calculate_totals method with 10% commission.
         
         RF-25: La plataforma cobra 10% de comisión en cada transacción.
@@ -181,7 +217,11 @@ class TestOrderBusinessLogic:
         assert order.total_amount == Decimal("110.00")
 
     def test_get_item_count_with_no_items(self, db, user):
-        """Test get_item_count when order has no items."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test get_item_count when order has no items.
+        """
         order = Order(
             buyer_id=user.user_id,
             order_status=OrderStatusEnum.PAID,
@@ -195,7 +235,11 @@ class TestOrderBusinessLogic:
         assert order.get_item_count() == 0
 
     def test_get_item_count_with_items(self, db, user, category):
-        """Test get_item_count with multiple order items."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test get_item_count with multiple order items.
+        """
         from app.models.listing import Listing, ListingStatusEnum, ListingTypeEnum
         from app.models.order_item import OrderItem
 
@@ -253,7 +297,11 @@ class TestOrderBusinessLogic:
         assert order.get_item_count() == 5
 
     def test_can_be_cancelled_when_paid(self, db, user):
-        """Test that a PAID order can be cancelled."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that a PAID order can be cancelled.
+        """
         order = Order(
             buyer_id=user.user_id,
             order_status=OrderStatusEnum.PAID,
@@ -267,7 +315,11 @@ class TestOrderBusinessLogic:
         assert order.can_be_cancelled() is True
 
     def test_cannot_be_cancelled_when_shipped(self, db, user):
-        """Test that a SHIPPED order cannot be cancelled."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that a SHIPPED order cannot be cancelled.
+        """
         order = Order(
             buyer_id=user.user_id,
             order_status=OrderStatusEnum.SHIPPED,
@@ -281,7 +333,11 @@ class TestOrderBusinessLogic:
         assert order.can_be_cancelled() is False
 
     def test_cannot_be_cancelled_when_delivered(self, db, user):
-        """Test that a DELIVERED order cannot be cancelled."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that a DELIVERED order cannot be cancelled.
+        """
         order = Order(
             buyer_id=user.user_id,
             order_status=OrderStatusEnum.DELIVERED,
@@ -299,10 +355,18 @@ class TestOrderBusinessLogic:
 @pytest.mark.integration
 @pytest.mark.db
 class TestOrderRelationships:
-    """Test Order relationships with other models."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test Order relationships with other models.
+    """
 
     def test_order_belongs_to_buyer(self, db, user):
-        """Test that an order belongs to a buyer (user)."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that an order belongs to a buyer (user).
+        """
         order = Order(
             buyer_id=user.user_id,
             order_status=OrderStatusEnum.PAID,
@@ -318,7 +382,11 @@ class TestOrderRelationships:
         assert order in user.orders
 
     def test_order_can_have_order_items(self, db, user, category):
-        """Test that an order can have multiple order items."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that an order can have multiple order items.
+        """
         from app.models.listing import Listing, ListingStatusEnum, ListingTypeEnum
         from app.models.order_item import OrderItem
 

@@ -10,6 +10,10 @@ Implementa la lógica de negocio para:
 
 Este servicio actúa como capa intermedia entre los endpoints
 y la base de datos, encapsulando toda la lógica de negocio.
+
+Autor: Oscar Alonso Nava Rivera
+Fecha: 08/11/2025
+Descripción: Servicio de negocio para pagos y transacciones.
 """
 import logging
 from typing import Optional, List, Tuple
@@ -35,14 +39,17 @@ logger = logging.getLogger(__name__)
 class PaymentService:
     """
     Servicio para gestión de pagos y transacciones.
-    
+
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Servicio que centraliza la lógica de pagos y transacciones.
+
     Centraliza toda la lógica de negocio relacionada con pagos:
     - CRUD de Payment Customers
     - CRUD de Payment Transactions
     - Validaciones de órdenes
     - Procesamiento de webhooks
     - Reembolsos
-    
+
     Example:
         ```python
         from app.services.payment_service import payment_service

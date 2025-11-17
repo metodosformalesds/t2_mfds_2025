@@ -1,5 +1,13 @@
 'use client';
 
+/**
+ * Autor: Oscar Alonso Nava Rivera
+ * Fecha: 09/11/2025
+ * Componente: VerifyEmailPage (verify-email/page.jsx)
+ * Descripción: Página para verificar el correo electrónico del usuario.
+ */
+'use client';
+ 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';

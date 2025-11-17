@@ -5,6 +5,11 @@ Implementa la tabla 'payment_customers'
 Almacena la relación entre usuarios y sus Customer IDs en pasarelas de pago.
 Permite guardar métodos de pago para compras futuras.
 """
+"""
+Autor: Oscar Alonso Nava Rivera
+Fecha: 07/11/2025
+Descripción: Modelo PaymentCustomer (mapeo de clientes en gateway de pagos).
+"""
 import uuid
 from typing import TYPE_CHECKING, Optional
 

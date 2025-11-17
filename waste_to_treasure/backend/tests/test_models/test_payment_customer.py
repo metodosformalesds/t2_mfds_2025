@@ -7,6 +7,9 @@ Cubre:
 - Métodos de negocio
 - Relaciones con User
 """
+# Autor: Oscar Alonso Nava Rivera
+# Fecha: 07/11/2025
+# Descripción: Tests para el modelo PaymentCustomer (creación, constraints, métodos y relaciones con User).
 import pytest
 from uuid import uuid4
 
@@ -17,7 +20,11 @@ from sqlalchemy.exc import IntegrityError
 
 
 class TestPaymentCustomerModel:
-    """Tests básicos del modelo PaymentCustomer."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Tests básicos del modelo PaymentCustomer.
+    """
     
     def test_create_stripe_customer_basic(self, db, user):
         """Test crear un customer básico de Stripe."""
@@ -84,7 +91,11 @@ class TestPaymentCustomerModel:
 
 
 class TestPaymentCustomerConstraints:
-    """Tests de constraints del modelo PaymentCustomer."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Tests de constraints del modelo PaymentCustomer.
+    """
     
     def test_user_gateway_unique_constraint(self, db, user):
         """Test que un usuario solo pueda tener un customer por gateway."""
@@ -132,7 +143,11 @@ class TestPaymentCustomerConstraints:
 
 
 class TestPaymentCustomerMethods:
-    """Tests de métodos del modelo PaymentCustomer."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Tests de métodos del modelo PaymentCustomer.
+    """
     
     def test_is_stripe_customer(self, db, user):
         """Test método is_stripe_customer()."""
@@ -173,7 +188,11 @@ class TestPaymentCustomerMethods:
 
 
 class TestPaymentCustomerRelationships:
-    """Tests de relaciones del modelo PaymentCustomer."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Tests de relaciones del modelo PaymentCustomer.
+    """
     
     def test_customer_belongs_to_user(self, db, user):
         """Test relación con User."""

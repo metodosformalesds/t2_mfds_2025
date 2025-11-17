@@ -1,3 +1,10 @@
+/**
+ * Autor: Oscar Alonso Nava Rivera
+ * Fecha: 16/11/2025
+ * Componente: Toast
+ * Descripción: Componente para mostrar toasts/notifications en la UI.
+ */
+
 'use client'
 
 import { useEffect } from 'react'

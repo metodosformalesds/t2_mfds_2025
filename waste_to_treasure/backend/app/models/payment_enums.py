@@ -3,6 +3,11 @@ Enums para el sistemas de pagos
 
 Define los tipos de estado y pasarelas de pago
 """
+"""
+Autor: Oscar Alonso Nava Rivera
+Fecha: 07/11/2025
+Descripción: Enums de pagos (gateway, estado, payout, etc.).
+"""
 import enum
 
 class PaymentGatewayEnum(str, enum.Enum):

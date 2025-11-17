@@ -11,6 +11,10 @@ Conceptos clave:
 - Método get_thumbnail_url() para generar miniaturas
 """
 
+# Autor: Oscar Alonso Nava Rivera
+# Fecha: 07/11/2025
+# Descripción: Tests para el modelo ListingImage (creación, constraints, métodos y relaciones).
+
 import pytest
 from sqlalchemy.exc import IntegrityError
 
@@ -23,7 +27,11 @@ from decimal import Decimal
 @pytest.mark.models
 @pytest.mark.unit
 class TestListingImageModel:
-    """Test ListingImage model creation and validation."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test ListingImage model creation and validation.
+    """
 
     def test_create_listing_image_basic(self, db, user, category):
         """Test creating a listing image with required fields."""
@@ -186,7 +194,11 @@ class TestListingImageModel:
 @pytest.mark.models
 @pytest.mark.unit
 class TestListingImageMethods:
-    """Test ListingImage business logic methods."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test ListingImage business logic methods.
+    """
 
     def test_get_thumbnail_url_returns_url(self, db, user, category):
         """Test get_thumbnail_url method returns URL."""
@@ -246,7 +258,11 @@ class TestListingImageMethods:
 @pytest.mark.integration
 @pytest.mark.db
 class TestListingImageRelationships:
-    """Test ListingImage relationships with other models."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test ListingImage relationships with other models.
+    """
 
     def test_image_belongs_to_listing(self, db, user, category):
         """Test that image has proper relationship with listing."""
@@ -385,7 +401,11 @@ class TestListingImageRelationships:
 @pytest.mark.models
 @pytest.mark.unit
 class TestListingImageConstraints:
-    """Test ListingImage database constraints."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test ListingImage database constraints.
+    """
 
     def test_image_requires_listing_id(self, db):
         """Test that listing_id is required."""

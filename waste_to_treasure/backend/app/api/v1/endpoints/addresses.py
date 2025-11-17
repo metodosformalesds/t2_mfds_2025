@@ -1,6 +1,10 @@
 """
 Endpoints de la API para Address.
 
+Autor: Oscar Alonso Nava Rivera
+Fecha: 06/11/2025
+Descripción: Endpoints para Address Book (CRUD)
+
 Implementa operaciones CRUD sobre direcciones físicas de usuarios (Address Book).
 Todos los endpoints requieren autenticación y validan ownership automáticamente.
 """
@@ -48,15 +52,16 @@ async def create_address(
     current_user: User = Depends(get_current_active_user)
 ) -> AddressRead:
     """
-    Crea una nueva dirección para el usuario actual.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Crea una nueva dirección para el usuario actual.
+
     **Requiere**: Usuario autenticado
-    
+
     **Comportamiento**:
     - user_id se asigna automáticamente del usuario autenticado
     - Si is_default=True, se desmarca la anterior dirección default
     - La dirección queda asociada al usuario en su address book
-    
+
     **Ejemplo de request body**:
     ```json
     {
@@ -89,6 +94,9 @@ async def create_address(
         200: {"description": "Lista de direcciones obtenida exitosamente"},
         401: {"description": "No autenticado"},
     }
+    # Autor: Oscar Alonso Nava Rivera
+    # Fecha: 16/11/2025
+    # Descripción: Endpoints para Address Book (CRUD)
 )
 @router.get(
     "/",
@@ -102,18 +110,19 @@ async def get_my_addresses(
     current_user: User = Depends(get_current_active_user)
 ) -> AddressList:
     """
-    Lista las direcciones del usuario actual (address book).
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Lista las direcciones del usuario actual (address book).
+
     **Requiere**: Usuario autenticado
-    
+
     **Ordenamiento**:
     - Dirección default primero
     - Luego por fecha de creación (más recientes primero)
-    
+
     **Paginación**:
     - `skip`: Offset para paginación (default: 0)
     - `limit`: Límite de resultados (default: 50, max: 100)
-    
+
     **Ejemplo de respuesta**:
     ```json
     {
@@ -165,17 +174,18 @@ async def get_address(
     current_user: User = Depends(get_current_active_user)
 ) -> AddressRead:
     """
-    Obtiene una dirección específica por su ID.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Obtiene una dirección específica por su ID.
+
     **Requiere**: Usuario autenticado y ser el owner
-    
+
     **Validaciones**:
     - La dirección debe existir
     - Solo el usuario propietario puede acceder
-    
+
     **Parámetros**:
     - `address_id`: ID de la dirección
-    
+
     **Ejemplo de respuesta**:
     ```json
     {
@@ -220,15 +230,16 @@ async def update_address(
     current_user: User = Depends(get_current_active_user)
 ) -> AddressRead:
     """
-    Actualiza una dirección existente (actualización parcial).
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Actualiza una dirección existente (actualización parcial).
+
     **Requiere**: Usuario autenticado y ser el owner
-    
+
     **Validaciones**:
     - La dirección debe existir
     - Solo el usuario propietario puede modificar
     - Si se marca is_default=True, se desmarca la anterior
-    
+
     **Campos actualizables**:
     - `street`: Calle y número
     - `city`: Ciudad
@@ -237,7 +248,7 @@ async def update_address(
     - `country`: Código de país
     - `notes`: Referencias adicionales
     - `is_default`: Marcar como default
-    
+
     **Ejemplo de request body**:
     ```json
     {
@@ -245,7 +256,7 @@ async def update_address(
         "is_default": true
     }
     ```
-    
+
     **Nota**: Todos los campos son opcionales. Solo se actualizan los campos proporcionados.
     """
     logger.info(f"Usuario {current_user.user_id} actualizando dirección {address_id}")
@@ -275,18 +286,19 @@ async def delete_address(
     current_user: User = Depends(get_current_active_user)
 ) -> None:
     """
-    Elimina una dirección del address book.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Elimina una dirección del address book.
+
     **Requiere**: Usuario autenticado y ser el owner
-    
+
     **Validaciones**:
     - La dirección debe existir
     - Solo el usuario propietario puede eliminar
-    
+
     **Comportamiento especial**:
     - Si la dirección eliminada era la default, automáticamente se marca
       otra dirección del usuario como default (la más reciente)
-    
+
     **Retorna**: 204 No Content (sin cuerpo de respuesta)
     """
     logger.info(f"Usuario {current_user.user_id} eliminando dirección {address_id}")

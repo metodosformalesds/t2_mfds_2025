@@ -3,6 +3,10 @@ Módulo de seguridad y autenticación con AWS Cognito.
 
 Proporciona funciones para validar tokens JWT de Cognito,
 verificación de roles y autorización de recursos.
+
+Autor: Oscar Alonso Nava Rivera
+Fecha: 31/10/2025
+Descripción: Validación de tokens Cognito y utilidades de seguridad.
 """
 import logging
 from typing import Dict
@@ -42,6 +46,9 @@ def verify_cognito_token(token: str) -> Dict:
         - cognito:groups: Grupos del usuario
         - exp: Timestamp de expiración
         
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Verifica firma, expiración y claims del token JWT de Cognito.
+
     Raises:
         HTTPException 401: Si el token es inválido, expirado o tiene claims incorrectos.
         

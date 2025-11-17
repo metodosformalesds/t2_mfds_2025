@@ -3,6 +3,12 @@ import { AuthProvider } from '@/context/AuthContext'
 import { AmplifyProvider } from '@/lib/AmplifyProvider'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import '../styles/global.css'
+/**
+ * Autor: Oscar Alonso Nava Rivera
+ * Fecha: 08/11/2025
+ * Componente: AppLayout (layout.jsx)
+ * Descripción: Layout raíz de la aplicación Next.js.
+ */
 
 const poppins = Poppins({
   weight: ['400', '500', '600', '700'],

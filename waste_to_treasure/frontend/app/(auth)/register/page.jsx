@@ -1,6 +1,13 @@
-'use client'
+/**
+ * Autor: Oscar Alonso Nava Rivera
+ * Fecha: 09/11/2025
+ * Componente: RegisterPage (register/page.jsx)
+ * Descripción: Página de registro de usuario.
+ */
 
-import { useState } from 'react'
+'use client';
+
+import { useState } from 'react';
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff } from 'lucide-react'
