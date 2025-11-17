@@ -16,20 +16,20 @@ from app.schemas.plan import PlanRead # Importamos PlanRead para anidarlo
 class SubscriptionCreate(BaseModel):
     """
     Schema para el body del request POST /subscriptions/subscribe.
-    El cliente debe proveer el ID del plan y un token de pago.
+    El cliente debe proveer el ID del plan y un token de pago o PaymentMethod ID.
     """
     plan_id: int = Field(..., description="ID del plan al que se desea suscribir")
     payment_token: str = Field(
         ...,
-        description="Token de pago generado por el cliente (ej: Stripe, PayPal)",
-        examples=["tok_1PbHi9P9qA9gV3T9aBcDEfG"]
+        description="Token de pago (tok_) o PaymentMethod ID (pm_) de Stripe",
+        examples=["pm_1PbHi9P9qA9gV3T9aBcDEfG", "tok_visa"]
     )
 
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
                 "plan_id": 1,
-                "payment_token": "tok_1PbHi9P9qA9gV3T9aBcDEfG"
+                "payment_token": "pm_1PbHi9P9qA9gV3T9aBcDEfG"
             }
         }
     )
@@ -47,11 +47,11 @@ class SubscriptionRead(BaseModel):
     start_date: datetime
     next_billing_date: datetime
     gateway_sub_id: str = Field(
-        ..., 
+        ...,
         description="ID de la suscripción en la pasarela de pago (Stripe)"
     )
-    
+
     # Relación anidada: Muestra los detalles del plan asociado
     plan: PlanRead = Field(..., description="Detalles del plan asociado")
-    
+
     model_config = ConfigDict(from_attributes=True)

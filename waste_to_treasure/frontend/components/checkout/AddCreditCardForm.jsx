@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useStripe, useElements, CardElement } from '@stripe/react-stripe-js'
+import { paymentsService } from '@/lib/api/payments'
 import FormInput from '@/components/dashboard/FormInput'
 import Checkbox from '@/components/ui/Checkbox'
 
@@ -9,7 +10,6 @@ import Checkbox from '@/components/ui/Checkbox'
  * Opciones de estilo para el Stripe CardElement
  */
 const CARD_ELEMENT_OPTIONS = {
-  // ... (sin cambios)
   style: {
     base: {
       color: '#32325d',
@@ -28,9 +28,17 @@ const CARD_ELEMENT_OPTIONS = {
 }
 
 /**
+ * Componente para agregar tarjeta usando el flujo CORRECTO de Stripe (SetupIntent).
+ *
+ * Flujo:
+ * 1. Backend crea SetupIntent y retorna client_secret
+ * 2. Frontend confirma con stripe.confirmCardSetup()
+ * 3. Stripe adjunta automáticamente el PaymentMethod al Customer
+ * 4. El PaymentMethod queda guardado y reutilizable sin riesgo de quemarse
+ *
  * @param {object} props
- * @param {function} props.onSave - Callback al guardar
- * @param {function | undefined} props.onCancel - Callback al cancelar (si es undefined, no se muestra el botón)
+ * @param {function} props.onSave - Callback al guardar (paymentMethodId, last4, brand)
+ * @param {function | undefined} props.onCancel - Callback al cancelar
  */
 export default function AddCreditCardForm({ onSave, onCancel }) {
   const stripe = useStripe()
@@ -65,33 +73,57 @@ export default function AddCreditCardForm({ onSave, onCancel }) {
     setIsProcessing(true)
 
     try {
-      // 1. Crear un PaymentMethod con Stripe.js
-      const { error: createError, paymentMethod } = await stripe.createPaymentMethod({
-        type: 'card',
-        card: cardElement,
-        billing_details: {
-          name: name,
-        },
-      })
+      // FLUJO CORRECTO: Usar SetupIntent
 
-      if (createError) {
-        throw new Error(createError.message)
+      // 1. Crear SetupIntent en el backend
+      const { client_secret } = await paymentsService.createSetupIntent()
+
+      // 2. Confirmar el SetupIntent con la tarjeta
+      const { error: confirmError, setupIntent } = await stripe.confirmCardSetup(
+        client_secret,
+        {
+          payment_method: {
+            card: cardElement,
+            billing_details: {
+              name: name,
+            },
+          },
+        }
+      )
+
+      if (confirmError) {
+        throw new Error(confirmError.message)
       }
 
-      // 2. Si es exitoso, llamar a onSave 
-      // onSave se encargará de mostrar el modal de carga de 2s
-      onSave(paymentMethod.id, paymentMethod.card.last4)
-      
+      // 3. Stripe ya adjuntó automáticamente el PaymentMethod al Customer
+      // El setupIntent contiene el ID del PaymentMethod creado
+      const paymentMethodId = setupIntent.payment_method
+
+      // Necesitamos obtener los detalles de la tarjeta desde el CardElement
+      // porque setupIntent solo devuelve el ID del PaymentMethod
+      const cardData = elements.getElement(CardElement)
+
+      // Extraer los últimos 4 dígitos y la marca de la tarjeta que el usuario ingresó
+      // Stripe no expone estos datos después de confirmCardSetup, así que los obtenemos
+      // haciendo una llamada al backend para recuperar el PaymentMethod
+      const pmResponse = await paymentsService.listPaymentMethods()
+      const justCreatedPM = pmResponse.find(pm => pm.id === paymentMethodId)
+
+      if (!justCreatedPM) {
+        throw new Error('No se pudo obtener la información de la tarjeta')
+      }
+
+      // 4. Llamar a onSave con los detalles de la tarjeta
+      onSave(justCreatedPM.id, justCreatedPM.card.last4, justCreatedPM.card.brand)
+
       cardElement.clear()
       setName('')
 
     } catch (err) {
-      console.error('Error al crear PaymentMethod:', err)
+      console.error('Error al guardar tarjeta:', err)
       setError(err.message || 'Ocurrió un error. Verifica tus datos.')
-      // Permitir que el usuario intente de nuevo
       setIsProcessing(false)
     }
-    // No usamos 'finally' para que el estado de carga lo controle la página padre
   }
 
   return (
