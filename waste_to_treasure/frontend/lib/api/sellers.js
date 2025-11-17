@@ -1,8 +1,9 @@
 /**
- * Servicio para operaciones con Sellers (Vendedores).
- *
- * Usa los endpoints de users y listings ya que la diferenciación
- * es por tipo de publicación (MATERIAL o PRODUCT).
+ * Autor: Arturo Perez Gonzalez
+ * Fecha: 11/11/2024
+ * Descripción: Servicio API para operaciones de vendedores (sellers).
+ *              Implementa obtención de perfil público, listings del vendedor,
+ *              reseñas recibidas y estadísticas agregadas (total de ventas, calificación promedio).
  */
 
 import apiClient from './client'

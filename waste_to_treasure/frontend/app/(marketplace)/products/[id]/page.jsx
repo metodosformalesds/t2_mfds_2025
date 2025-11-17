@@ -1,3 +1,11 @@
+/**
+ * Autor: Arturo Perez Gonzalez
+ * Fecha: 10/11/2024
+ * Descripción: Página de detalles de un producto individual.
+ *              Muestra información completa del producto incluyendo imágenes, precio,
+ *              vendedor, especificaciones, reseñas y productos similares.
+ */
+
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -110,7 +118,12 @@ export default function ProductDetailPage() {
   }, [productId, isAuthenticated])
 
   /**
-   * Handle add to cart
+   * Autor: Arturo Perez Gonzalez
+   * Descripción: Maneja la adición de un producto al carrito de compras.
+   * Parámetros:
+   *   listingId (number): ID del producto a agregar
+   *   quantity (number): Cantidad de unidades a agregar
+   * Retorna: Promise<void>
    */
   const handleAddToCart = async (listingId, quantity) => {
     try {
@@ -126,7 +139,10 @@ export default function ProductDetailPage() {
   }
 
   /**
-   * Handle review submission - refresh reviews
+   * Autor: Arturo Perez Gonzalez
+   * Descripción: Actualiza la lista de reseñas después de que el usuario envía una nueva.
+   * Parámetros: Ninguno
+   * Retorna: Promise<void>
    */
   const handleReviewSubmitted = async () => {
     try {

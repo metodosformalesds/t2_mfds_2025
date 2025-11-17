@@ -1,7 +1,9 @@
 /**
- * Servicio para operaciones de reviews/reseñas.
- *
- * Implementa llamadas para crear y obtener reseñas de productos
+ * Autor: Arturo Perez Gonzalez
+ * Fecha: 13/11/2024
+ * Descripción: Servicio API para operaciones de reseñas de listings y vendedores.
+ *              Implementa obtención de reseñas por listing/vendedor, estadísticas,
+ *              creación de reseñas verificadas y resúmenes de calificación.
  */
 
 import apiClient from './client'

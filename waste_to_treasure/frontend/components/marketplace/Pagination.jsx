@@ -1,13 +1,16 @@
+/**
+ * Autor: Arturo Perez Gonzalez
+ * Fecha: 09/11/2024
+ * Componente: Pagination
+ * Descripción: Control de paginación para catálogos de materiales y productos.
+ *              Incluye botones de anterior/siguiente y números de página individuales.
+ *              Notifica cambios de página al componente padre mediante callback.
+ */
+
 'use client'
 
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
 
-/**
- * Pagination component for materials catalog
- * @param {number} currentPage - Current active page
- * @param {number} totalPages - Total number of pages
- * @param {function} onPageChange - Callback when page changes
- */
 export default function Pagination({ currentPage = 1, totalPages = 5, onPageChange }) {
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {

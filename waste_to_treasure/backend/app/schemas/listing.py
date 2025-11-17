@@ -1,3 +1,9 @@
+# Autor: Arturo Perez Gonzalez
+# Fecha: 07/11/2024
+# Descripción: Schemas Pydantic para validación de datos de publicaciones (listings).
+#              Define modelos para requests y responses de la API incluyendo creación,
+#              actualización, imágenes, filtros y vistas de catálogo.
+
 """
 Schemas Pydantic para Listing.
 
@@ -65,7 +71,16 @@ class ListingCreate(ListingBase):
     
     @field_validator('listing_type')
     def validate_listing_type(cls, v):
-        """Valida que el tipo de listing sea válido."""
+        """
+        Autor: Arturo Perez Gonzalez
+        Descripción: Valida que el tipo de listing sea MATERIAL o PRODUCT.
+        Parámetros:
+            v (ListingTypeEnum): Valor del tipo de listing a validar.
+        Retorna:
+            ListingTypeEnum: Valor validado si es correcto.
+        Raises:
+            ValueError: Si el tipo no es MATERIAL ni PRODUCT.
+        """
         if v not in [ListingTypeEnum.MATERIAL, ListingTypeEnum.PRODUCT]:
             raise ValueError('listing_type debe ser MATERIAL o PRODUCT')
         return v

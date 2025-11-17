@@ -1,3 +1,9 @@
+# Autor: Arturo Perez Gonzalez
+# Fecha: 03/11/2024
+# Descripción: Modelo de base de datos para gestionar imágenes de publicaciones.
+#              Almacena URLs de imágenes en S3 asociadas a listings, permite
+#              designar imágenes principales y genera URLs de thumbnails.
+
 """
 Modelo de base de datos para ListingImage.
 
@@ -84,14 +90,13 @@ class ListingImage(BaseModel):
     # MÉTODOS DE INSTANCIA
     def get_thumbnail_url(self, size: str = "300x300") -> str:
         """
-        Genera una URL de thumbnail (miniatura).
-        
-        Args:
-            size: Tamaño deseado en formato 'WIDTHxHEIGHT'.
-            
-        Returns:
-            URL del thumbnail. Por ahora retorna la URL original.
-            En producción, implementar transformación con CloudFront.
+        Autor: Arturo Perez Gonzalez
+        Descripción: Genera una URL de thumbnail (miniatura) de la imagen.
+        Parámetros:
+            size (str): Tamaño deseado en formato 'WIDTHxHEIGHT' (ej: '300x300').
+        Retorna:
+            str: URL del thumbnail. Por ahora retorna la URL original.
+                 En producción, implementar transformación con CloudFront.
         """
         # TODO: Implementar transformación de imágenes con CloudFront
         return self.image_url

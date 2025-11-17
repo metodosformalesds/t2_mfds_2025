@@ -1,3 +1,9 @@
+# Autor: Arturo Perez Gonzalez
+# Fecha: 06/11/2024
+# Descripción: Modelo de base de datos para ofertas de negociación B2B.
+#              Gestiona ofertas de compra en el marketplace de materiales, incluyendo
+#              precios propuestos, contraofertas, estado de negociación y expiración.
+
 """
 Modelo de base de datos para Offer.
 
@@ -169,64 +175,71 @@ class Offer(BaseModel):
     # MÉTODOS DE INSTANCIA
     def is_expired(self) -> bool:
         """
-        Verifica si la oferta ha expirado.
-        
-        Returns:
-            True si la oferta tiene fecha de expiración y ya pasó.
+        Autor: Arturo Perez Gonzalez
+        Descripción: Verifica si la oferta ha expirado según su fecha límite.
+        Parámetros:
+            Ninguno
+        Retorna:
+            bool: True si la oferta tiene fecha de expiración y ya pasó, False en caso contrario.
         """
         if self.expires_at is None:
             return False
-        
+
         from datetime import timezone as tz
         now = datetime.now(tz.utc)
         return now > self.expires_at
     
     def can_be_accepted(self) -> bool:
         """
-        Determina si la oferta puede ser aceptada.
-        
-        Returns:
-            True si está en estado PENDING o COUNTERED y no ha expirado.
+        Autor: Arturo Perez Gonzalez
+        Descripción: Determina si la oferta puede ser aceptada por el vendedor.
+        Parámetros:
+            Ninguno
+        Retorna:
+            bool: True si está en estado PENDING o COUNTERED y no ha expirado, False en caso contrario.
         """
         if self.status not in [OfferStatusEnum.PENDING, OfferStatusEnum.COUNTERED]:
             return False
-        
+
         return not self.is_expired()
     
     def get_current_price(self) -> Decimal:
         """
-        Obtiene el precio actual de la negociación.
-        
-        Returns:
-            Precio de contraoferta si existe, sino el precio original.
+        Autor: Arturo Perez Gonzalez
+        Descripción: Obtiene el precio actual vigente de la negociación.
+        Parámetros:
+            Ninguno
+        Retorna:
+            Decimal: Precio de contraoferta del vendedor si existe, sino el precio original de la oferta.
         """
         return self.counter_offer_price if self.counter_offer_price else self.offer_price
     
     def calculate_total(self) -> Decimal:
         """
-        Calcula el total de la oferta (precio × cantidad).
-        
-        Returns:
-            Monto total de la oferta.
+        Autor: Arturo Perez Gonzalez
+        Descripción: Calcula el monto total de la oferta (precio unitario × cantidad).
+        Parámetros:
+            Ninguno
+        Retorna:
+            Decimal: Monto total de la oferta basado en el precio actual y cantidad.
         """
         return self.get_current_price() * self.quantity
     
     def get_savings_percentage(self, original_price: Decimal) -> float:
         """
-        Calcula el porcentaje de ahorro respecto al precio original.
-        
-        Args:
-            original_price: Precio original del listing.
-            
-        Returns:
-            Porcentaje de descuento (0-100).
+        Autor: Arturo Perez Gonzalez
+        Descripción: Calcula el porcentaje de ahorro de la oferta respecto al precio original del listing.
+        Parámetros:
+            original_price (Decimal): Precio original del listing.
+        Retorna:
+            float: Porcentaje de descuento (0-100). Retorna 0.0 si original_price es inválido.
         """
         if original_price <= 0:
             return 0.0
-        
+
         current = float(self.get_current_price())
         original = float(original_price)
-        
+
         return ((original - current) / original) * 100
     
     def __repr__(self) -> str:

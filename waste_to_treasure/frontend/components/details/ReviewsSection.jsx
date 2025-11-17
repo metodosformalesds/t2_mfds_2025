@@ -9,6 +9,25 @@ import reviewsService from '@/lib/api/reviews'
 import UserAvatar from '@/components/ui/UserAvatar'
 
 /**
+ * Autor: Arturo Perez Gonzalez
+ * Fecha: 10/11/2024
+ * Componente: ReviewsSection
+ * Descripción: Sección completa de reseñas con resumen de calificaciones, distribución por estrellas,
+ *              formulario para dejar reseñas (solo compradores verificados) y lista de reseñas existentes.
+ *              Integra con API de reviews y maneja estados de envío y validación.
+ */
+
+'use client'
+
+import { useState } from 'react'
+import { Star, CheckCircle } from 'lucide-react'
+import { formatDistanceToNow } from 'date-fns'
+import { es } from 'date-fns/locale'
+import { useAuth } from '@/context/AuthContext'
+import reviewsService from '@/lib/api/reviews'
+import UserAvatar from '@/components/ui/UserAvatar'
+
+/**
  * Helper function to format relative time
  */
 function getRelativeTime(date) {
@@ -24,13 +43,6 @@ function getRelativeTime(date) {
   }
 }
 
-/**
- * Reviews Section Component
- * Displays customer reviews from backend API
- * Data comes from /reviews/listing/{listing_id} endpoint
- * Only allows verified purchasers to leave reviews
- * Matches Figma design node 6-2574
- */
 export default function ReviewsSection({ 
   listingId,
   reviews = [], 

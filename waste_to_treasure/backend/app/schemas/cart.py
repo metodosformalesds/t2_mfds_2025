@@ -1,3 +1,9 @@
+# Autor: Arturo Perez Gonzalez
+# Fecha: 07/11/2024
+# Descripción: Schemas Pydantic para validación de datos del carrito de compras.
+#              Define modelos para requests y responses de la API incluyendo
+#              items del carrito, cálculos de totales y resúmenes.
+
 """
 Schemas Pydantic para Cart y CartItem.
 

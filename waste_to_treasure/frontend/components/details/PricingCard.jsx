@@ -1,3 +1,12 @@
+/**
+ * Autor: Arturo Perez Gonzalez
+ * Fecha: 10/11/2024
+ * Componente: PricingCard
+ * Descripción: Card de compra con precio, selector de cantidad y botón de agregar al carrito.
+ *              Muestra total calculado, políticas del producto/material y opción de reportar.
+ *              Maneja estados de carga y disponibilidad del listing.
+ */
+
 'use client'
 
 import { useState } from 'react'

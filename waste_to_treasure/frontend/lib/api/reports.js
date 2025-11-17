@@ -1,7 +1,9 @@
 /**
- * Servicio para operaciones de reportes de usuarios.
- *
- * Implementa llamadas para crear reportes de publicaciones
+ * Autor: Arturo Perez Gonzalez
+ * Fecha: 13/11/2024
+ * Descripción: Servicio API para reportes de publicaciones inapropiadas o fraudulentas.
+ *              Implementa creación de reportes con mapeo de razones español-inglés,
+ *              y obtención de motivos predefinidos (spam, fraude, contenido inapropiado, etc.).
  */
 
 import apiClient from './client'

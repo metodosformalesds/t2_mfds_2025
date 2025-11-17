@@ -1,3 +1,11 @@
+/**
+ * Autor: Arturo Perez Gonzalez
+ * Fecha: 15/11/2024
+ * Descripción: Página informativa sobre eliminación de datos de usuario.
+ *              Proporciona instrucciones detalladas para solicitar la eliminación de cuenta
+ *              y datos personales, cumpliendo con requisitos de privacidad y GDPR.
+ */
+
 'use client'
 
 import Link from 'next/link'

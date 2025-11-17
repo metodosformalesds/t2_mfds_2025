@@ -1,7 +1,9 @@
 /**
- * Servicio para operaciones con Listings (Materiales/Productos).
- *
- * Implementa todas las llamadas al endpoint /listings del backend.
+ * Autor: Arturo Perez Gonzalez
+ * Fecha: 09/11/2024
+ * Descripción: Servicio API para operaciones CRUD de listings (materiales y productos).
+ *              Implementa endpoints públicos, privados (mis listings), creación, actualización,
+ *              eliminación, reactivación y manejo de imágenes de publicaciones.
  */
 
 import apiClient from './client'

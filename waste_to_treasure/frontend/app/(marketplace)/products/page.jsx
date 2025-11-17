@@ -1,3 +1,10 @@
+/**
+ * Autor: Arturo Perez Gonzalez
+ * Fecha: 09/11/2024
+ * Descripción: Página principal del catálogo de productos B2C.
+ *              Muestra listado de productos con búsqueda, filtros, ordenamiento y paginación.
+ */
+
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -27,7 +34,10 @@ export default function ProductsPage() {
   const pageSize = 9 // 9 productos por página (3x3 grid)
 
   /**
-   * Función para cargar productos desde la API
+   * Autor: Arturo Perez Gonzalez
+   * Descripción: Carga productos desde la API aplicando filtros, búsqueda y paginación.
+   * Parámetros: Ninguno (usa estados del componente)
+   * Retorna: Promise<void>
    */
   const fetchProducts = async () => {
     setIsLoading(true)

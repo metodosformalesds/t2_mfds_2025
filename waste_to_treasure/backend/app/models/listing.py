@@ -1,3 +1,9 @@
+# Autor: Arturo Perez Gonzalez
+# Fecha: 03/11/2024
+# Descripción: Modelo de base de datos para publicaciones del marketplace.
+#              Gestiona listings de materiales (B2B) y productos (B2C), incluyendo
+#              precios, inventario, ubicación, estado de moderación e imágenes asociadas.
+
 """
 Modelo de base de datos para Listing.
 
@@ -231,22 +237,23 @@ class Listing(BaseModel):
     # MÉTODOS DE INSTANCIA
     def is_available(self) -> bool:
         """
-        Verifica si el listing está disponible para compra.
-        
-        Returns:
-            True si el listing está activo y tiene stock, False en caso contrario.
+        Autor: Arturo Perez Gonzalez
+        Descripción: Verifica si el listing está disponible para compra.
+        Parámetros:
+            Ninguno
+        Retorna:
+            bool: True si el listing está activo y tiene stock, False en caso contrario.
         """
         return self.status == ListingStatusEnum.ACTIVE and self.quantity > 0
     
     def reduce_stock(self, amount: int) -> bool:
         """
-        Reduce el stock del listing.
-        
-        Args:
-            amount: Cantidad a reducir del stock.
-            
-        Returns:
-            True si se pudo reducir el stock, False si no hay suficiente.
+        Autor: Arturo Perez Gonzalez
+        Descripción: Reduce el stock del listing después de una compra.
+        Parámetros:
+            amount (int): Cantidad a reducir del stock.
+        Retorna:
+            bool: True si se pudo reducir el stock, False si no hay suficiente inventario.
         """
         if self.quantity >= amount:
             self.quantity -= amount
@@ -255,10 +262,12 @@ class Listing(BaseModel):
     
     def get_price_display(self) -> str:
         """
-        Obtiene el precio formateado con su unidad.
-        
-        Returns:
-            String con el precio formateado, ej: "$50.00/Kg" o "$100.00"
+        Autor: Arturo Perez Gonzalez
+        Descripción: Obtiene el precio formateado con su unidad para mostrar al usuario.
+        Parámetros:
+            Ninguno
+        Retorna:
+            str: String con el precio formateado, ej: "$50.00/Kg" o "$100.00"
         """
         if self.price_unit:
             return f"${self.price:.2f}/{self.price_unit}"
@@ -274,17 +283,19 @@ class Listing(BaseModel):
     
     def get_primary_image(self) -> Optional["ListingImage"]:
         """
-        Obtiene la imagen principal del listing.
-        
-        Returns:
-            La imagen marcada como primaria, o la primera imagen si no hay primaria,
-            o None si no hay imágenes.
+        Autor: Arturo Perez Gonzalez
+        Descripción: Obtiene la imagen principal del listing para mostrar en vistas de lista.
+        Parámetros:
+            Ninguno
+        Retorna:
+            ListingImage | None: La imagen marcada como primaria, o la primera imagen si no hay primaria,
+                                  o None si no hay imágenes asociadas.
         """
         if not self.images:
             return None
-        
+
         for image in self.images:
             if image.is_primary:
                 return image
-        
+
         return self.images[0] if self.images else None

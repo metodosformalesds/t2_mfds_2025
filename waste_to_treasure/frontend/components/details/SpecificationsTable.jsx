@@ -1,10 +1,14 @@
+/**
+ * Autor: Arturo Perez Gonzalez
+ * Fecha: 10/11/2024
+ * Componente: SpecificationsTable
+ * Descripción: Tabla de especificaciones técnicas del material o producto.
+ *              Muestra categoría, tipo, origen, cantidad disponible y estado del listing.
+ *              Datos obtenidos del objeto listing del backend.
+ */
+
 'use client'
 
-/**
- * Specifications Table Component
- * Displays material/product technical specifications
- * Data comes from listing description and origin_description from backend
- */
 export default function SpecificationsTable({ listing }) {
   const specifications = [
     {

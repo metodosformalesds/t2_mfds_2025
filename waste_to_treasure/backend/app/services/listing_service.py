@@ -1,3 +1,9 @@
+# Autor: Arturo Perez Gonzalez
+# Fecha: 08/11/2024
+# Descripción: Servicio de lógica de negocio para publicaciones (listings).
+#              Implementa operaciones CRUD asíncronas, validaciones de categorías,
+#              manejo de imágenes, filtros de búsqueda y moderación por administradores.
+
 """
 Capa de servicio para Listing.
 
@@ -35,18 +41,16 @@ async def create_listing(
     seller_id: UUID
 ) -> Listing:
     """
-    Crea una nueva publicación con validaciones de negocio.
-
-    Args:
-        db: Sesión asíncrona de base de datos.
-        listing_data: Datos de la publicación.
-        seller_id: UUID del vendedor.
-
-    Returns:
-        Listing creado.
-
+    Autor: Arturo Perez Gonzalez
+    Descripción: Crea una nueva publicación con validaciones de negocio y manejo de imágenes.
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        listing_data (ListingCreate): Datos de la publicación a crear.
+        seller_id (UUID): UUID del vendedor que crea la publicación.
+    Retorna:
+        Listing: Publicación creada con estado PENDING.
     Raises:
-        HTTPException: Si hay errores de validación.
+        HTTPException: Si la categoría no existe, no coincide el tipo o el vendedor no está activo.
     """
     # Validar que la categoría existe y coincide con el tipo
     await _validate_category(db, listing_data.category_id, listing_data.listing_type)
@@ -107,15 +111,14 @@ async def get_listing_by_id(
     include_inactive: bool = False
 ) -> Optional[Listing]:
     """
-    Obtiene un listing por ID con sus imágenes.
-
-    Args:
-        db: Sesión asíncrona de base de datos.
-        listing_id: ID del listing.
-        include_inactive: Si True, incluye listings inactivos.
-
-    Returns:
-        Listing encontrado o None.
+    Autor: Arturo Perez Gonzalez
+    Descripción: Obtiene una publicación por ID con sus imágenes, categoría y vendedor.
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        listing_id (int): ID del listing a buscar.
+        include_inactive (bool): Si True, incluye listings inactivos (default: False).
+    Retorna:
+        Optional[Listing]: Listing encontrado con relaciones cargadas, o None si no existe.
     """
     stmt = (
         select(Listing)
@@ -145,20 +148,19 @@ async def get_public_listings(
     page_size: int = 20
 ) -> Tuple[List[Listing], int]:
     """
-    Obtiene listado público de listings con filtros.
-
-    Args:
-        db: Sesión asíncrona de base de datos.
-        listing_type: Filtro opcional por tipo.
-        category_id: Filtro opcional por categoría.
-        min_price: Precio mínimo.
-        max_price: Precio máximo.
-        search_query: Búsqueda en título y descripción.
-        page: Número de página.
-        page_size: Tamaño de página.
-
-    Returns:
-        Tupla con (lista de listings, total de registros).
+    Autor: Arturo Perez Gonzalez
+    Descripción: Obtiene listado público de listings activos con filtros y paginación.
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        listing_type (Optional[ListingTypeEnum]): Filtro opcional por tipo (MATERIAL o PRODUCT).
+        category_id (Optional[int]): Filtro opcional por categoría.
+        min_price (Optional[Decimal]): Precio mínimo.
+        max_price (Optional[Decimal]): Precio máximo.
+        search_query (Optional[str]): Búsqueda en título y descripción.
+        page (int): Número de página (default: 1).
+        page_size (int): Tamaño de página (default: 20).
+    Retorna:
+        Tuple[List[Listing], int]: Tupla con (lista de listings, total de registros).
     """
     # Query base: solo listings activos
     stmt = (
@@ -261,19 +263,17 @@ async def update_listing(
     listing_data: ListingUpdate
 ) -> Listing:
     """
-    Actualiza un listing existente.
-
-    Args:
-        db: Sesión asíncrona de base de datos.
-        listing_id: ID del listing.
-        seller_id: UUID del vendedor (para validación).
-        listing_data: Datos actualizados.
-
-    Returns:
-        Listing actualizado.
-
+    Autor: Arturo Perez Gonzalez
+    Descripción: Actualiza un listing existente y lo envía a revisión si estaba activo.
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        listing_id (int): ID del listing a actualizar.
+        seller_id (UUID): UUID del vendedor (para validación de permisos).
+        listing_data (ListingUpdate): Datos actualizados de la publicación.
+    Retorna:
+        Listing: Listing actualizado.
     Raises:
-        HTTPException: Si el listing no existe o no tiene permisos.
+        HTTPException: Si el listing no existe o el vendedor no tiene permisos.
     """
     db_listing = await get_listing_by_id(db, listing_id, include_inactive=True)
 
@@ -316,18 +316,16 @@ async def delete_listing(
     seller_id: UUID
 ) -> bool:
     """
-    Desactiva un listing (soft delete).
-
-    Args:
-        db: Sesión asíncrona de base de datos.
-        listing_id: ID del listing.
-        seller_id: UUID del vendedor (para validación).
-
-    Returns:
-        True si se desactivó correctamente.
-
+    Autor: Arturo Perez Gonzalez
+    Descripción: Desactiva un listing (soft delete) cambiando su estado a INACTIVE.
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        listing_id (int): ID del listing a desactivar.
+        seller_id (UUID): UUID del vendedor (para validación de permisos).
+    Retorna:
+        bool: True si se desactivó correctamente.
     Raises:
-        HTTPException: Si no existe o no tiene permisos.
+        HTTPException: Si el listing no existe o el vendedor no tiene permisos.
     """
     db_listing = await get_listing_by_id(db, listing_id, include_inactive=True)
 

@@ -63,7 +63,13 @@ function PublicationRow({ pub, onEdit, onDeactivate, onReactivate, onDelete, act
           </div>
         </td>
       )}
-      {/* Acciones para publicaciones INACTIVAS */}
+      {/**
+       * Autor: Arturo Perez Gonzalez
+       * Fecha: 16/11/2024
+       * Descripción: Renderiza acciones disponibles para publicaciones inactivas.
+       *              Si está RECHAZADA: permite editar o eliminar.
+       *              Si está INACTIVE: permite reactivar, editar o eliminar.
+       */}
       {activeTab === 'inactive' && (
         <td className="py-4 px-2">
           <div className="flex items-center gap-2">

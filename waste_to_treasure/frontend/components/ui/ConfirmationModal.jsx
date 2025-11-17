@@ -1,20 +1,16 @@
+/**
+ * Autor: Arturo Perez Gonzalez
+ * Fecha: 16/11/2024
+ * Componente: ConfirmationModal
+ * Descripción: Modal de confirmación reutilizable con variantes visuales (danger, success, info).
+ *              Incluye título personalizable, mensaje, botones de confirmar/cancelar,
+ *              estado de carga y animaciones. Usado para confirmar acciones destructivas.
+ */
+
 'use client'
 
 import { X, AlertTriangle, CheckCircle, Info } from 'lucide-react'
 
-/**
- * Modal de confirmación personalizado con diseño acorde a la página
- *
- * @param {boolean} isOpen - Si el modal está abierto
- * @param {function} onClose - Función para cerrar el modal
- * @param {function} onConfirm - Función a ejecutar al confirmar
- * @param {string} title - Título del modal
- * @param {string} message - Mensaje del modal
- * @param {string} confirmText - Texto del botón de confirmación
- * @param {string} cancelText - Texto del botón de cancelación
- * @param {string} variant - Variante del modal: 'danger', 'success', 'info'
- * @param {boolean} isLoading - Si está procesando la acción
- */
 export default function ConfirmationModal({
   isOpen,
   onClose,

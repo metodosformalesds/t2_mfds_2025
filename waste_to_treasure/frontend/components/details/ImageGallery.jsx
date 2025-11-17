@@ -1,14 +1,17 @@
+/**
+ * Autor: Arturo Perez Gonzalez
+ * Fecha: 10/11/2024
+ * Componente: ImageGallery
+ * Descripción: Galería de imágenes con navegación por miniaturas.
+ *              Muestra imagen principal con badge de "MATERIAL/PRODUCTO RECICLADO"
+ *              y hasta 4 miniaturas navegables. Soporta imágenes del backend.
+ */
+
 'use client'
 
 import { useState } from 'react'
 import Image from 'next/image'
 
-/**
- * Image Gallery Component
- * Displays a main image with thumbnail navigation
- * Images come from backend listing data
- * Supports both Material and Product views with optional badge
- */
 export default function ImageGallery({ images = [], title, listingType, showBadge = true }) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
 

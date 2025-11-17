@@ -1,10 +1,9 @@
 /**
- * Cliente HTTP configurado con Axios para comunicación con el backend.
- *
- * Configuración centralizada de:
- * - Base URL del backend
- * - Interceptors de autenticación
- * - Manejo global de errores
+ * Autor: Arturo Perez Gonzalez
+ * Fecha: 09/11/2024
+ * Descripción: Cliente HTTP Axios configurado para comunicación con el backend.
+ *              Incluye interceptors para autenticación automática con JWT/Cognito,
+ *              manejo global de errores (401, 403, 404, 500, etc.) y timeout de 30s.
  */
 
 import axios from 'axios'

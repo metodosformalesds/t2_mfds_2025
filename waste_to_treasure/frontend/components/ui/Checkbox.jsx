@@ -1,14 +1,16 @@
+/**
+ * Autor: Arturo Perez Gonzalez
+ * Fecha: 09/11/2024
+ * Componente: Checkbox
+ * Descripción: Componente de checkbox reutilizable para filtros y formularios.
+ *              Incluye label, estado checked/unchecked, contador opcional y callback onChange.
+ *              Implementa accesibilidad con ARIA.
+ */
+
 'use client'
 
 import { Check } from 'lucide-react'
 
-/**
- * Checkbox component for filters
- * @param {boolean} checked - Whether checkbox is checked
- * @param {function} onChange - Callback when checkbox state changes
- * @param {string} label - Label text for the checkbox
- * @param {number} count - Optional count to display next to label
- */
 export default function Checkbox({ checked = false, onChange, label, count }) {
   return (
     <label className="flex cursor-pointer items-center gap-2.5">
