@@ -1,3 +1,10 @@
+// Autor: Gabriel Florentino Reyes
+// Fecha: 14-11-2025
+// Descripción: Componente de la página de Términos y Condiciones.
+//              Renderiza la información legal sobre el uso de la plataforma, incluyendo registro de usuario,
+//              publicación de materiales, pagos, privacidad, responsabilidades y propiedad intelectual.
+//              Utiliza componentes como TermSection para secciones colapsables y Navbar/ Footer para la navegación.
+
 'use client'
 
 import Link from 'next/link'

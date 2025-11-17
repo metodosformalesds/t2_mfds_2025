@@ -1,3 +1,10 @@
+// Autor: Gabriel Florentino Reyes
+// Fecha: 14-11-2025
+// Descripción: Descripción: Vista About Us del frontend
+//              Presenta misión visión valores y estadísticas
+//              Muestra historia del proyecto y equipo de trabajo
+//              Incluye secciones informativas y llamados a la acción
+
 'use client'
 
 import Link from 'next/link'

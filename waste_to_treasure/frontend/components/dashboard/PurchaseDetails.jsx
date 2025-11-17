@@ -1,3 +1,9 @@
+// Autor: Gabriel Florentino Reyes
+//Fecha: 12/11/2025
+// Descripción: Descripción: Componente que muestra los detalles completos de un pedido, 
+//              incluyendo productos, cantidades, precios, dirección de envío, estado del pedido y 
+//              resumen de pago.
+
 'use client';
 
 import { ShoppingBag, Package, MapPin, CreditCard, Calendar, User } from 'lucide-react';

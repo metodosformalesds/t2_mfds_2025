@@ -1,5 +1,5 @@
 # Autor: Gabriel Florentino Reyes
-# Fecha: 2025-11-06
+# Fecha: 06-11-2025
 # Descripción: # Descripción: Modelo que gestiona los documentos legales de la plataforma, 
 #                               como términos y políticas.
 

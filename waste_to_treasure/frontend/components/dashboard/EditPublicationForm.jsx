@@ -1,3 +1,9 @@
+// Autor: Gabriel Florentino Reyes
+// Fecha: 15-11-2025
+// Descripción: Formulario para editar publicaciones, incluyendo manejo de carga de datos, 
+//              validaciones, actualización de la publicación y manejo de errores y estados de la publicación 
+//              (activo, pendiente, rechazado).
+
 'use client'
 
 import { useState, useEffect } from 'react'

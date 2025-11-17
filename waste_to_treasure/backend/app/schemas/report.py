@@ -1,5 +1,5 @@
 # Autor: Gabriel Florentino Reyes
-# Fecha: 2025-11-08
+# Fecha: 08-11-2025
 # Descripción: Esquemas Pydantic para la creación, lectura y administración de 
 #               reportes dentro del sistema.
 

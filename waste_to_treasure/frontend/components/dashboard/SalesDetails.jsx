@@ -1,3 +1,8 @@
+// Autor: Gabriel Florentino Reyes
+// Fecha: 12-11-2025
+// Descripción: Componente que muestra el detalle de una venta específica del usuario, incluyendo 
+//              productos vendidos, totales, comprador, dirección de envío y estado de la venta.
+
 'use client';
 
 import { DollarSign, Package, User, CreditCard, Calendar, MapPin } from 'lucide-react';

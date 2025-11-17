@@ -1,5 +1,5 @@
 # Autor: Gabriel Florentino Reyes
-# Fecha: 2025-11-08
+# Fecha: 08-11-2025
 # Descripción: Servicio de reportes de la plataforma.
 #              Contiene la lógica de negocio para:
 #               - Crear reportes de listings, usuarios u órdenes.

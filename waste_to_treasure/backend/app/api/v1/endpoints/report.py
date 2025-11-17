@@ -1,5 +1,5 @@
 # Autor: Gabriel Florentino Reyes
-# Fecha: 2025-11-08
+# Fecha: 08-11-2025
 # Descripción: Endpoints para reportes de usuarios
 #               Crear reportes sobre contenido, usuarios u órdenes
 #               Consultar mis reportes o reportes específicos

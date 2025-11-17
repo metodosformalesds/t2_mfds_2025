@@ -1,3 +1,8 @@
+// Autor: Gabriel Florentino Reyes
+// Fecha: 13-11-2025
+// Descripción: Hook para gestionar las ventas del usuario. Permite obtener las ventas paginadas, 
+//              navegar entre páginas y recargar la información actual.
+
 /**
  * Hook para gestionar las ventas del usuario.
  * Proporciona funciones para obtener y paginar ventas.

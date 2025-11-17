@@ -1,5 +1,5 @@
 # Autor: Gabriel Florentino Reyes
-# Fecha: 2025-11-08
+# Fecha: 08-11-2025
 # Descripción: Endpoints para preguntas frecuentes
 #               Lectura pública de FAQs
 #               Listar FAQs agrupadas por categoría

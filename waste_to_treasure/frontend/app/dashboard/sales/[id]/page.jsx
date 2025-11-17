@@ -1,4 +1,9 @@
-'use client';
+// Autor: Gabriel Florentino Reyes
+// Fecha: 12-11-2025
+// Descripción: Página que muestra los detalles de una venta específica. 
+//              Obtiene la información mediante el ID de la venta usando el servicio ordersService. 
+//              Mientras se cargan los datos muestra un loader, y en caso de error despliega un mensaje. 
+//              Utiliza el componente SalesDetails para renderizar la información completa de la venta.
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';

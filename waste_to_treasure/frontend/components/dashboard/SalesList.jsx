@@ -1,3 +1,8 @@
+// Autor: Gabriel Florentino Reyes
+// Fecha: 12-11-2025
+// Descripción: Componente que muestra la lista de ventas del usuario, incluyendo productos vendidos, 
+//              totales, estado de cada venta y paginación.
+
 'use client';
 
 import { useSales } from '@/hooks/useSales';

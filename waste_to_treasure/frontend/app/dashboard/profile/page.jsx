@@ -1,3 +1,9 @@
+// Autor: Gabriel Florentino Reyes
+// Fecha: 12-11-2025
+// Descripción: Descripción: Vista de gestión de perfil del usuario
+//              Permite actualizar información personal y ajustes de la cuenta
+//              Renderiza el formulario de edición del perfil
+
 import ProfileForm from '@/components/dashboard/ProfileForm';
 
 export const metadata = {

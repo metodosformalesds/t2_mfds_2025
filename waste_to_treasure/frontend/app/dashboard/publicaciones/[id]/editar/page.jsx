@@ -1,3 +1,9 @@
+// Autor: Gabriel Florentino Reyes
+// Fecha: 15-11-2025
+// Descripción: Este archivo implementa la vista para editar una publicación existente en el dashboard. 
+//              Permite al usuario modificar los datos de su publicación mediante el componente EditPublicationForm, 
+//              utilizando el ID de la publicación recibido en los parámetros de la ruta.
+
 'use client'
 
 import { use } from 'react'

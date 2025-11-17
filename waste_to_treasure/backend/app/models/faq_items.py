@@ -1,5 +1,5 @@
 # Autor: Gabriel Florentino Reyes
-# Fecha: 2025-11-06
+# Fecha: 06-11-2025
 # Descripción: Descripción: Modelo que almacena preguntas frecuentes y sus 
 #               respuestas para la plataforma.
 

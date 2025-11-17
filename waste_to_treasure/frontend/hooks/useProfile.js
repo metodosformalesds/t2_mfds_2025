@@ -1,3 +1,8 @@
+// Autor: Gabriel Florentino Reyes
+// Fecha: 13-11-2025
+// Descripción: Hook para gestionar el perfil del usuario. Permite obtener y actualizar los 
+//              datos del perfil, y sincroniza cambios con el contexto de autenticación.
+
 /**
  * Hook para gestionar el perfil del usuario.
  * Proporciona funciones para obtener y actualizar el perfil.
