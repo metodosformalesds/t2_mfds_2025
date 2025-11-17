@@ -3,11 +3,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSubscription } from '@/hooks/useSubscription';
+import { useConfirmStore } from '@/stores/useConfirmStore';
 import { Loader2, AlertCircle, CheckCircle2, CreditCard, Calendar } from 'lucide-react';
 
 export default function SubscriptionCard() {
   const router = useRouter();
   const { subscription, isLoading, error, cancelSubscription, refresh } = useSubscription();
+  const openConfirmModal = useConfirmStore(state => state.open);
 
   const [isCancelling, setIsCancelling] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
@@ -26,29 +28,32 @@ export default function SubscriptionCard() {
   };
 
   const handleCancelSubscription = async () => {
-    if (!window.confirm('¿Estás seguro de que deseas cancelar tu suscripción? Perderás acceso a las funciones premium.')) {
-      return;
-    }
-
-    setIsCancelling(true);
-    setSuccessMessage('');
-    setErrorMessage('');
-
-    try {
-      await cancelSubscription();
-      setSuccessMessage('Suscripción cancelada exitosamente');
-      
-      // Recargar para mostrar el estado actualizado
-      setTimeout(() => {
+    openConfirmModal(
+      '¿Cancelar Suscripción?',
+      '¿Estás seguro de que deseas cancelar tu suscripción? Perderás acceso a las funciones premium al final del período de facturación actual.',
+      async () => {
+        setIsCancelling(true);
         setSuccessMessage('');
-        refresh();
-      }, 3000);
-    } catch (err) {
-      setErrorMessage(err.message || 'Error al cancelar la suscripción');
-      console.error('Error al cancelar:', err);
-    } finally {
-      setIsCancelling(false);
-    }
+        setErrorMessage('');
+
+        try {
+          await cancelSubscription();
+          setSuccessMessage('Suscripción cancelada exitosamente');
+
+          // Recargar para mostrar el estado actualizado
+          setTimeout(() => {
+            setSuccessMessage('');
+            refresh();
+          }, 3000);
+        } catch (err) {
+          setErrorMessage(err.message || 'Error al cancelar la suscripción');
+          console.error('Error al cancelar:', err);
+        } finally {
+          setIsCancelling(false);
+        }
+      },
+      { danger: true, confirmText: 'Sí, cancelar suscripción' }
+    );
   };
 
   const formatDate = (dateString) => {
@@ -61,6 +66,14 @@ export default function SubscriptionCard() {
     });
   };
 
+  const getOneYearFromStart = (startDateString) => {
+    if (!startDateString) return 'N/A';
+    const startDate = new Date(startDateString);
+    const oneYearLater = new Date(startDate);
+    oneYearLater.setFullYear(oneYearLater.getFullYear() + 1);
+    return formatDate(oneYearLater.toISOString());
+  };
+
   const getStatusBadge = (status) => {
     const badges = {
       ACTIVE: { color: 'bg-green-100 text-green-700 border-green-300', label: 'Activa' },
@@ -69,6 +82,7 @@ export default function SubscriptionCard() {
     };
     return badges[status] || { color: 'bg-gray-100 text-gray-700 border-gray-300', label: status };
   };
+
 
   // Mostrar loader mientras carga
   if (isLoading && !subscription) {
@@ -106,8 +120,8 @@ export default function SubscriptionCard() {
         </div>
 
         {/* Contenido según estado de suscripción */}
-        {!subscription ? (
-          // Sin suscripción activa
+        {!subscription || subscription.status === 'EXPIRED' || subscription.status === 'CANCELLED' ? (
+          // Sin suscripción activa, expirada o cancelada
           <div className="mt-6 p-8 border-2 border-dashed border-gray-300 rounded-lg text-center">
             <CreditCard className="w-16 h-16 mx-auto text-gray-400 mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 mb-2 font-poppins">
@@ -124,7 +138,7 @@ export default function SubscriptionCard() {
             </button>
           </div>
         ) : (
-          // Con suscripción activa
+          // Suscripción activa
           <div className="border-2 border-[#355E30] rounded-lg p-8 mt-6">
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-6">
               <div className="flex-1">
@@ -137,19 +151,13 @@ export default function SubscriptionCard() {
                   </span>
                 </div>
 
-                {subscription.status === 'ACTIVE' && (
+                {subscription.start_date && (
                   <div className="flex items-center gap-2 text-gray-600 mb-2">
                     <Calendar className="w-4 h-4" />
                     <p className="text-sm font-inter">
-                      Tu suscripción se renueva el {formatDate(subscription.next_billing_date)}
+                      Tu suscripción anual se renueva el {getOneYearFromStart(subscription.start_date)}
                     </p>
                   </div>
-                )}
-
-                {subscription.status === 'CANCELLED' && (
-                  <p className="text-sm text-red-600 font-inter">
-                    Tu suscripción fue cancelada y expirará el {formatDate(subscription.end_date)}
-                  </p>
                 )}
 
                 {/* Detalles del plan */}
@@ -174,38 +182,23 @@ export default function SubscriptionCard() {
             </div>
 
             {/* Botones de Acción */}
-            {subscription.status === 'ACTIVE' && (
-              <>
-                <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t">
-                  <button
-                    onClick={handleViewPlans}
-                    className="flex-1 px-6 py-3 bg-primary-500 text-white font-semibold rounded-lg hover:bg-primary-600 transition-colors font-inter"
-                  >
-                    Ver Otros Planes
-                  </button>
-                </div>
+            <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t">
+              <button
+                onClick={handleViewPlans}
+                className="flex-1 px-6 py-3 bg-primary-500 text-white font-semibold rounded-lg hover:bg-primary-600 transition-colors font-inter"
+              >
+                Ver Otros Planes
+              </button>
+            </div>
 
-                {/* Botón Cancelar */}
-                <button
-                  onClick={handleCancelSubscription}
-                  disabled={isCancelling}
-                  className="w-full mt-4 px-6 py-2 text-red-600 hover:text-red-700 font-semibold text-sm font-inter disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isCancelling ? 'Cancelando...' : 'Cancelar suscripción'}
-                </button>
-              </>
-            )}
-
-            {subscription.status === 'CANCELLED' && (
-              <div className="pt-6 border-t">
-                <button
-                  onClick={handleViewPlans}
-                  className="w-full px-6 py-3 bg-primary-500 text-white font-semibold rounded-lg hover:bg-primary-600 transition-colors font-inter"
-                >
-                  Renovar Suscripción
-                </button>
-              </div>
-            )}
+            {/* Botón Cancelar */}
+            <button
+              onClick={handleCancelSubscription}
+              disabled={isCancelling}
+              className="w-full mt-4 px-6 py-2 text-red-600 hover:text-red-700 font-semibold text-sm font-inter disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isCancelling ? 'Cancelando...' : 'Cancelar suscripción'}
+            </button>
           </div>
         )}
 
