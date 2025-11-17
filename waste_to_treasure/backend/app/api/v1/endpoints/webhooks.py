@@ -3,6 +3,9 @@ Endpoints para webhooks de stripe
 
 Procesa eventos de stripe (pagos, cancelaciones, reembolsos)
 """
+# Autor: Oscar Alonso Nava Rivera
+# Fecha: 08/11/2025
+# Descripción: Recibir y procesar webhooks de Stripe
 import logging
 from fastapi import APIRouter, Request, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -45,6 +48,7 @@ async def stripe_webhook(
     db: AsyncSession = Depends(get_async_db)
 ):
     """
+    Autor: Oscar Alonso Nava Rivera
     Procesa eventos de webhook de Stripe.
     
     IMPORTANTE:
@@ -115,7 +119,9 @@ async def _handle_payment_intent_succeeded(
     event: stripe.Event,
     db: AsyncSession
 ):
-    """Maneja pago exitoso de Payment Intent."""
+    """Autor: Oscar Alonso Nava Rivera
+    Maneja pago exitoso de Payment Intent.
+    """
     payment_intent = event.data.object
     
     logger.info(
@@ -139,7 +145,9 @@ async def _handle_payment_intent_failed(
     event: stripe.Event,
     db: AsyncSession
 ):
-    """Maneja pago fallido."""
+    """Autor: Oscar Alonso Nava Rivera
+    Maneja pago fallido.
+    """
     payment_intent = event.data.object
     
     logger.warning(
@@ -154,7 +162,9 @@ async def _handle_checkout_session_completed(
     event: stripe.Event,
     db: AsyncSession
 ):
-    """Maneja Checkout Session completada."""
+    """Autor: Oscar Alonso Nava Rivera
+    Maneja Checkout Session completada.
+    """
     session = event.data.object
     
     logger.info(f"Checkout Session completed: {session.id}")
@@ -166,7 +176,9 @@ async def _handle_charge_refunded(
     event: stripe.Event,
     db: AsyncSession
 ):
-    """Maneja reembolso de cargo."""
+    """Autor: Oscar Alonso Nava Rivera
+    Maneja reembolso de cargo.
+    """
     charge = event.data.object
     
     logger.info(f"Charge refunded: {charge.id}")

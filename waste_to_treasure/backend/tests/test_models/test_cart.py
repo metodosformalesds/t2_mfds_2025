@@ -11,6 +11,10 @@ Conceptos clave:
 - CartItem métodos: update_quantity(), increase_quantity(), decrease_quantity()
 """
 
+# Autor: Oscar Alonso Nava Rivera
+# Fecha: 07/11/2025
+# Descripción: Tests unitarios e integración para los modelos Cart y CartItem (operaciones, validaciones y relaciones).
+
 import pytest
 from uuid import uuid4
 from decimal import Decimal
@@ -24,10 +28,18 @@ from app.models.category import ListingTypeEnum
 @pytest.mark.models
 @pytest.mark.unit
 class TestCartModel:
-    """Test Cart model creation and validation."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test Cart model creation and validation.
+    """
 
     def test_create_cart_basic(self, db, user):
-        """Test creating a cart for a user."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test creating a cart for a user.
+        """
         cart = Cart(user_id=user.user_id)
         db.add(cart)
         db.commit()
@@ -39,7 +51,11 @@ class TestCartModel:
         assert len(cart.items) == 0
 
     def test_user_can_have_only_one_cart(self, db, user):
-        """Test that user_id is unique (one cart per user)."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that user_id is unique (one cart per user).
+        """
         cart1 = Cart(user_id=user.user_id)
         db.add(cart1)
         db.commit()
@@ -52,7 +68,11 @@ class TestCartModel:
             db.commit()
 
     def test_cart_requires_user_id(self, db):
-        """Test that user_id is required."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that user_id is required.
+        """
         cart = Cart()  # Sin user_id
         db.add(cart)
         
@@ -63,10 +83,18 @@ class TestCartModel:
 @pytest.mark.models
 @pytest.mark.unit
 class TestCartMethods:
-    """Test Cart business logic methods."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test Cart business logic methods.
+    """
 
     def test_get_total_items_empty_cart(self, db, user):
-        """Test get_total_items returns 0 for empty cart."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test get_total_items returns 0 for empty cart.
+        """
         cart = Cart(user_id=user.user_id)
         db.add(cart)
         db.commit()
@@ -74,7 +102,11 @@ class TestCartMethods:
         assert cart.get_total_items() == 0
 
     def test_get_total_items_with_items(self, db, user, category):
-        """Test get_total_items sums quantities of all items."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test get_total_items sums quantities of all items.
+        """
         cart = Cart(user_id=user.user_id)
         db.add(cart)
         db.commit()
@@ -113,7 +145,11 @@ class TestCartMethods:
         assert cart.get_total_items() == 5  # 2 + 3
 
     def test_get_subtotal_empty_cart(self, db, user):
-        """Test get_subtotal returns 0 for empty cart."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test get_subtotal returns 0 for empty cart.
+        """
         cart = Cart(user_id=user.user_id)
         db.add(cart)
         db.commit()
@@ -121,7 +157,11 @@ class TestCartMethods:
         assert cart.get_subtotal() == Decimal("0.00")
 
     def test_get_subtotal_with_items(self, db, user, category):
-        """Test get_subtotal calculates correct total."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test get_subtotal calculates correct total.
+        """
         cart = Cart(user_id=user.user_id)
         db.add(cart)
         db.commit()
@@ -159,7 +199,11 @@ class TestCartMethods:
         assert cart.get_subtotal() == Decimal("45.50")
 
     def test_get_estimated_total_with_default_commission(self, db, user, category):
-        """Test get_estimated_total adds 10% commission by default."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test get_estimated_total adds 10% commission by default.
+        """
         cart = Cart(user_id=user.user_id)
         db.add(cart)
         db.commit()
@@ -186,7 +230,11 @@ class TestCartMethods:
         assert cart.get_estimated_total() == Decimal("110.00")
 
     def test_clear_cart(self, db, user, category):
-        """Test clear() removes all items from cart."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test clear() removes all items from cart.
+        """
         cart = Cart(user_id=user.user_id)
         db.add(cart)
         db.commit()
@@ -219,7 +267,11 @@ class TestCartMethods:
         assert len(cart.items) == 0
 
     def test_has_unavailable_items(self, db, user, category):
-        """Test has_unavailable_items detects inactive listings."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test has_unavailable_items detects inactive listings.
+        """
         cart = Cart(user_id=user.user_id)
         db.add(cart)
         db.commit()
@@ -249,10 +301,18 @@ class TestCartMethods:
 @pytest.mark.models
 @pytest.mark.unit
 class TestCartItemModel:
-    """Test CartItem model creation and validation."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test CartItem model creation and validation.
+    """
 
     def test_create_cart_item_basic(self, db, user, category):
-        """Test creating a cart item."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test creating a cart item.
+        """
         cart = Cart(user_id=user.user_id)
         db.add(cart)
         db.commit()
@@ -285,7 +345,11 @@ class TestCartItemModel:
         assert item.quantity == 3
 
     def test_cart_item_default_quantity(self, db, user, category):
-        """Test that quantity defaults to 1."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that quantity defaults to 1.
+        """
         cart = Cart(user_id=user.user_id)
         db.add(cart)
         db.commit()
@@ -315,7 +379,11 @@ class TestCartItemModel:
         assert item.quantity == 1
 
     def test_cart_item_unique_listing_per_cart(self, db, user, category):
-        """Test that same listing cannot be added twice to same cart."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that same listing cannot be added twice to same cart.
+        """
         cart = Cart(user_id=user.user_id)
         db.add(cart)
         db.commit()
@@ -346,7 +414,11 @@ class TestCartItemModel:
             db.commit()
 
     def test_cart_item_quantity_must_be_positive(self, db, user, category):
-        """Test that quantity must be > 0."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that quantity must be > 0.
+        """
         cart = Cart(user_id=user.user_id)
         db.add(cart)
         db.commit()
@@ -374,10 +446,18 @@ class TestCartItemModel:
 @pytest.mark.models
 @pytest.mark.unit
 class TestCartItemMethods:
-    """Test CartItem business logic methods."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test CartItem business logic methods.
+    """
 
     def test_get_item_subtotal(self, db, user, category):
-        """Test get_item_subtotal calculates price * quantity."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test get_item_subtotal calculates price * quantity.
+        """
         cart = Cart(user_id=user.user_id)
         db.add(cart)
         db.commit()
@@ -403,7 +483,11 @@ class TestCartItemMethods:
         assert item.get_item_subtotal() == Decimal("102.00")
 
     def test_is_valid_returns_true_for_available_listing(self, db, user, category):
-        """Test is_valid returns True for available listing with sufficient stock."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test is_valid returns True for available listing with sufficient stock.
+        """
         cart = Cart(user_id=user.user_id)
         db.add(cart)
         db.commit()
@@ -428,7 +512,11 @@ class TestCartItemMethods:
         assert item.is_valid() is True
 
     def test_is_valid_returns_false_for_inactive_listing(self, db, user, category):
-        """Test is_valid returns False for inactive listing."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test is_valid returns False for inactive listing.
+        """
         cart = Cart(user_id=user.user_id)
         db.add(cart)
         db.commit()
@@ -453,7 +541,11 @@ class TestCartItemMethods:
         assert item.is_valid() is False
 
     def test_is_valid_returns_false_when_insufficient_stock(self, db, user, category):
-        """Test is_valid returns False when quantity exceeds stock."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test is_valid returns False when quantity exceeds stock.
+        """
         cart = Cart(user_id=user.user_id)
         db.add(cart)
         db.commit()
@@ -478,7 +570,11 @@ class TestCartItemMethods:
         assert item.is_valid() is False
 
     def test_update_quantity_success(self, db, user, category):
-        """Test update_quantity updates the quantity."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test update_quantity updates the quantity.
+        """
         cart = Cart(user_id=user.user_id)
         db.add(cart)
         db.commit()
@@ -507,7 +603,11 @@ class TestCartItemMethods:
         assert item.quantity == 5
 
     def test_update_quantity_fails_when_exceeds_stock(self, db, user, category):
-        """Test update_quantity fails when new quantity exceeds stock."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test update_quantity fails when new quantity exceeds stock.
+        """
         cart = Cart(user_id=user.user_id)
         db.add(cart)
         db.commit()
@@ -535,7 +635,11 @@ class TestCartItemMethods:
         assert item.quantity == 2  # No cambió
 
     def test_increase_quantity(self, db, user, category):
-        """Test increase_quantity increments quantity."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test increase_quantity increments quantity.
+        """
         cart = Cart(user_id=user.user_id)
         db.add(cart)
         db.commit()
@@ -564,7 +668,11 @@ class TestCartItemMethods:
         assert item.quantity == 5
 
     def test_decrease_quantity(self, db, user, category):
-        """Test decrease_quantity decrements quantity."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test decrease_quantity decrements quantity.
+        """
         cart = Cart(user_id=user.user_id)
         db.add(cart)
         db.commit()
@@ -593,7 +701,11 @@ class TestCartItemMethods:
         assert item.quantity == 3
 
     def test_decrease_quantity_fails_when_would_be_zero(self, db, user, category):
-        """Test decrease_quantity fails when result would be <= 0."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test decrease_quantity fails when result would be <= 0.
+        """
         cart = Cart(user_id=user.user_id)
         db.add(cart)
         db.commit()
@@ -625,10 +737,18 @@ class TestCartItemMethods:
 @pytest.mark.integration
 @pytest.mark.db
 class TestCartRelationships:
-    """Test Cart and CartItem relationships."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test Cart and CartItem relationships.
+    """
 
     def test_cart_belongs_to_user(self, db, user):
-        """Test cart has relationship with user."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test cart has relationship with user.
+        """
         cart = Cart(user_id=user.user_id)
         db.add(cart)
         db.commit()
@@ -638,7 +758,11 @@ class TestCartRelationships:
         assert cart.owner.user_id == user.user_id
 
     def test_user_has_one_cart(self, db, user):
-        """Test user has cart relationship (1:1)."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test user has cart relationship (1:1).
+        """
         cart = Cart(user_id=user.user_id)
         db.add(cart)
         db.commit()
@@ -648,7 +772,11 @@ class TestCartRelationships:
         assert user.cart.cart_id == cart.cart_id
 
     def test_cart_items_cascade_delete_with_cart(self, db, user, category):
-        """Test cart items are deleted when cart is deleted."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test cart items are deleted when cart is deleted.
+        """
         cart = Cart(user_id=user.user_id)
         db.add(cart)
         db.commit()

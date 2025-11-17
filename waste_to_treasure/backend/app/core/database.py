@@ -1,6 +1,10 @@
 """
 Configuración de la base de datos usando SQLAlchemy 2.0.
 Proporciona el engine, sessionmaker y base declarativa para los modelos.
+
+Autor: Oscar Alonso Nava Rivera
+Fecha: 31/10/2025
+Descripción: Engine y dependencias de DB (sync/async).
 """
 import logging
 from typing import Generator, AsyncGenerator

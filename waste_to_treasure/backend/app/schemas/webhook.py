@@ -12,8 +12,9 @@ from pydantic import BaseModel, Field, ConfigDict
 
 class StripeWebhookEvent(BaseModel):
     """
-    Estructura de evento de webhook de Stripe.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Estructura de evento de webhook de Stripe.
+
     Docs: https://stripe.com/docs/api/events/object
     """
     id: str = Field(
@@ -86,8 +87,9 @@ class StripeWebhookEvent(BaseModel):
 
 class WebhookProcessingResult(BaseModel):
     """
-    Resultado del procesamiento de webhook.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Resultado del procesamiento de webhook.
+
     Respuesta interna del servicio de webhooks.
     """
     success: bool = Field(
@@ -128,8 +130,9 @@ class WebhookProcessingResult(BaseModel):
 
 class WebhookResponse(BaseModel):
     """
-    Respuesta pública del endpoint de webhook.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Respuesta pública del endpoint de webhook.
+
     Usado en: POST /api/v1/webhooks/stripe
     """
     received: bool = Field(
@@ -145,8 +148,9 @@ class WebhookResponse(BaseModel):
 
 class PayPalWebhookEvent(BaseModel):
     """
-    Estructura de evento de webhook de PayPal.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Estructura de evento de webhook de PayPal.
+
     Docs: https://developer.paypal.com/docs/api-basics/notifications/webhooks/event-names/
     """
     id: str = Field(
@@ -189,8 +193,9 @@ class PayPalWebhookEvent(BaseModel):
 
 class RefundRequest(BaseModel):
     """
-    Request para crear reembolso.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Request para crear reembolso.
+
     Usado en: POST /api/v1/payments/{transaction_id}/refund
     """
     transaction_id: int = Field(
@@ -221,7 +226,8 @@ class RefundRequest(BaseModel):
 
 class RefundResponse(BaseModel):
     """
-    Respuesta de reembolso procesado.
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Respuesta de reembolso procesado.
     """
     success: bool = Field(..., description="Si el reembolso fue exitoso")
     

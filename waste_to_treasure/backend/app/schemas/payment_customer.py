@@ -14,7 +14,10 @@ from app.models.payment_enums import PaymentGatewayEnum
 
 
 class PaymentCustomerBase(BaseModel):
-    """Esquema base para PaymentCustomer."""
+    """\
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Esquema base para PaymentCustomer.
+    """
     
     gateway: PaymentGatewayEnum = Field(
         ...,
@@ -31,8 +34,9 @@ class PaymentCustomerBase(BaseModel):
 
 class PaymentCustomerCreate(PaymentCustomerBase):
     """
-    Esquema para crear PaymentCustomer.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Esquema para crear PaymentCustomer.
+
     Usado internamente por el servicio de pagos.
     """
     user_id: UUID = Field(
@@ -48,7 +52,10 @@ class PaymentCustomerCreate(PaymentCustomerBase):
 
 
 class PaymentCustomerUpdate(BaseModel):
-    """Esquema para actualizar PaymentCustomer."""
+    """\
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Esquema para actualizar PaymentCustomer.
+    """
     
     default_payment_method_id: Optional[str] = Field(
         None,
@@ -57,7 +64,10 @@ class PaymentCustomerUpdate(BaseModel):
 
 
 class PaymentCustomerInDB(PaymentCustomerBase):
-    """Esquema de PaymentCustomer en BD."""
+    """\
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Esquema de PaymentCustomer en BD.
+    """
     
     payment_customer_id: int
     user_id: UUID
@@ -70,8 +80,9 @@ class PaymentCustomerInDB(PaymentCustomerBase):
 
 class PaymentCustomerRead(PaymentCustomerInDB):
     """
-    Esquema de respuesta para PaymentCustomer.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Esquema de respuesta para PaymentCustomer.
+
     Usado en: GET /payments/customer
     """
     pass
@@ -79,8 +90,9 @@ class PaymentCustomerRead(PaymentCustomerInDB):
 
 class PaymentMethodCreate(BaseModel):
     """
-    Request para guardar nuevo método de pago.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Request para guardar nuevo método de pago.
+
     Usado en: POST /api/v1/payments/methods
     """
     gateway: PaymentGatewayEnum = Field(
@@ -103,8 +115,9 @@ class PaymentMethodCreate(BaseModel):
 
 class PaymentMethodRead(BaseModel):
     """
-    Información de método de pago guardado.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Información de método de pago guardado.
+
     Usado en: GET /payments/methods
     """
     payment_method_id: str = Field(
@@ -151,7 +164,10 @@ class PaymentMethodRead(BaseModel):
 
 
 class PaymentMethodList(BaseModel):
-    """Lista de métodos de pago del usuario."""
+    """\
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Lista de métodos de pago del usuario.
+    """
     
     items: list[PaymentMethodRead] = Field(
         ...,

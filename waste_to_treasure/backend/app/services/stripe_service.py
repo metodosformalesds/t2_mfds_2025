@@ -8,8 +8,15 @@ Implementa:
 - Procesamiento de webhooks
 - Reembolsos
 
+Autor: Oscar Alonso Nava Rivera
+Fecha: 08/11/2025
+Descripción: Servicio para integración con Stripe (customers, payments, webhooks)
+
 Documentación: https://docs.stripe.com/api?api-version=2025-10-29
 """
+# Autor: Oscar Alonso Nava Rivera
+# Fecha: 08/11/2025
+# Descripción: Servicio para integración con Stripe (customers, payments, webhooks)
 import logging
 from typing import Optional, Dict, Any, List
 from decimal import Decimal
@@ -25,7 +32,10 @@ settings = get_settings()
 class StripeService:
     """
     Servicio para interactuar con Stripe API v2025-10-29.
-    
+
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Capa de servicio para integrar con Stripe (clientes, pagos, webhooks, reembolsos).
+
     Example:
         `
         from app.services.stripe_service import stripe_service
@@ -56,16 +66,17 @@ class StripeService:
     async def create_customer(self, email: str, name: Optional[str] = None, 
     metadata: Optional[Dict[str, str]] = None) -> stripe.Customer:
         """
+        Autor: Oscar Alonso Nava Rivera
         Crea un customer en Stripe.
-        
+
         Args:
             email: Email del usuario.
             name: Nombre completo del usuario.
             metadata: Metadata adicional (ej: user_id de BD).
-            
+
         Returns:
             Customer de Stripe creado.
-            
+
         Raises:
             StripeError: Si falla la creación.
         """
@@ -85,6 +96,7 @@ class StripeService:
 
     async def get_customer(self, customer_id: str) -> stripe.Customer:
         """
+        Autor: Oscar Alonso Nava Rivera
         Obtiene un customer por su ID.
 
         Args:
@@ -106,16 +118,17 @@ class StripeService:
         set_as_default: bool = False
     ) -> stripe.PaymentMethod:
         """
+        Autor: Oscar Alonso Nava Rivera
         Asocia un método de pago a un customer.
-        
+
         Args:
             customer_id: ID del customer.
             payment_method_id: ID del método de pago (pm_xxx).
             set_as_default: Si marcarlo como predeterminado.
-            
+
         Returns:
             PaymentMethod de Stripe.
-        """ 
+        """
         try:
             # Asociar método de pago al customer
             payment_method = stripe.PaymentMethod.attach(
@@ -148,12 +161,13 @@ class StripeService:
         type: str = "card"
     ) -> List[stripe.PaymentMethod]:
         """
+        Autor: Oscar Alonso Nava Rivera
         Lista métodos de pago de un customer.
-        
+
         Args:
             customer_id: ID del customer.
             type: Tipo de método ("card", "oxxo", etc).
-            
+
         Returns:
             Lista de PaymentMethod de Stripe.
         """
@@ -180,8 +194,9 @@ class StripeService:
         return_url: Optional[str] = None
     ) -> stripe.PaymentIntent:
         """
+        Autor: Oscar Alonso Nava Rivera
         Crea un Payment Intent para procesar pago.
-        
+
         Args:
             amount: Monto en la moneda especificada (ej: 1500.00 MXN).
             currency: Código de moneda ISO (mxn, usd, etc).
@@ -190,10 +205,10 @@ class StripeService:
             metadata: Metadata adicional (order_id, etc).
             description: Descripción del pago.
             return_url: URL de retorno para métodos de pago que requieren redirección (3D Secure, etc).
-            
+
         Returns:
             PaymentIntent de Stripe.
-            
+
         Note:
             Stripe trabaja con centavos, así que 1500.00 MXN = 150000 centavos.
             Se configura automatic_payment_methods para permitir múltiples métodos de pago
@@ -252,13 +267,14 @@ class StripeService:
         return_url: Optional[str] = None
     ) -> stripe.PaymentIntent:
         """
+        Autor: Oscar Alonso Nava Rivera
         Confirma un Payment Intent.
-        
+
         Args:
             payment_intent_id: ID del Payment Intent.
             payment_method_id: ID del método de pago (si no se especificó antes).
             return_url: URL de retorno para métodos que requieren redirección (3D Secure, etc).
-            
+
         Returns:
             PaymentIntent confirmado.
         """
@@ -294,8 +310,9 @@ class StripeService:
         mode: str = "payment"
     ) -> stripe.checkout.Session:
         """
+        Autor: Oscar Alonso Nava Rivera
         Crea una Checkout Session (página de pago de Stripe).
-        
+
         Args:
             line_items: Lista de items a cobrar.
             success_url: URL de redirección tras pago exitoso.
@@ -303,9 +320,9 @@ class StripeService:
             customer_id: ID del customer (opcional).
             metadata: Metadata adicional.
             mode: Modo de checkout ("payment" o "subscription").
-            
+
         Returns:
-            Checkout Session de Stripe. 
+            Checkout Session de Stripe.
         """
         try:
             params = {
@@ -333,11 +350,12 @@ class StripeService:
         session_id: str
     ) -> stripe.checkout.Session:
         """
+        Autor: Oscar Alonso Nava Rivera
         Obtiene una Checkout Session por su ID.
-        
+
         Args:
             session_id: ID de la sesión (cs_xxx).
-            
+
         Returns:
             Checkout Session de Stripe.
         """
@@ -355,16 +373,17 @@ class StripeService:
         reason: Optional[str] = None
     ) -> stripe.Refund:
         """
+        Autor: Oscar Alonso Nava Rivera
         Crea un reembolso.
-        
+
         Args:
             payment_intent_id: ID del Payment Intent a reembolsar.
             amount: Monto a reembolsar (None = total).
             reason: Razón del reembolso.
-            
+
         Returns:
             Refund de Stripe.
-            
+
         Note:
             El reembolso puede tardar 5-10 días en reflejarse en la tarjeta.
         """
@@ -393,19 +412,18 @@ class StripeService:
         sig_header: str
     ) -> stripe.Event:
         """
+        Autor: Oscar Alonso Nava Rivera
         Verifica y construye un evento de webhook de Stripe.
-        
+
         Args:
             payload: Body crudo del request (bytes).
             sig_header: Header "Stripe-Signature".
-            
+
         Returns:
             Evento de Stripe verificado.
-            
+
         Raises:
             stripe.error.SignatureVerificationError: Si la firma es inválida.
-            
-           raise HTTPException(status_code=400)
         """
         try:
             event = stripe.Webhook.construct_event(

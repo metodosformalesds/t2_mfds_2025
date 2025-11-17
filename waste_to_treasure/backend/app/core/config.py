@@ -1,6 +1,10 @@
 """
 Configuración centralizada de la aplicación Waste-To-Treasure.
 Utiliza Pydantic V2 Settings para gestionar variables de entorno.
+
+Autor: Oscar Alonso Nava Rivera
+Fecha: 31/10/2025
+Descripción: Configuración centralizada (Pydantic Settings).
 """
 import logging
 from functools import lru_cache

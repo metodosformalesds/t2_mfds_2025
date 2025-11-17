@@ -15,8 +15,9 @@ from app.models.payment_enums import PaymentGatewayEnum, PaymentStatusEnum
 
 class PaymentTransactionBase(BaseModel):
     """
-    Esquema base con campos comunes para PaymentTransaction.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Esquema base con campos comunes para PaymentTransaction.
+
     Contiene los campos que se usan en múltiples operaciones.
     """
     gateway: PaymentGatewayEnum = Field(
@@ -49,8 +50,9 @@ class PaymentTransactionBase(BaseModel):
 
 class PaymentTransactionCreate(PaymentTransactionBase):
     """
-    Esquema para crear una transacción de pago.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Esquema para crear una transacción de pago.
+
     Usado internamente por el servicio de pagos.
     No expuesto directamente en endpoints públicos.
     """
@@ -106,8 +108,9 @@ class PaymentTransactionCreate(PaymentTransactionBase):
 
 class PaymentTransactionUpdate(BaseModel):
     """
-    Esquema para actualizar una transacción de pago.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Esquema para actualizar una transacción de pago.
+
     Usado por webhooks y procesos internos.
     """
     status: Optional[PaymentStatusEnum] = Field(
@@ -144,8 +147,9 @@ class PaymentTransactionUpdate(BaseModel):
 
 class PaymentTransactionInDB(PaymentTransactionBase):
     """
-    Esquema que representa cómo se almacena en la base de datos.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Esquema que representa cómo se almacena en la base de datos.
+
     Incluye campos autogenerados y timestamps.
     """
     transaction_id: int = Field(..., description="ID único de la transacción")
@@ -196,8 +200,9 @@ class PaymentTransactionInDB(PaymentTransactionBase):
 
 class PaymentTransactionRead(PaymentTransactionInDB):
     """
-    Esquema de respuesta para PaymentTransaction.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Esquema de respuesta para PaymentTransaction.
+
     Usado en: GET endpoints
     """
     # Campos computados opcionales
@@ -219,8 +224,9 @@ class PaymentTransactionRead(PaymentTransactionInDB):
 
 class PaymentTransactionList(BaseModel):
     """
-    Esquema de respuesta paginada para listar transacciones.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Esquema de respuesta paginada para listar transacciones.
+
     Usado en: GET /payments/transactions
     """
     items: list[PaymentTransactionRead] = Field(
@@ -252,8 +258,9 @@ class PaymentTransactionList(BaseModel):
 
 class PaymentTransactionPublic(BaseModel):
     """
-    Esquema público simplificado de transacción.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Esquema público simplificado de transacción.
+
     Usado para mostrar info básica sin datos sensibles.
     """
     transaction_id: int

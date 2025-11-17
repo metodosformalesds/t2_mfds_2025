@@ -2,12 +2,10 @@
 Endpoints de la API para Pagos con Stripe.
 
 Implementa:
-- POST /customers: Crear/obtener customer de Stripe
-- POST /checkout: Crear sesión de Stripe Checkout  
-- POST /process: Procesar pago directo con Payment Intent
-- POST /{transaction_id}/refund: Procesar reembolso
-- GET /methods: Listar métodos de pago guardados
 """
+# Autor: Oscar Alonso Nava Rivera
+# Fecha: 08/11/2025
+# Descripción: Endpoints para pagos (webhooks, checkout y reembolsos)
 import logging
 from typing import Annotated, Optional, List
 from decimal import Decimal
@@ -97,6 +95,7 @@ async def create_customer(
     user: Annotated[User, Depends(get_current_active_user)]
 ) -> PaymentCustomerRead:
     """
+    Autor: Oscar Alonso Nava Rivera
     Crea o retorna customer existente de Stripe.
     """
     try:
@@ -158,6 +157,7 @@ async def get_my_customer(
     user: Annotated[User, Depends(get_current_active_user)]
 ) -> PaymentCustomerRead:
     """
+    Autor: Oscar Alonso Nava Rivera
     Obtiene el customer de Stripe del usuario.
     """
     customer = await payment_service.get_customer_by_user_id(db, user.user_id)
@@ -209,6 +209,7 @@ async def create_checkout_session(
     user: Annotated[User, Depends(get_current_active_user)]
 ) -> CheckoutSessionResponse:
     """
+    Autor: Oscar Alonso Nava Rivera
     Crea sesión de Stripe Checkout.
     """
     try:
@@ -315,6 +316,7 @@ async def process_payment(
     user: Annotated[User, Depends(get_current_active_user)]
 ) -> PaymentIntentResponse:
     """
+    Autor: Oscar Alonso Nava Rivera
     Procesa pago directo con Payment Intent.
     """
     try:
@@ -440,6 +442,7 @@ async def process_refund(
     user: Annotated[User, Depends(get_current_active_user)]
 ) -> RefundResponse:
     """
+    Autor: Oscar Alonso Nava Rivera
     Procesa reembolso de transacción.
     """
     try:

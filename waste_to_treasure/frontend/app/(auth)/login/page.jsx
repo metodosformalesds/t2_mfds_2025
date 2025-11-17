@@ -1,6 +1,13 @@
-'use client'
+/**
+ * Autor: Oscar Alonso Nava Rivera
+ * Fecha: 09/11/2025
+ * Componente: LoginPage (login/page.jsx)
+ * Descripción: Página de inicio de sesión.
+ */
 
-import { useState } from 'react'
+'use client';
+
+import { useState } from 'react';
 import { useRouter } from 'next/navigation'
 import { Eye, EyeOff } from 'lucide-react'
 import Image from 'next/image'

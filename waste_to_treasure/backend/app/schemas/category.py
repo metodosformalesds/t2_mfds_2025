@@ -13,8 +13,9 @@ from app.models.category import ListingTypeEnum
 
 class CategoryBase(BaseModel):
     """
-    Esquema base con campos comunes para Category.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Esquema base con campos comunes para Category.
+
     Contiene los campos que se usan tanto en creación como actualización.
     """
     name: str = Field(
@@ -37,8 +38,9 @@ class CategoryBase(BaseModel):
 
 class CategoryCreate(CategoryBase):
     """
-    Esquema para crear una nueva categoría.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Esquema para crear una nueva categoría.
+
     Usado en: POST /api/v1/categories
     Requiere: Rol ADMIN
     """
@@ -47,10 +49,11 @@ class CategoryCreate(CategoryBase):
 
 class CategoryUpdate(BaseModel):
     """
-    Esquema para actualizar una categoría existente.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Esquema para actualizar una categoría existente.
+
     Todos los campos son opcionales para permitir actualizaciones parciales.
-    
+
     Usado en: PATCH /api/v1/categories/{category_id}
     Requiere: Rol ADMIN
     """
@@ -73,8 +76,9 @@ class CategoryUpdate(BaseModel):
 
 class CategoryInDB(CategoryBase):
     """
-    Esquema que representa cómo se almacena Category en la base de datos.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Esquema que representa cómo se almacena Category en la base de datos.
+
     Incluye campos autogenerados como ID y timestamps.
     """
     category_id: int = Field(..., description="Identificador único")
@@ -92,11 +96,12 @@ class CategoryInDB(CategoryBase):
 
 class CategoryRead(CategoryInDB):
     """
-    Esquema de respuesta simple para Category (sin relaciones).
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Esquema de respuesta simple para Category (sin relaciones).
+
     Este esquema se usa para operaciones que NO necesitan cargar
     las subcategorías (children), evitando el error MissingGreenlet.
-    
+
     Usado en: POST, PATCH, GET individual, lista paginada
     """
     # Campo computado: ruta completa de la jerarquía  
@@ -120,11 +125,12 @@ class CategoryRead(CategoryInDB):
 
 class Category(CategoryInDB):
     """
-    Esquema de respuesta completo para Category.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Esquema de respuesta completo para Category.
+
     Este es el esquema principal que se devuelve al cliente.
     Puede incluir campos computados o relaciones cargadas.
-    
+
     Usado en: Respuestas que incluyen la relación children (árbol, lista con hijos)
     """
     # Campo computado: ruta completa de la jerarquía
@@ -142,8 +148,9 @@ class Category(CategoryInDB):
 
 class CategoryWithChildren(Category):
     """
-    Esquema extendido que incluye subcategorías anidadas.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Esquema extendido que incluye subcategorías anidadas.
+
     Usado en: GET /api/v1/categories/tree
     """
     children: List["Category"] = Field(
@@ -154,10 +161,11 @@ class CategoryWithChildren(Category):
 
 class CategoryList(BaseModel):
     """
-    Esquema de respuesta paginada para listar categorías.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Esquema de respuesta paginada para listar categorías.
+
     Usado en: GET /api/v1/categories
-    
+
     Usa CategoryRead (sin children) para evitar problemas de lazy loading.
     """
     items: List[CategoryRead] = Field(..., description="Lista de categorías")
@@ -170,8 +178,9 @@ class CategoryList(BaseModel):
 
 class CategoryTree(BaseModel):
     """
-    Esquema para representar el árbol jerárquico completo de categorías.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Esquema para representar el árbol jerárquico completo de categorías.
+
     Usado en: GET /api/v1/categories/tree
     """
     materials: List[CategoryWithChildren] = Field(

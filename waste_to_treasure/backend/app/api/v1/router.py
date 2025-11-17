@@ -1,3 +1,11 @@
+"""
+Router central de la API v1 que agrega todos los routers de los endpoints.
+
+Autor: Oscar Alonso Nava Rivera
+Fecha: 31/10/2025
+Descripción: Incluye y registra los routers de los endpoints de la API v1.
+"""
+
 from fastapi import APIRouter
 from app.api.v1.endpoints import (
     categories,

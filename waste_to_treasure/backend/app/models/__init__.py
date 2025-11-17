@@ -3,6 +3,10 @@ Módulo de modelos de base de datos.
 
 Expone todos los modelos SQLAlchemy para facilitar importaciones
 y permitir que Alembic detecte automáticamente los modelos.
+
+Autor: Oscar Alonso Nava Rivera
+Fecha: 31/10/2025
+Descripción: Exporta modelos y tipos usados por la aplicación.
 """
 from app.models.base import Base, BaseModel, TimestampMixin
 from app.models.category import Category, ListingTypeEnum
@@ -27,9 +31,6 @@ from app.models.legal_documents import LegalDocument
 from app.models.payment_enums import PaymentGatewayEnum, PaymentStatusEnum, PayoutStatusEnum
 from app.models.payment_customer import PaymentCustomer
 from app.models.payment_transaction import PaymentTransaction
-
-# NOTE: Subscription comentado porque depende de 'plans' que aún no existe
-# from app.models.subscriptions import Subscription, SubscriptionStatus
 
 __all__ = [
 # Base classes

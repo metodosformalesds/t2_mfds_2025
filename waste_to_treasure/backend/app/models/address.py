@@ -4,6 +4,9 @@ Modelo de base de datos para Address.
 Implementa la tabla 'addresses'
 Almacena direcciones físicas para usuarios, listings y orders.
 """
+# Autor: Oscar Alonso Nava Rivera
+# Fecha: 04/11/2025
+# Descripción: Modelo SQLAlchemy para direcciones (Address). Almacena direcciones físicas para usuarios, listings y orders y contiene validaciones y utilidades relacionadas.
 import uuid
 from typing import Optional, TYPE_CHECKING
 
@@ -128,10 +131,12 @@ class Address(BaseModel):
     def get_full_address(self) -> str:
         """
         Retorna la dirección completa formateada.
-        
+
+        Autor: Oscar Alonso Nava Rivera
+        Descripción: Compone y retorna la dirección completa como string.
+
         Returns:
             Dirección completa en formato legible.
-            
         """
         parts = [
             self.street,
@@ -145,10 +150,13 @@ class Address(BaseModel):
     def validate_postal_code_format(self) -> bool:
         """
         Valida el formato del código postal según el país.
-        
+
+        Autor: Oscar Alonso Nava Rivera
+        Descripción: Valida el formato del código postal según la configuración por país.
+
         Returns:
             True si el formato es válido para el país especificado.
-            
+
         Note:
             Implementación básica. Expandir según países soportados.
             Actualmente valida: MX (México), US (Estados Unidos).
@@ -167,13 +175,21 @@ class Address(BaseModel):
     def get_short_address(self) -> str:
         """
         Retorna una versión corta de la dirección (ciudad, estado).
-        
+
+        Autor: Oscar Alonso Nava Rivera
+        Descripción: Retorna ciudad y estado en formato corto.
+
         Returns:
             Dirección abreviada.
         """
         return f"{self.city}, {self.state}"
     
     def __repr__(self) -> str:
+        """
+        Autor: Oscar Alonso Nava Rivera
+        Descripción: Representación legible del objeto Address.
+
+        """
         return (
             f"Address(address_id={self.address_id!r}, "
             f"city='{self.city}', state='{self.state}', "

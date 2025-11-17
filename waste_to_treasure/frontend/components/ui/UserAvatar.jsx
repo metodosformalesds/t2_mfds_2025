@@ -1,3 +1,10 @@
+/**
+ * Autor: Oscar Alonso Nava Rivera
+ * Fecha: 16/11/2025
+ * Componente: UserAvatar
+ * Descripción: Componente para mostrar avatar de usuario con fallback a iniciales.
+ */
+
 'use client'
 
 import Image from 'next/image'

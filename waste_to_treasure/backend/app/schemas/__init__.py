@@ -2,6 +2,9 @@
 Modulo de esquemas Pydantic
 
 Expone todos los esquemas de validacion para las operaciones de la API.
+Autor: Oscar Alonso Nava Rivera
+Fecha: 31/10/2025
+Descripción: Exporta schemas Pydantic usados por la API.
 """
 from app.schemas.category import (
     CategoryBase,

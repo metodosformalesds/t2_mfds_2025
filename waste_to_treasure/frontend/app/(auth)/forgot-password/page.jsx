@@ -1,3 +1,10 @@
+/**
+ * Autor: Oscar Alonso Nava Rivera
+ * Fecha: 09/11/2025
+ * Componente: ForgotPasswordPage (forgot-password/page.jsx)
+ * Descripción: Página de recuperación de contraseña.
+ */
+
 'use client';
 
 import { useState } from 'react';

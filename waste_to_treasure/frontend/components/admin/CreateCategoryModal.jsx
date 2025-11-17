@@ -1,3 +1,10 @@
+/**
+ * Autor: Oscar Alonso Nava Rivera
+ * Fecha: 16/11/2025
+ * Componente: CreateCategoryModal
+ * Descripción: Modal para crear una nueva categoría con soporte para jerarquías.
+ */
+
 'use client'
 
 import { useState, useEffect } from 'react'

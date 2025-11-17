@@ -4,6 +4,9 @@ Modelo de base de datos para Category.
 Implementa la tabla 'categories'
 Almacena la jerarquía de categorías para productos y materiales.
 """
+# Autor: Oscar Alonso Nava Rivera
+# Fecha: 03/11/2025
+# Descripción: Modelos de datos para Category con métodos de jerarquía.
 from typing import Optional, List, TYPE_CHECKING
 
 from sqlalchemy import String, Integer, ForeignKey, Enum as SQLEnum, Index
@@ -18,6 +21,9 @@ if TYPE_CHECKING:
 class ListingTypeEnum(str, enum.Enum):
     """
     Enum para tipo de categoría según marketplace.
+    Autor: Oscar Alonso Nava Rivera
+    Fecha: 03/11/2025
+    Descripción: Enum para diferenciar tipos de categorías en marketplaces.
     
     Attributes:
         MATERIAL: Categoría para el marketplace de materiales (B2B).
@@ -28,6 +34,8 @@ class ListingTypeEnum(str, enum.Enum):
 
 class Category(BaseModel):
     """
+    Autor: Oscar Alonso Nava Rivera
+
     Modelo de categoría para organización de listados.
     
     Las categorías organizan y filtran listados en ambos marketplaces.
@@ -106,6 +114,7 @@ class Category(BaseModel):
     # MÉTODOS DE INSTANCIA
     def get_full_path(self) -> str:
         """
+        Autor: Oscar Alonso Nava Rivera
         Obtiene la ruta completa de la categoría en la jerarquía.
         
         Returns:
@@ -117,6 +126,7 @@ class Category(BaseModel):
 
     def is_leaf(self) -> bool:
         """
+        Autor: Oscar Alonso Nava Rivera
         Determina si la categoria es una hoja (sin subcategorias)
         
         Returns:
@@ -126,6 +136,7 @@ class Category(BaseModel):
     
     def get_all_descendants(self) -> List["Category"]:
         """
+        Autor: Oscar Alonso Nava Rivera
         Obtiene recursivamente todas las subcategorías descendientes.
         
         Returns:
@@ -138,7 +149,10 @@ class Category(BaseModel):
         return descendants
     
     def __repr__(self) -> str:
-        """Representación legible del modelo."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+        Representación legible del modelo.
+        """
         return (
             f"Category(category_id={self.category_id!r}, "
             f"name={self.name!r}, slug={self.slug!r}, "

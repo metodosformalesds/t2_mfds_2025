@@ -4,6 +4,9 @@ Modelo de base de datos para User.
 Implementa la tabla 'users'
 Almacena la información de los usuarios de la plataforma.
 """
+# Autor: Oscar Alonso Nava Rivera
+# Fecha: 03/11/2025
+# Descripción: Modelos de datos para usuarios y enums relacionados
 import uuid
 from typing import Optional, List, TYPE_CHECKING
 from sqlalchemy import String, Integer, Enum as SQLEnum
@@ -43,14 +46,17 @@ class UserStatusEnum(str, enum.Enum):
 
 class User(BaseModel):
     """
+    Autor: Oscar Alonso Nava Rivera
+
     Modelo de usuario para la autenticación y autorización.
 
-   La clave primaria (id) ahora es un UUID que corresponde al
+    La clave primaria (id) ahora es un UUID que corresponde al
     'sub' (Subject) claim del token JWT de Cognito.
 
     La autenticación (contraseñas) es manejada 100% por Cognito,
     por lo que los campos 'hashed_password' y 'cognito_sub' se eliminan.
     """
+    # Autor: Oscar Alonso Nava Rivera
     __tablename__ = "users"
 
     user_id: Mapped[uuid.UUID] = mapped_column(
@@ -224,6 +230,10 @@ class User(BaseModel):
     )
 
     def __repr__(self) -> str:
+        """
+        Autor: Oscar Alonso Nava Rivera
+        Representación legible del modelo de usuario para debugging.
+        """
         return (
             f"User(user_id={self.user_id!r}, email={self.email!r}, "
             f"full_name={self.full_name!r}, role={self.role.value!r}, "

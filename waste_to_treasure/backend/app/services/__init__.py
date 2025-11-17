@@ -65,6 +65,10 @@ PASOS PARA ACTIVAR:
    # Test Cognito
    user_info = await cognito_service.get_user_info(user_uuid)
    ```
+
+Autor: Oscar Alonso Nava Rivera
+Fecha: 31/10/2025
+Descripción: Agrupa y exporta servicios integrados (S3, SES, Cognito).
 """
 
 from app.services.aws_s3_service import s3_service

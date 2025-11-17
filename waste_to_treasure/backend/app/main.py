@@ -4,6 +4,10 @@ Waste-To-Treasure API - Aplicación principal FastAPI.
 Este módulo inicializa la aplicación FastAPI, configura middleware,
 maneja eventos del ciclo de vida y registra los routers principales.
 """
+
+# Autor: Oscar Alonso Nava Rivera
+# Fecha: 02/11/2025
+# Descripción: Entrypoint principal del backend; registra routers, middlewares y manejadores de excepciones.
 import logging
 import time
 from contextlib import asynccontextmanager
@@ -33,8 +37,17 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    Maneja el ciclo de vida de la aplicación.
-    Verifica la DB al iniciar y puede limpiar recursos al apagar.
+    Autor: Oscar Alonso Nava Rivera
+
+    Descripción: Maneja el ciclo de vida de la aplicación. Verifica la
+    conexión a la base de datos en el arranque y registra eventos de
+    apagado. Requiere `app` para poder acceder a la configuración.
+
+    Parámetros:
+        app (FastAPI): Instancia de la aplicación FastAPI.
+
+    Retorna:
+        None: Es una función de context manager; el `yield` separa startup/shutdown.
     """
     # --- Startup ---
     logger.info(f"La aplicación se ha iniciado correctamente. Documentación en: http://127.0.0.1:8000{app.docs_url}")
@@ -70,12 +83,18 @@ app = FastAPI(
 # ================================================
 class ProxyHeadersMiddleware(BaseHTTPMiddleware):
     """
-    Middleware para leer headers de proxy (X-Forwarded-*).
-    Esto permite que FastAPI sepa el dominio y protocolo original
-    cuando está detrás de API Gateway o cualquier proxy.
-    
-    También reescribe los Location headers en redirects para usar
-    el host del API Gateway en lugar de la IP interna del backend.
+    Autor: Oscar Alonso Nava Rivera
+
+    Descripción: Middleware que normaliza headers de proxy y reescribe
+    cabeceras Location en redirects cuando el backend se sirve detrás
+    de un API Gateway (X-Forwarded-*).
+
+    Parámetros:
+        request (Request): Solicitud HTTP entrante.
+        call_next: Llamada a la siguiente función middleware/endpoint.
+
+    Retorna:
+        Response: Respuesta del downstream, posiblemente con Location reescrito.
     """
     async def dispatch(self, request: Request, call_next):
         # Leer el protocolo original (http/https)
@@ -157,6 +176,20 @@ logger.info("Middleware de compresión GZip habilitado.")
 # Middleware para logging de peticiones
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Descripción: Middleware de logging que mide tiempo de respuesta y
+    añade cabecera X-Process-Time.
+
+    Parámetros:
+        request (Request): Solicitud entrante.
+        call_next: Llamada al siguiente handler.
+
+    Retorna:
+        Response: Respuesta del handler con header X-Process-Time.
+    """
+
     start_time = time.time()
     response = await call_next(request)
     process_time = time.time() - start_time
@@ -173,6 +206,20 @@ async def log_requests(request: Request, call_next):
 
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Descripción: Maneja excepciones HTTP generadas por Starlette y
+    devuelve una JSONResponse con el detalle.
+
+    Parámetros:
+        request (Request): Solicitud entrante.
+        exc (StarletteHTTPException): Excepción HTTP.
+
+    Retorna:
+        JSONResponse: Respuesta con status y detalle del error.
+    """
+
     logger.warning(f"Error HTTP {exc.status_code}: {exc.detail} (Ruta: {request.url.path})")
     return JSONResponse(
         status_code=exc.status_code,
@@ -181,6 +228,20 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Descripción: Manejador que intercepta errores de validación de Pydantic
+    y devuelve un JSON con detalles para facilitar debugging en el cliente.
+
+    Parámetros:
+        request (Request): Solicitud entrante.
+        exc (RequestValidationError): Excepción de validación.
+
+    Retorna:
+        JSONResponse: Respuesta con status 422 y detalle de errores.
+    """
+
     logger.warning(f"Error de validación en: {request.url.path} - {exc.errors()}")
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -189,6 +250,20 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Descripción: Manejador por defecto para excepciones no previstas; registra
+    el stacktrace y devuelve un mensaje genérico al cliente.
+
+    Parámetros:
+        request (Request): Solicitud entrante.
+        exc (Exception): Excepción capturada.
+
+    Retorna:
+        JSONResponse: Respuesta con status 500 y mensaje genérico.
+    """
+
     logger.error(f"Excepción no manejada: {exc}", exc_info=True)
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -207,7 +282,14 @@ logger.info(f"Rutas de la API v1 registradas en el prefijo: {settings.API_V1_STR
 
 @app.get("/", tags=["Health Check"])
 async def read_root():
-    """Endpoint raíz para verificar que la API está funcionando."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Descripción: Endpoint raíz que retorna estado simple de la API.
+
+    Retorna:
+        dict: Estado y mensaje de bienvenida con versión del proyecto.
+    """
     return {
         "status": "ok",
         "message": f"Bienvenido a {settings.PROJECT_NAME} v{settings.PROJECT_VERSION}"
@@ -215,5 +297,12 @@ async def read_root():
 
 @app.get("/health", tags=["Health Check"])
 async def health_check():
-    """Endpoint de health check detallado."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Descripción: Endpoint para comprobar salud del servicio.
+
+    Retorna:
+        dict: Estado 'healthy' si servicio está activo.
+    """
     return {"status": "healthy"}
