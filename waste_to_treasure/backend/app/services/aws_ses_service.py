@@ -16,6 +16,9 @@ CONFIGURACIÓN REQUERIDA:
 
 IMPORTANTE: Este código NO se ejecutará hasta que configures AWS SES.
 """
+# Autor: Oscar Alonso Nava Rivera
+# Fecha: 06/11/2025
+# Descripción: Servicio SES para envío de correos transaccionales.
 
 import logging
 from typing import List, Optional, Dict
@@ -35,6 +38,8 @@ settings = get_settings()
 
 class SESService:
     """
+    Autor: Oscar Alonso Nava Rivera
+    
     Servicio para envío de emails con Amazon SES.
     
     Example:
@@ -80,6 +85,7 @@ class SESService:
         first_name: str
     ) -> bool:
         """
+        Autor: Oscar Alonso Nava Rivera
         Envía email de bienvenida a usuario nuevo.
         
         Args:
@@ -174,6 +180,7 @@ class SESService:
         order_items: List[Dict],
     ) -> bool:
         """
+        Autor: Oscar Alonso Nava Rivera
         Envía confirmación de orden al comprador.
         
         Args:
@@ -296,6 +303,7 @@ class SESService:
         text_body: Optional[str] = None
     ) -> bool:
         """
+        Autor: Oscar Alonso Nava Rivera
         Método interno para enviar emails con SES.
         
         Args:

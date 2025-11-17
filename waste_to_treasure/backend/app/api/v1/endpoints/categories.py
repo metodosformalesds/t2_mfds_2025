@@ -4,6 +4,9 @@ Endpoints de la API para Category.
 Implementa operaciones CRUD sobre categorías de materiales y productos.
 Todos los endpoints de modificación requieren permisos de administrador.
 """
+# Autor: Oscar Alonso Nava Rivera
+# Fecha: 05/11/2025
+# Descripción: Rutas de API para gestión de categorías (CRUD, list, tree)
 import logging
 from typing import Optional
 from fastapi import APIRouter, Depends, Query, status
@@ -52,6 +55,7 @@ async def create_category(
     admin: User = Depends(require_admin)
 ) -> CategoryRead:
     """
+    Autor: Oscar Alonso Nava Rivera
     Crea una nueva categoría.
     
     **Requiere**: Rol ADMIN
@@ -114,6 +118,7 @@ async def get_categories(
     db: AsyncSession = Depends(get_async_db)
 ) -> CategoryList:
     """
+    Autor: Oscar Alonso Nava Rivera
     Lista categorías con filtros opcionales.
     
     **Acceso**: Público (no requiere autenticación)
@@ -197,6 +202,7 @@ async def get_category_tree(
     db: AsyncSession = Depends(get_async_db)
 ) -> CategoryTree:
     """
+    Autor: Oscar Alonso Nava Rivera
     Obtiene el árbol jerárquico completo de categorías.
     
     **Acceso**: Público (no requiere autenticación)
@@ -252,6 +258,7 @@ async def get_category(
     db: AsyncSession = Depends(get_async_db)
 ) -> CategoryRead:
     """
+    Autor: Oscar Alonso Nava Rivera
     Obtiene una categoría específica por su ID.
     
     **Acceso**: Público (no requiere autenticación)
@@ -305,6 +312,7 @@ async def update_category(
     admin: User = Depends(require_admin)
 ) -> CategoryRead:
     """
+    Autor: Oscar Alonso Nava Rivera
     Actualiza una categoría existente (actualización parcial).
     
     **Requiere**: Rol ADMIN
@@ -355,6 +363,7 @@ async def delete_category(
     admin: User = Depends(require_admin)
 ) -> None:
     """
+    Autor: Oscar Alonso Nava Rivera
     Elimina una categoría del sistema.
     
     **Requiere**: Rol ADMIN

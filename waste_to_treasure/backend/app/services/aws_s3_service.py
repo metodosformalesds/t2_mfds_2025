@@ -15,6 +15,9 @@ CONFIGURACIÓN REQUERIDA:
 
 IMPORTANTE: Este código NO se ejecutará hasta que configures las credenciales AWS.
 """
+# Autor: Oscar Alonso Nava Rivera
+# Fecha: 06/11/2025
+# Descripción: Servicio S3 para manejo de imágenes (listings y perfiles).
 
 import logging
 import uuid
@@ -33,6 +36,8 @@ settings = get_settings()
 
 class S3Service:
     """
+    Autor: Oscar Alonso Nava Rivera
+
     Servicio para gestionar archivos en Amazon S3.
     
     Example:
@@ -89,6 +94,7 @@ class S3Service:
         is_primary: bool = False
     ) -> str:
         """
+        Autor: Oscar Alonso Nava Rivera
         Sube una imagen de listing a S3.
         
         Args:
@@ -172,6 +178,8 @@ class S3Service:
         user_id: str
     ) -> str:
         """
+        Autor: Oscar Alonso Nava Rivera
+    
         Sube una imagen de perfil de usuario a S3.
         
         Args:
@@ -248,6 +256,7 @@ class S3Service:
     
     async def delete_image(self, s3_key: str) -> bool:
         """
+        Autor: Oscar Alonso Nava Rivera
         Elimina una imagen de S3.
         
         Args:
@@ -280,6 +289,7 @@ class S3Service:
         expiration: int = 3600
     ) -> str:
         """
+        Autor: Oscar Alonso Nava Rivera
         Genera una URL presignada para acceso temporal a un archivo.
         
         Args:

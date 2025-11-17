@@ -7,6 +7,9 @@ la sesión de la base de datos, o la validación del usuario actual.
 
 Incluye implementación de Just-In-Time (JIT) User Creation para AWS Cognito.
 """
+# Autor: Oscar Alonso Nava Rivera
+# Fecha: 02/11/2025
+# Descripción: Dependencias y validadores de seguridad para los endpoints (Cognito JIT, roles, permisos).
 
 import logging
 import uuid
@@ -31,6 +34,7 @@ async def get_current_user_with_jit(
     db: AsyncSession = Depends(get_async_db)
 ) -> User:
     """
+    Autor: Oscar Alonso Nava Rivera
     Dependencia principal de autenticación con Just-In-Time (JIT) User Creation.
     
     Valida el token JWT de AWS Cognito y:
@@ -69,6 +73,7 @@ async def get_current_user_with_jit(
         - El email se toma del claim 'email' del token
         - Usuarios nuevos se crean con role=BUYER y status=ACTIVE
     """
+    
     token = credentials.credentials
     
     # Verificar el token de Cognito
@@ -165,6 +170,7 @@ async def get_current_active_user(
     current_user: User = Depends(get_current_user_with_jit)
 ) -> User:
     """
+    Autor: Oscar Alonso Nava Rivera
     Dependencia que verifica que el usuario esté activo.
     
     Args:
@@ -180,6 +186,7 @@ async def get_current_active_user(
         Esta validación ya se hace en get_current_user_with_jit, por lo que esta
         dependencia es principalmente para claridad semántica en el código.
     """
+    
     if current_user.status != UserStatusEnum.ACTIVE:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -193,6 +200,8 @@ async def require_admin(
 ) -> User:
     """
     Dependencia que requiere que el usuario tenga rol ADMIN.
+    
+    Autor: Oscar Alonso Nava Rivera
     
     Args:
         current_user: Usuario autenticado y activo.
@@ -214,6 +223,7 @@ async def require_admin(
             ...
         ```
     """
+    
     if current_user.role != UserRoleEnum.ADMIN:
         logger.warning(
             f"Usuario {current_user.user_id} intentó acceder a endpoint de admin"
@@ -227,6 +237,7 @@ async def require_admin(
 
 def verify_resource_owner(resource_owner_id: uuid.UUID, current_user: User) -> None:
     """
+    Autor: Oscar Alonso Nava Rivera
     Verifica que el usuario actual sea el propietario del recurso.
     
     Args:
