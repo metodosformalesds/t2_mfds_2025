@@ -77,7 +77,9 @@ export default function RelatedProducts() {
                   title: product.title,
                   price: product.price,
                   quantity: product.quantity,
-                  images: [{ image_url: product.primary_image_url }],
+                  primary_image_url: product.primary_image_url,
+                  category_name: product.category_name,
+                  seller_name: product.seller_name,
                 }}
               />
             </div>

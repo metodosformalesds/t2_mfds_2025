@@ -45,11 +45,11 @@ export default function Footer() {
                   Productos
                 </Link>
               </li>
-              <li>
+              {/* <li>
                 <Link href="/sellers" className="hover:text-white">
                   Productores locales
                 </Link>
-              </li>
+              </li> */}
             </ul>
           </div>
 

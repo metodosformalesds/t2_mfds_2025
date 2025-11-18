@@ -16,8 +16,14 @@ Este archivo demuestra cómo probar el modelo Category, incluyendo:
 
 import pytest
 from sqlalchemy.exc import IntegrityError
+from uuid import uuid4
 
 from app.models.category import Category, ListingTypeEnum
+
+
+def get_unique_suffix():
+    """Helper para generar sufijos únicos."""
+    return uuid4().hex[:8]
 
 
 @pytest.mark.models
@@ -35,9 +41,10 @@ class TestCategoryModel:
 
         Test creating a category with only required fields.
         """
+        suffix = get_unique_suffix()
         category = Category(
-            name="Electronics",
-            slug="electronics",
+            name=f"Electronics_{suffix}",
+            slug=f"electronics-{suffix}",
             type=ListingTypeEnum.PRODUCT
         )
         db.add(category)
@@ -45,8 +52,8 @@ class TestCategoryModel:
         db.refresh(category)
 
         assert category.category_id is not None
-        assert category.name == "Electronics"
-        assert category.slug == "electronics"
+        assert category.name == f"Electronics_{suffix}"
+        assert category.slug == f"electronics-{suffix}"
         assert category.type == ListingTypeEnum.PRODUCT
         assert category.parent_category_id is None
         assert category.created_at is not None
@@ -146,9 +153,10 @@ class TestCategoryHierarchy:
 
         Test creating a parent category.
         """
+        suffix = get_unique_suffix()
         parent = Category(
-            name="Electronics",
-            slug="electronics",
+            name=f"Electronics_{suffix}",
+            slug=f"electronics-{suffix}",
             type=ListingTypeEnum.PRODUCT
         )
         db.add(parent)
@@ -165,17 +173,18 @@ class TestCategoryHierarchy:
 
         Test creating a child category under a parent.
         """
+        suffix = get_unique_suffix()
         parent = Category(
-            name="Electronics",
-            slug="electronics",
+            name=f"Electronics_{suffix}",
+            slug=f"electronics-{suffix}",
             type=ListingTypeEnum.PRODUCT
         )
         db.add(parent)
         db.commit()
 
         child = Category(
-            name="Smartphones",
-            slug="smartphones",
+            name=f"Smartphones_{suffix}",
+            slug=f"smartphones-{suffix}",
             type=ListingTypeEnum.PRODUCT,
             parent_category_id=parent.category_id
         )
@@ -194,23 +203,24 @@ class TestCategoryHierarchy:
 
         Test creating multiple children under same parent.
         """
+        suffix = get_unique_suffix()
         parent = Category(
-            name="Electronics",
-            slug="electronics",
+            name=f"Electronics_{suffix}",
+            slug=f"electronics-{suffix}",
             type=ListingTypeEnum.PRODUCT
         )
         db.add(parent)
         db.commit()
 
         child1 = Category(
-            name="Smartphones",
-            slug="smartphones",
+            name=f"Smartphones_{suffix}",
+            slug=f"smartphones-{suffix}",
             type=ListingTypeEnum.PRODUCT,
             parent_category_id=parent.category_id
         )
         child2 = Category(
-            name="Laptops",
-            slug="laptops",
+            name=f"Laptops_{suffix}",
+            slug=f"laptops-{suffix}",
             type=ListingTypeEnum.PRODUCT,
             parent_category_id=parent.category_id
         )
@@ -228,16 +238,17 @@ class TestCategoryHierarchy:
 
         Test get_full_path for a root category.
         """
+        suffix = get_unique_suffix()
         parent = Category(
-            name="Electronics",
-            slug="electronics",
+            name=f"Electronics_{suffix}",
+            slug=f"electronics-{suffix}",
             type=ListingTypeEnum.PRODUCT
         )
         db.add(parent)
         db.commit()
         db.refresh(parent)
 
-        assert parent.get_full_path() == "Electronics"
+        assert parent.get_full_path() == f"Electronics_{suffix}"
 
     def test_get_full_path_nested_category(self, db):
         """
@@ -246,17 +257,18 @@ class TestCategoryHierarchy:
         Test get_full_path for nested categories.
         """
         # Create hierarchy: Electronics > Smartphones > Android
+        suffix = get_unique_suffix()
         parent = Category(
-            name="Electronics",
-            slug="electronics",
+            name=f"Electronics_{suffix}",
+            slug=f"electronics-{suffix}",
             type=ListingTypeEnum.PRODUCT
         )
         db.add(parent)
         db.commit()
 
         child = Category(
-            name="Smartphones",
-            slug="smartphones",
+            name=f"Smartphones_{suffix}",
+            slug=f"smartphones-{suffix}",
             type=ListingTypeEnum.PRODUCT,
             parent_category_id=parent.category_id
         )
@@ -264,8 +276,8 @@ class TestCategoryHierarchy:
         db.commit()
 
         grandchild = Category(
-            name="Android",
-            slug="android",
+            name=f"Android_{suffix}",
+            slug=f"android-{suffix}",
             type=ListingTypeEnum.PRODUCT,
             parent_category_id=child.category_id
         )
@@ -273,7 +285,7 @@ class TestCategoryHierarchy:
         db.commit()
         db.refresh(grandchild)
 
-        assert grandchild.get_full_path() == "Electronics > Smartphones > Android"
+        assert grandchild.get_full_path() == f"Electronics_{suffix} > Smartphones_{suffix} > Android_{suffix}"
 
 
 @pytest.mark.models
@@ -384,14 +396,15 @@ class TestCategoryEnums:
 
         Test creating categories for both marketplaces.
         """
+        suffix = get_unique_suffix()
         material_cat = Category(
-            name="Metal",
-            slug="metal",
+            name=f"Metal_{suffix}",
+            slug=f"metal-{suffix}",
             type=ListingTypeEnum.MATERIAL
         )
         product_cat = Category(
-            name="Furniture",
-            slug="furniture",
+            name=f"Furniture_{suffix}",
+            slug=f"furniture-{suffix}",
             type=ListingTypeEnum.PRODUCT
         )
         db.add_all([material_cat, product_cat])
