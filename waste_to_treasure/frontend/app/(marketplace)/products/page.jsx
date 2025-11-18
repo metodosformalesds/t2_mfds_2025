@@ -204,12 +204,11 @@ export default function ProductsPage() {
             </div>
           ) : (
             /* Products Grid */
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
               {products.map((product) => (
-                <ProductCard
-                  key={product.listing_id}
-                  product={product}
-                />
+                <div key={product.listing_id} className="min-w-0">
+                  <ProductCard product={product} />
+                </div>
               ))}
             </div>
           )}

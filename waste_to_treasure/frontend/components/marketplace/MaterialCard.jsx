@@ -52,7 +52,7 @@ export default function MaterialCard({ material }) {
   return (
     <Link
       href={href}
-      className="flex h-full w-full min-w-[240px] flex-col rounded-lg border border-primary-500 bg-white shadow-sm transition-all hover:shadow-lg"
+      className="flex h-full w-full flex-col rounded-lg border border-primary-500 bg-white shadow-sm transition-all hover:shadow-lg"
     >
       {/* Imagen */}
       <div className="relative h-40 w-full overflow-hidden rounded-t-lg bg-neutral-100">
