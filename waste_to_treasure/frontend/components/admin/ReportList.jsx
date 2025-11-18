@@ -135,7 +135,7 @@ export default function ReportList({
                     onClick={() => onDelete(report)}
                     className="rounded-lg bg-secondary-600 px-4 py-2 font-inter text-sm font-semibold text-white transition-colors hover:bg-secondary-700 focus:ring-2 focus:ring-secondary-500 focus:ring-offset-2"
                   >
-                    Eliminar
+                    Desestimar
                   </button>
                 </div>
               </td>

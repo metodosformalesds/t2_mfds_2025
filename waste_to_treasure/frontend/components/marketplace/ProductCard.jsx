@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import { getPlaceholderDataUri } from '@/components/ui/ImagePlaceholder'
 
 // Icono SVG para la caja
 const BoxIcon = () => (
@@ -21,11 +22,11 @@ const BoxIcon = () => (
 )
 
 export default function ProductCard({ product }) {
-  // Resolve image URL
+  // Resolve image URL - sin fallback a placeholder externo
   const imageUrl = product.primary_image_url ||
                    product.listing_image_url ||
                    product.imageUrl ||
-                   'https://via.placeholder.com/260x160'
+                   getPlaceholderDataUri(260, 160, 'Producto')
   const resolvedImageUrl = typeof imageUrl === 'string' ? imageUrl : String(imageUrl)
 
   // Resolve ID
@@ -35,9 +36,9 @@ export default function ProductCard({ product }) {
   // Quantity
   const quantity = product.quantity ?? product.available ?? 0
   
-  // Use backend fields directly
-  const categoryName = product.category_name || product.category?.name || 'Sin categoría'
-  const sellerName = product.seller_name || product.seller?.full_name || 'Vendedor'
+  // Use backend fields directly - sin fallbacks a texto genérico
+  const categoryName = product.category_name || product.category?.name || null
+  const sellerName = product.seller_name || product.seller?.full_name || null
   
   // Price
   const price = Number.isFinite(Number(product.price)) ? parseFloat(product.price) : 0
@@ -66,12 +67,16 @@ export default function ProductCard({ product }) {
           <h3 className="font-roboto text-xl font-bold text-neutral-900">
             {product.title}
           </h3>
-          <p className="font-inter text-sm text-neutral-600">
-            {categoryName}
-          </p>
-          <p className="font-inter text-xs text-neutral-500">
-            Vendido por: {sellerName}
-          </p>
+          {categoryName && (
+            <p className="font-inter text-sm text-neutral-600">
+              {categoryName}
+            </p>
+          )}
+          {sellerName && (
+            <p className="font-inter text-xs text-neutral-500">
+              Vendido por: {sellerName}
+            </p>
+          )}
         </div>
         <div className="mt-4 flex flex-col gap-3">
           <p className="font-roboto text-lg font-medium text-primary-500">

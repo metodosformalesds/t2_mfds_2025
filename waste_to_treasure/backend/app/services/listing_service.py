@@ -292,6 +292,13 @@ async def update_listing(
 
     # Actualizar campos
     update_data = listing_data.model_dump(exclude_unset=True)
+
+    # Detectar si es una reactivación (sin campos de actualización y estado INACTIVE)
+    is_reactivation = (
+        len(update_data) == 0 and
+        db_listing.status == ListingStatusEnum.INACTIVE
+    )
+
     for field, value in update_data.items():
         setattr(db_listing, field, value)
 
@@ -300,7 +307,14 @@ async def update_listing(
         db_listing.status = ListingStatusEnum.PENDING
         db_listing.approved_by_admin_id = None
         db_listing.rejection_reason = None  # Limpiar razón de rechazo anterior
-        logger.info(f"Listing {listing_id} movido a PENDING para nueva revisión (estado anterior: {db_listing.status})")
+        logger.info(f"Listing {listing_id} movido a PENDING para nueva revisión (estado anterior: ACTIVE/REJECTED)")
+
+    # Si es una reactivación (PATCH vacío a listing INACTIVE), cambiar a PENDING
+    elif is_reactivation:
+        db_listing.status = ListingStatusEnum.PENDING
+        db_listing.approved_by_admin_id = None
+        db_listing.rejection_reason = None
+        logger.info(f"Listing {listing_id} reactivado desde INACTIVE a PENDING para revisión")
 
     await db.commit()
     await db.refresh(db_listing)

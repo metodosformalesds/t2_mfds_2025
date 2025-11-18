@@ -1,3 +1,5 @@
+'use client'
+
 // Autor: Gabriel Florentino Reyes
 // Fecha: 12-11-2025
 // Descripción: Página que muestra los detalles de una venta específica. 

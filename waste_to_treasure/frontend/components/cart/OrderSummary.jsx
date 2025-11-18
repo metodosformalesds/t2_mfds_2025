@@ -10,9 +10,6 @@ import { Lock, ChevronDown, AlertTriangle } from 'lucide-react'
  * Descripción: resumen del carrito que calcula subtotal, costo de envío y total, con validación de disponibilidad de items y opción para expandir detalles de cálculo
  */
 
-'use client'
-/* Lines 2-6 omitted */
-
 export default function OrderSummary({ items = [], hasUnavailableItems = false }) {
   const [showDetails, setShowDetails] = useState(false)
 

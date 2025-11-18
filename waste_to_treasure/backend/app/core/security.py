@@ -59,10 +59,11 @@ def verify_cognito_token(token: str) -> Dict:
         email = payload["email"]
         ```
     """
-    # Construir JWKS URL
-    jwks_url = settings.cognito_jwks_url
-    
     try:
+        # Construir JWKS URL
+        jwks_url = settings.cognito_jwks_url
+        logger.debug(f"Validando token JWT usando JWKS URL: {jwks_url}")
+        
         # Usar PyJWKClient para obtener y cachear las claves públicas
         jwks_client = PyJWKClient(jwks_url)
         
@@ -78,37 +79,62 @@ def verify_cognito_token(token: str) -> Dict:
             signing_key.key,
             algorithms=["RS256"],
             issuer=expected_issuer,
-            audience=settings.COGNITO_APP_CLIENT_ID,
             options={
                 "verify_signature": True,
                 "verify_exp": True,
                 "verify_iss": True,
-                "verify_aud": True,
+                "verify_aud": False,  # ID tokens tienen aud, access tokens tienen client_id
             }
         )
         
-        logger.info(f"Token Cognito validado para usuario: {payload.get('sub')}")
+        # Validar que el token pertenezca a nuestra app
+        # Los ID tokens tienen 'aud', los access tokens tienen 'client_id'
+        token_client = payload.get("aud") or payload.get("client_id")
+        if token_client != settings.COGNITO_APP_CLIENT_ID:
+            logger.warning(
+                f"Token rechazado: client_id/aud no coincide. "
+                f"Esperado: {settings.COGNITO_APP_CLIENT_ID}, Recibido: {token_client}"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token no pertenece a esta aplicación",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        # Extraer información del usuario para logging
+        user_id = payload.get("sub")
+        email = payload.get("email")
+        token_use = payload.get("token_use", "unknown")
+        
+        logger.info(
+            f"Token Cognito validado exitosamente - "
+            f"user_id: {user_id}, email: {email}, token_use: {token_use}"
+        )
+        
         return payload
         
     except jwt.ExpiredSignatureError:
-        logger.warning("Token expirado")
+        logger.warning("Token JWT expirado")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token expirado",
+            detail="Token expirado. Por favor inicia sesión nuevamente.",
             headers={"WWW-Authenticate": "Bearer"},
         )
     except jwt.InvalidTokenError as e:
-        logger.warning(f"Token inválido: {e}")
+        logger.warning(f"Token JWT inválido: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token inválido o mal formado",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    except HTTPException:
+        # Re-lanzar HTTPExceptions sin modificar
+        raise
     except Exception as e:
-        logger.error(f"Error inesperado validando token: {e}")
+        logger.error(f"Error inesperado validando token JWT: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Error validando token",
+            detail="Error validando token de autenticación",
             headers={"WWW-Authenticate": "Bearer"},
         )
 

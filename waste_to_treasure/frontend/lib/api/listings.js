@@ -132,24 +132,28 @@ export const listingsService = {
    */
   delete: async (listingId) => {
     try {
-      await apiClient.delete(`/listings/${listingId}`)
+      console.log('[listingsService.delete] Eliminando listing:', listingId)
+      const response = await apiClient.delete(`/listings/${listingId}`)
+      console.log('[listingsService.delete] Response:', response.status, response.data)
+      return response.data
     } catch (error) {
+      console.error('[listingsService.delete] Error:', error.response || error)
       throw error
     }
   },
 
   /**
    * Reactiva un listing inactivo.
-   * Cambia el status a PENDING para re-aprobación.
+   * El backend detecta automáticamente que es una reactivación cuando se envía
+   * un PATCH vacío a un listing INACTIVE y lo cambia a PENDING para revisión.
    *
    * @param {number} listingId - ID del listing
    * @returns {Promise<Object>} Listing reactivado
    */
   reactivate: async (listingId) => {
     try {
-      const { data } = await apiClient.patch(`/listings/${listingId}`, {
-        status: 'PENDING',
-      })
+      // Enviar PATCH vacío - el backend detecta la reactivación automáticamente
+      const { data } = await apiClient.patch(`/listings/${listingId}`, {})
       return data
     } catch (error) {
       throw error

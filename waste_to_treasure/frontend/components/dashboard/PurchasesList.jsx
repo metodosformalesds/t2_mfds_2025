@@ -125,7 +125,7 @@ export default function PurchasesList() {
                   </td>
                   <td className="py-4 px-4">
                     <span className={`px-3 py-1 text-xs font-semibold rounded-full border ${getStatusColor(order.status)} font-inter`}>
-                      {getStatusLabel('completed')}
+                      {getStatusLabel(order.status)}
                     </span>
                   </td>
                   <td className="py-4 px-4">

@@ -201,11 +201,12 @@ class OrderService:
             # 5. Vaciar el carrito
             for item in cart.items:
                 await db.delete(item)
-            
+
             await db.flush()
+            await db.commit()
             await db.refresh(new_order)
-            
-            logger.info(f"Orden {new_order.order_id} creada exitosamente.")
+
+            logger.info(f"✅ Orden {new_order.order_id} creada y guardada exitosamente.")
 
             # --- 6. (AÑADIDO) Crear notificaciones in-app ---
             try:
@@ -238,12 +239,16 @@ class OrderService:
                 
                 logger.info(f"Notificaciones in-app creadas para orden {new_order.order_id}")
 
+                # Commit de las notificaciones
+                await db.commit()
+
             except Exception as notify_error:
                 # No revertir la transacción si solo falla la notificación
                 logger.error(
                     f"Error creando notificaciones in-app para orden {new_order.order_id}: {notify_error}",
                     exc_info=True
                 )
+                await db.rollback()
             # ---------------------------------------------------
 
             # 7. Enviar email de confirmación (Lógica anterior)
@@ -280,10 +285,10 @@ class OrderService:
             )
         
     async def get_my_purchases(
-        self, 
-        db: AsyncSession, 
-        user: User, 
-        skip: int, 
+        self,
+        db: AsyncSession,
+        user: User,
+        skip: int,
         limit: int
     ) -> Tuple[List[Order], int]:
         """
@@ -299,14 +304,18 @@ class OrderService:
         Returns:
             Tupla (lista_de_orders, total)
         """
-        
+
+        logger.info(f"🛒 get_my_purchases - Buscando compras para user_id: {user.user_id}, email: {user.email}")
+
         stmt_base = select(Order).where(Order.buyer_id == user.user_id)
-        
+
         # Contar total
         count_stmt = select(func.count()).select_from(stmt_base.subquery())
         total_result = await db.execute(count_stmt)
         total = total_result.scalar() or 0
-        
+
+        logger.info(f"🛒 get_my_purchases - Total de compras encontradas: {total}")
+
         # Obtener órdenes con items y listings
         stmt = (
             stmt_base
@@ -317,9 +326,11 @@ class OrderService:
             .offset(skip)
             .limit(limit)
         )
-        
+
         result = await db.execute(stmt)
         orders = result.scalars().all()
+
+        logger.info(f"🛒 get_my_purchases - Retornando {len(orders)} órdenes en esta página (skip={skip}, limit={limit})")
         return list(orders), total
 
     async def get_my_sales(

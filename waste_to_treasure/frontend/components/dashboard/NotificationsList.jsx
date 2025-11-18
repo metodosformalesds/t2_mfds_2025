@@ -23,9 +23,6 @@ import {
  * Descripción: lista paginada de notificaciones del usuario con iconografía por tipo, formateo de fechas, marcado como leído, y navegación entre páginas
  */
 
-'use client';
-/* Lines 2-19 omitted */
-
 export default function NotificationsList() {
   const { 
     notifications, 

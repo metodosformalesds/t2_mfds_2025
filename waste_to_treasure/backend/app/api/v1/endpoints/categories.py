@@ -147,17 +147,18 @@ async def get_categories(
         f"parent_id={parent_id}, search={search}"
     )
     
-    # Convertir parent_id=-1 a None para filtrar solo raíces
-    parent_filter = None if parent_id == -1 else parent_id
-    
+    # Pasar parent_id directamente al servicio
+    # El servicio maneja -1 como "solo raíces" y None como "sin filtro"
     categories, total = await category_service.get_categories(
         db=db,
         skip=skip,
         limit=limit,
         type_filter=type,
-        parent_id=parent_filter,
+        parent_id=parent_id,
         search=search
     )
+    
+    logger.info(f"Categorías encontradas: {total}, devolviendo {len(categories)} items")
     
     # Calcular página actual
     page = (skip // limit) + 1 if limit > 0 else 1

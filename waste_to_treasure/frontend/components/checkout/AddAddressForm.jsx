@@ -12,9 +12,6 @@ import { addressService } from '@/lib/api/address'
  * Descripción: formulario para agregar nueva dirección de envío con campos de calle, ciudad, estado, código postal, notas y opciones para marcar como dirección por defecto y tipo de dirección
  */
 
-'use client'
-/* Lines 2-8 omitted */
-
 export default function AddAddressForm({ onAddressAdded, onCancel }) {
   const [formData, setFormData] = useState({
     street: '',

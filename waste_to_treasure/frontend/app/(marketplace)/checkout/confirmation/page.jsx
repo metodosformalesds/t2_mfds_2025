@@ -86,6 +86,22 @@ export default function ConfirmationPage() {
         } catch (error) {
           console.error("Error al confirmar el pago:", error.message)
           
+          // Detectar si el monto es muy pequeño
+          if (error.message === 'AMOUNT_TOO_SMALL') {
+            const minAmount = (error.minimumAmount / 100).toFixed(2)
+            const currentAmount = (error.currentAmount / 100).toFixed(2)
+            
+            openConfirmModal(
+              'Monto Mínimo No Alcanzado',
+              `El monto mínimo para procesar pagos es de $${minAmount} MXN. Tu carrito tiene $${currentAmount} MXN. Por favor, agrega más artículos a tu carrito.`,
+              () => {
+                router.push('/marketplace')
+              },
+              { danger: true, confirmText: 'Ir al Marketplace' }
+            )
+            return
+          }
+          
           // Detectar si el payment method está "quemado"
           if (error.message === 'PAYMENT_METHOD_BURNED') {
             // Limpiar la tarjeta guardada del estado

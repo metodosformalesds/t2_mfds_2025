@@ -46,7 +46,6 @@ export function usePurchases(autoLoad = true) {
       })
     } catch (err) {
       setError(err.message || 'Error al cargar las compras')
-      console.error('Error en fetchPurchases:', err)
       setPurchases([])
     } finally {
       setIsLoading(false)

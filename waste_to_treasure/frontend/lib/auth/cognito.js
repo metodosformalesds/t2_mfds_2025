@@ -4,13 +4,13 @@ import {
   AuthenticationDetails,
   CognitoUserAttribute,
 } from 'amazon-cognito-identity-js'
-// Auth moved to a separate package in aws-amplify v6+
-// Import the modular Auth package directly.
-// The auth package exports named functions (e.g. signInWithRedirect) rather than
-// a single `Auth` object in aws-amplify v6+. Import the helper we need.
-import { signInWithRedirect } from '@aws-amplify/auth'
+import { 
+  signOut as amplifySignOut,
+  fetchAuthSession,
+  fetchUserAttributes 
+} from '@aws-amplify/auth'
 
-// Configuración del User Pool de Cognito
+// Configuracion del User Pool de Cognito
 const poolData = {
   UserPoolId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID || '',
   ClientId: process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID || '',
@@ -20,11 +20,10 @@ let userPool
 
 // Inicializar User Pool solo en el cliente
 if (typeof window !== 'undefined') {
-  // Validar que las variables existan antes de crear el pool
   if (!poolData.UserPoolId || !poolData.ClientId) {
-    console.error('❌ Variables de Cognito no configuradas correctamente:', {
-      UserPoolId: poolData.UserPoolId ? '✅' : '❌',
-      ClientId: poolData.ClientId ? '✅' : '❌',
+    console.error('Variables de Cognito no configuradas correctamente:', {
+      UserPoolId: poolData.UserPoolId ? 'OK' : 'MISSING',
+      ClientId: poolData.ClientId ? 'OK' : 'MISSING',
     })
   } else {
     userPool = new CognitoUserPool(poolData)
@@ -33,16 +32,11 @@ if (typeof window !== 'undefined') {
 
 /**
  * Registrar un nuevo usuario en Cognito
- * @param {Object} userData - Datos del usuario
- * @param {string} userData.email - Email del usuario
- * @param {string} userData.password - Contraseña
- * @param {string} userData.name - Nombre completo del usuario
- * @returns {Promise<Object>} Resultado del registro
  */
 export const signUp = async ({ email, password, name }) => {
   return new Promise((resolve, reject) => {
     if (!userPool) {
-      reject(new Error('Cognito User Pool no está configurado'))
+      reject(new Error('Cognito User Pool no esta configurado'))
       return
     }
 
@@ -68,15 +62,12 @@ export const signUp = async ({ email, password, name }) => {
 }
 
 /**
- * Confirmar el código de verificación enviado por email
- * @param {string} email - Email del usuario
- * @param {string} code - Código de verificación
- * @returns {Promise<string>} Mensaje de confirmación
+ * Confirmar el codigo de verificacion enviado por email
  */
 export const confirmSignUp = async (email, code) => {
   return new Promise((resolve, reject) => {
     if (!userPool) {
-      reject(new Error('Cognito User Pool no está configurado'))
+      reject(new Error('Cognito User Pool no esta configurado'))
       return
     }
 
@@ -100,14 +91,12 @@ export const confirmSignUp = async (email, code) => {
 }
 
 /**
- * Reenviar código de verificación
- * @param {string} email - Email del usuario
- * @returns {Promise<string>} Mensaje de confirmación
+ * Reenviar codigo de verificacion
  */
 export const resendConfirmationCode = async email => {
   return new Promise((resolve, reject) => {
     if (!userPool) {
-      reject(new Error('Cognito User Pool no está configurado'))
+      reject(new Error('Cognito User Pool no esta configurado'))
       return
     }
 
@@ -131,15 +120,84 @@ export const resendConfirmationCode = async email => {
 }
 
 /**
- * Iniciar sesión con email y contraseña
+ * Solicitar recuperación de contraseña
+ * Cognito enviará un código de verificación al email del usuario
+ */
+export const forgotPassword = async (email) => {
+  return new Promise((resolve, reject) => {
+    if (!userPool) {
+      reject(new Error('Cognito User Pool no esta configurado'))
+      return
+    }
+
+    const userData = {
+      Username: email,
+      Pool: userPool,
+    }
+
+    const cognitoUser = new CognitoUser(userData)
+
+    cognitoUser.forgotPassword({
+      onSuccess: (result) => {
+        console.log('Forgot password success:', result)
+        resolve(result)
+      },
+      onFailure: (err) => {
+        console.error('Forgot password error:', err)
+        reject(err)
+      },
+      // inputVerificationCode es llamado cuando Cognito está listo para recibir el código
+      inputVerificationCode: (data) => {
+        console.log('Código de verificación enviado:', data)
+        resolve({
+          CodeDeliveryDetails: data,
+          message: 'Código de verificación enviado exitosamente'
+        })
+      }
+    })
+  })
+}
+
+/**
+ * Confirmar nueva contraseña con el código de verificación
  * @param {string} email - Email del usuario
- * @param {string} password - Contraseña
- * @returns {Promise<Object>} Datos de sesión
+ * @param {string} verificationCode - Código recibido por email
+ * @param {string} newPassword - Nueva contraseña
+ */
+export const confirmPassword = async (email, verificationCode, newPassword) => {
+  return new Promise((resolve, reject) => {
+    if (!userPool) {
+      reject(new Error('Cognito User Pool no esta configurado'))
+      return
+    }
+
+    const userData = {
+      Username: email,
+      Pool: userPool,
+    }
+
+    const cognitoUser = new CognitoUser(userData)
+
+    cognitoUser.confirmPassword(verificationCode, newPassword, {
+      onSuccess: () => {
+        console.log('Password successfully changed')
+        resolve({ message: 'Contraseña cambiada exitosamente' })
+      },
+      onFailure: (err) => {
+        console.error('Confirm password error:', err)
+        reject(err)
+      }
+    })
+  })
+}
+
+/**
+ * Iniciar sesion con email y contraseña
  */
 export const signIn = async (email, password) => {
   return new Promise((resolve, reject) => {
     if (!userPool) {
-      reject(new Error('Cognito User Pool no está configurado'))
+      reject(new Error('Cognito User Pool no esta configurado'))
       return
     }
 
@@ -163,7 +221,6 @@ export const signIn = async (email, password) => {
         const idToken = result.getIdToken().getJwtToken()
         const refreshToken = result.getRefreshToken().getToken()
 
-        // Store the ID token in localStorage for API authentication
         if (typeof window !== 'undefined') {
           localStorage.setItem('auth-token', idToken)
         }
@@ -180,7 +237,6 @@ export const signIn = async (email, password) => {
         reject(err)
       },
       newPasswordRequired: (userAttributes, requiredAttributes) => {
-        // Usuario necesita cambiar contraseña
         reject({
           code: 'NewPasswordRequired',
           userAttributes,
@@ -192,21 +248,22 @@ export const signIn = async (email, password) => {
 }
 
 /**
- * Cerrar sesión del usuario actual
- * @returns {void}
+ * Cerrar sesion del usuario actual
  */
-export const signOut = () => {
-  if (!userPool) {
-    console.error('Cognito User Pool no está configurado')
-    return
+export const signOut = async () => {
+  try {
+    await amplifySignOut()
+  } catch (error) {
+    console.log('No OAuth session to sign out')
   }
 
-  const cognitoUser = userPool.getCurrentUser()
-  if (cognitoUser) {
-    cognitoUser.signOut()
+  if (userPool) {
+    const cognitoUser = userPool.getCurrentUser()
+    if (cognitoUser) {
+      cognitoUser.signOut()
+    }
   }
 
-  // Limpiar localStorage
   if (typeof window !== 'undefined') {
     localStorage.removeItem('auth-token')
     localStorage.removeItem('id-token')
@@ -215,10 +272,97 @@ export const signOut = () => {
 }
 
 /**
+ * Decodificar JWT (solo la parte del payload)
+ */
+const decodeJWT = (token) => {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch (error) {
+    console.error('Error decodificando JWT:', error)
+    return null
+  }
+}
+
+/**
  * Obtener el usuario actual autenticado
- * @returns {Promise<Object|null>} Datos del usuario o null
  */
 export const getCurrentUser = async () => {
+  // Primero intentar obtener sesion de Amplify (OAuth)
+  try {
+    const session = await fetchAuthSession()
+    if (session.tokens?.idToken) {
+      console.log('✅ [getCurrentUser] Session de OAuth/Amplify encontrada')
+
+      const attributes = await fetchUserAttributes()
+
+      const idToken = session.tokens.idToken.toString()
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('auth-token', idToken)
+      }
+
+      return {
+        username: attributes.email || attributes.sub,
+        attributes: {
+          email: attributes.email,
+          name: attributes.name,
+          sub: attributes.sub,
+          email_verified: attributes.email_verified,
+        },
+        session: {
+          getIdToken: () => ({
+            getJwtToken: () => idToken
+          }),
+          isValid: () => true
+        },
+      }
+    }
+  } catch (error) {
+    console.log('ℹ️ [getCurrentUser] No OAuth/Amplify session found, trying other methods...')
+  }
+
+  // Si no hay sesión de Amplify, verificar si hay token en localStorage (OAuth manual)
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('auth-token')
+    if (token) {
+      console.log('🔑 [getCurrentUser] Token encontrado en localStorage, decodificando...')
+      const decoded = decodeJWT(token)
+
+      if (decoded) {
+        console.log('✅ [getCurrentUser] Token decodificado exitosamente')
+        return {
+          username: decoded.email || decoded.sub,
+          attributes: {
+            email: decoded.email,
+            name: decoded.name,
+            given_name: decoded.given_name,
+            family_name: decoded.family_name,
+            sub: decoded.sub,
+            email_verified: decoded.email_verified,
+          },
+          session: {
+            getIdToken: () => ({
+              getJwtToken: () => token
+            }),
+            isValid: () => {
+              // Verificar si el token ha expirado
+              const now = Math.floor(Date.now() / 1000)
+              return decoded.exp && decoded.exp > now
+            }
+          },
+        }
+      }
+    }
+  }
+
+  // Si no hay sesion OAuth, intentar con User Pool
   return new Promise((resolve, reject) => {
     if (!userPool) {
       resolve(null)
@@ -267,8 +411,7 @@ export const getCurrentUser = async () => {
 }
 
 /**
- * Obtener el token de sesión actual
- * @returns {Promise<string|null>} Token JWT o null
+ * Obtener el token de sesion actual
  */
 export const getAuthToken = async () => {
   try {
@@ -284,31 +427,76 @@ export const getAuthToken = async () => {
 }
 
 /**
- * Verificar si el usuario está autenticado
- * @returns {Promise<boolean>} True si está autenticado
+ * Verificar si el usuario esta autenticado
+ * Primero verifica localStorage (para OAuth), luego Amplify, luego User Pool
  */
 export const isAuthenticated = async () => {
   try {
+    // Primero verificar si hay token en localStorage (OAuth)
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('auth-token')
+      if (token) {
+        console.log('✅ [isAuthenticated] Token encontrado en localStorage')
+        return true
+      }
+    }
+
+    // Si no hay token en localStorage, intentar con Amplify/User Pool
     const user = await getCurrentUser()
     return !!user
   } catch (error) {
+    console.error('❌ [isAuthenticated] Error:', error)
     return false
   }
 }
 
 /**
- * Inicia el flujo de inicio de sesión con un proveedor federado (Google, Facebook, etc.)
- * @param {string} provider - El nombre del proveedor (ej. 'Google')
- * @returns {Promise<void>}
+ * Construir URL de OAuth para Google manualmente
+ * Esto redirige al Hosted UI de Cognito que luego redirige a Google
  */
-export const signInWithProvider = async provider => {
+export const signInWithProvider = async (provider) => {
+  if (typeof window === 'undefined') return
+
   try {
-    // Use the modular signInWithRedirect helper which triggers the
-    // Cognito Hosted UI / provider redirect flow.
-    await signInWithRedirect({ provider })
+    const domain = process.env.NEXT_PUBLIC_COGNITO_DOMAIN
+    const clientId = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID
+    const currentUrl = window.location.origin
+    
+    if (!domain || !clientId) {
+      throw new Error('Variables de Cognito no configuradas: domain=' + domain + ', clientId=' + clientId)
+    }
+    
+    // Determinar la URL de redirect basada en el entorno
+    const redirectUri = currentUrl.includes('amplifyapp.com')
+      ? 'https://main.d20d0dqywsvuyq.amplifyapp.com/callback'
+      : 'http://localhost:3000/callback'
+
+    console.log('Configuracion OAuth:', { 
+      domain, 
+      clientId, 
+      redirectUri,
+      provider 
+    })
+
+    // Construir URL del Hosted UI de Cognito
+    const oauthUrl = `https://${domain}/oauth2/authorize?` +
+      `identity_provider=${provider}&` +
+      `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+      `response_type=code&` +
+      `client_id=${clientId}&` +
+      `scope=email+openid+profile`
+
+    console.log('URL completa de OAuth:', oauthUrl)
+    console.log('Redirigiendo en 1 segundo...')
+
+    // Pequeña pausa para que se vean los logs
+    await new Promise(resolve => setTimeout(resolve, 1000))
+
+    // Redirigir al Hosted UI de Cognito
+    window.location.href = oauthUrl
+
   } catch (error) {
-    console.error('Error during federated sign in', error)
-    // El error se manejará en la UI, aquí solo lo logueamos.
+    console.error('Error durante federated sign in:', error)
     throw error
   }
 }
@@ -323,4 +511,6 @@ export default {
   getAuthToken,
   isAuthenticated,
   signInWithProvider,
+  forgotPassword,
+  confirmPassword,
 }

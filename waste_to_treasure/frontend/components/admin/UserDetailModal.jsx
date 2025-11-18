@@ -82,16 +82,6 @@ export default function UserDetailModal({
     )
   }
   
-  // Acciones placeholder
-  const handleWarn = () => {
-    openConfirmModal(
-      'Enviar Advertencia',
-      `¿Estás seguro de que quieres enviar una advertencia a ${displayName}?`,
-      () => console.log('Advirtiendo a', user.id),
-      false // No es una acción peligrosa
-    )
-  }
-  
   const handleResetPassword = () => {
     openConfirmModal(
       'Resetear Contraseña',
@@ -213,11 +203,6 @@ export default function UserDetailModal({
                 onClick={handleUnblock}
               />
             )}
-            <ActionButton
-              text="Enviar advertencia"
-              color="bg-yellow-400 text-black hover:bg-yellow-500"
-              onClick={handleWarn}
-            />
             <ActionButton
               text="Resetear contraseña"
               color="bg-secondary-600 text-white hover:bg-secondary-500"

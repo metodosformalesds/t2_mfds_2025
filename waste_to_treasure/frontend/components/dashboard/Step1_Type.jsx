@@ -20,7 +20,12 @@ export default function Step1_Type({ onNext, listingData, updateListingData }) {
 
   // Estos manejadores ahora actualizan el estado central
   const handleTypeSelect = (type) => {
-    updateListingData({ type: type });
+    // Al cambiar el tipo, resetear la categoría padre y la subcategoría
+    updateListingData({ 
+      type: type,
+      category: '', // Resetear categoría padre
+      category_id: '' // Resetear subcategoría también
+    });
     setError('');
   };
 
@@ -72,11 +77,15 @@ export default function Step1_Type({ onNext, listingData, updateListingData }) {
         </div>
 
         {/* Selección de Categoría (usando el componente) */}
-        <CategorySelect
-          value={listingData.category}
-          onChange={handleCategoryChange}
-          disabled={!listingData.type} // Deshabilitado hasta que se elija un tipo
-        />
+        {listingData.type && (
+          <CategorySelect
+            value={listingData.category}
+            onChange={handleCategoryChange}
+            type={listingData.type}
+            onlyParents={true}
+            className="md:w-2/3 lg:w-1/2"
+          />
+        )}
 
         {/* Error */}
         {error && <p className="text-red-500 text-sm">{error}</p>}

@@ -1,5 +1,13 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import { getPlaceholderDataUri } from '@/components/ui/ImagePlaceholder'
+
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: MaterialCard
+ * 
+ * Descripción: representa una tarjeta de material en el marketplace con imagen, título, categoría, vendedor, precio y cantidad disponible.
+ */
 
 // Icono SVG para la caja
 const BoxIcon = () => (
@@ -21,11 +29,11 @@ const BoxIcon = () => (
 )
 
 export default function MaterialCard({ material }) {
-  // Resolve image URL
+  // Resolve image URL - sin fallback a archivo local inexistente
   const imageUrl = material.primary_image_url || 
                    material.listing_image_url || 
                    material.imageUrl || 
-                   '/placeholder-material.jpg'
+                   getPlaceholderDataUri(260, 160, 'Material')
   const resolvedImageUrl = typeof imageUrl === 'string' ? imageUrl : String(imageUrl)
 
   // Resolve ID
@@ -37,9 +45,9 @@ export default function MaterialCard({ material }) {
   const available = material.available ?? material.quantity ?? 0
   const unit = material.unit_measure ?? material.price_unit ?? material.unit ?? ''
   
-  // Use backend fields directly
-  const sellerName = material.seller_name || material.seller?.full_name || 'Vendedor'
-  const categoryName = material.category_name || material.category?.name || 'Sin categoría'
+  // Use backend fields directly - sin fallbacks genéricos
+  const sellerName = material.seller_name || material.seller?.full_name || null
+  const categoryName = material.category_name || material.category?.name || null
 
   return (
     <Link
@@ -65,16 +73,20 @@ export default function MaterialCard({ material }) {
           <h3 className="font-roboto text-xl font-bold text-neutral-900">
             {material.title}
           </h3>
-          <p className="font-inter text-sm text-neutral-600">
-            {categoryName}
-          </p>
-          <p className="font-inter text-xs text-neutral-500">
-            Vendido por: {sellerName}
-          </p>
+          {categoryName && (
+            <p className="font-inter text-sm text-neutral-600">
+              {categoryName}
+            </p>
+          )}
+          {sellerName && (
+            <p className="font-inter text-xs text-neutral-500">
+              Vendido por: {sellerName}
+            </p>
+          )}
         </div>
         <div className="mt-4 flex flex-col gap-3">
           <p className="font-roboto text-lg font-medium text-primary-500">
-            ${price} MXN / {unit}
+            ${price} MXN{unit ? ` / ${unit}` : ''}
           </p>
           <div className="flex items-center gap-2">
             <BoxIcon />

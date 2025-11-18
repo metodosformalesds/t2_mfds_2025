@@ -15,9 +15,6 @@ import { useAuth } from '@/context/AuthContext';
  * Descripción: vista detallada de una venta del usuario mostrando información del comprador, dirección de envío, items vendidos y total de la venta
  */
 
-'use client';
-/* Lines 2-6 omitted */
-
 export default function SalesDetails({ sale }) {
   const { user } = useAuth();
   

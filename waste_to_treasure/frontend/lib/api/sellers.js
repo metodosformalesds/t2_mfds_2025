@@ -29,39 +29,19 @@ export const sellersService = {
       // El backend retorna UserPublic schema con: user_id, email, full_name, bio, role, created_at
       return {
         user_id: data.user_id,
-        // Usar full_name como business_name
-        business_name: data.full_name || `Vendedor ${sellerId.substring(0, 8)}`,
+        business_name: data.full_name || null,
         full_name: data.full_name,
         email: data.email || null,
         role: data.role || 'USER',
         created_at: data.created_at || new Date().toISOString(),
-        // Usar el campo bio del backend como description
-        description: data.bio || `Proveedor de materiales y productos reciclados de alta calidad`,
-        // Campos adicionales con valores por defecto (no están en UserPublic schema)
+        description: data.bio || null,
         seller_type: 'INDUSTRIAL',
-        city: 'Ciudad Juárez',
-        state: 'Chihuahua',
-        // Mapear profile_image_url si el backend lo devuelve
+        city: null,
+        state: null,
         profile_image_url: data.profile_image_url || null,
       }
     } catch (error) {
-      // Si el usuario no existe (404), retornar fallback
-      if (error.response?.status === 404) {
-        return {
-          user_id: sellerId,
-          business_name: `Vendedor ${sellerId.substring(0, 8)}`,
-          full_name: null,
-          seller_type: 'INDUSTRIAL',
-          city: 'Ciudad Juárez',
-          state: 'Chihuahua',
-          description: 'Proveedor de materiales y productos reciclados de alta calidad',
-          created_at: new Date().toISOString(),
-          profile_image_url: null,
-          email: null,
-          role: 'USER',
-        }
-      }
-
+      console.error(`Error al obtener seller ${sellerId}:`, error)
       throw error
     }
   },
@@ -126,13 +106,8 @@ export const sellersService = {
         average_rating: data.average_rating || 0,
       }
     } catch (error) {
-      return {
-        total: 0,
-        page: 1,
-        page_size: 10,
-        items: [],
-        average_rating: 0,
-      }
+      console.error(`Error al obtener reviews de seller ${sellerId}:`, error)
+      throw error
     }
   },
 
@@ -147,11 +122,12 @@ export const sellersService = {
       // Obtener listings del seller y resumen de reseñas en paralelo
       const [listings, reviewSummary] = await Promise.all([
         sellersService.getListings(sellerId, { page_size: 100 }),
-        apiClient.get(`/reviews/seller/${sellerId}/summary`).then(res => res.data).catch(() => ({
-          total_reviews: 0,
-          average_rating: 0,
-          total_listings_reviewed: 0,
-        }))
+        apiClient.get(`/reviews/seller/${sellerId}/summary`)
+          .then(res => res.data)
+          .catch((error) => {
+            console.error(`Error al obtener resumen de reviews de seller ${sellerId}:`, error)
+            throw error
+          })
       ])
 
       return {
@@ -163,14 +139,8 @@ export const sellersService = {
         response_time: '24h',
       }
     } catch (error) {
-      return {
-        average_rating: 0,
-        total_reviews: 0,
-        total_listings: 0,
-        total_listings_reviewed: 0,
-        total_sales: 0,
-        response_time: '24h',
-      }
+      console.error(`Error al obtener estadísticas de seller ${sellerId}:`, error)
+      throw error
     }
   },
 }

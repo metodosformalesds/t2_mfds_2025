@@ -316,13 +316,23 @@ async def get_categories(
     # Aplicar filtros
     filters = []
     
+    logger.info(f"[get_categories] Params: type={type_filter}, parent_id={parent_id} (type: {type(parent_id).__name__ if parent_id is not None else 'NoneType'})")
+    
     if type_filter:
         filters.append(Category.type == type_filter)
     
-    if parent_id is not None:
-        filters.append(Category.parent_category_id == parent_id)
-    elif parent_id == -1:  # Convención para "solo raíces"
+    # Filtrado por parent_id:
+    # - parent_id = -1: solo categorías raíz (parent_category_id IS NULL)
+    # - parent_id = X: solo subcategorías de X
+    # - parent_id = None: sin filtro de jerarquía
+    if parent_id == -1:
+        logger.info("[get_categories] Filtrando solo raíces (parent_id IS NULL)")
         filters.append(Category.parent_category_id.is_(None))
+    elif parent_id is not None:
+        logger.info(f"[get_categories] Filtrando subcategorías de parent_id={parent_id}")
+        filters.append(Category.parent_category_id == parent_id)
+    else:
+        logger.info("[get_categories] Sin filtro de jerarquía")
     
     if search:
         filters.append(Category.name.ilike(f"%{search}%"))

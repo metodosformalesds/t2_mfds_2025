@@ -28,7 +28,6 @@ export default function PurchaseDetailPage() {
         const data = await ordersService.getOrderDetails(orderId);
         setOrder(data);
       } catch (err) {
-        console.error('Error fetching order details:', err);
         setError(err.message || 'Error al cargar los detalles de la compra');
       } finally {
         setIsLoading(false);

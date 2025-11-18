@@ -1,16 +1,12 @@
 """
-Módulo para gestionar las dependencias de la API de FastAPI.
+Dependencies para la API.
 
-Este es el lugar central para definir las dependencias que se utilizarán
-en los endpoints de la aplicación, como la obtención de la configuración,
-la sesión de la base de datos, o la validación del usuario actual.
-
-Incluye implementación de Just-In-Time (JIT) User Creation para AWS Cognito.
+Implementa funciones de dependencia comunes:
+- Validación de JWT de AWS Cognito
+- JIT (Just-In-Time) user creation
+- Verificación de roles y permisos
 """
-# Autor: Oscar Alonso Nava Rivera
-# Fecha: 02/11/2025
-# Descripción: Dependencias y validadores de seguridad para los endpoints (Cognito JIT, roles, permisos).
-
+import jwt
 import logging
 import uuid
 from typing import Optional
@@ -19,6 +15,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from app.core.config import get_settings, Settings
 from app.core.database import get_async_session as get_async_db
@@ -41,8 +38,8 @@ async def get_current_user_with_jit(
     1. Si el usuario existe en la BD → lo retorna
     2. Si el usuario NO existe → lo crea automáticamente (JIT)
     
-    Este flujo permite que usuarios registrados en Cognito accedan
-    automáticamente sin necesidad de un endpoint de registro separado.
+    Este flujo permite que usuarios registrados en Cognito (incluyendo OAuth via Google)
+    accedan automáticamente sin necesidad de un endpoint de registro separado.
     
     Args:
         credentials: Credenciales HTTP Bearer del header Authorization.
@@ -71,19 +68,32 @@ async def get_current_user_with_jit(
         - El primer acceso de un usuario de Cognito creará su registro local
         - El UUID del usuario se toma del claim 'sub' del token Cognito
         - El email se toma del claim 'email' del token
-        - Usuarios nuevos se crean con role=BUYER y status=ACTIVE
+        - Usuarios nuevos se crean con role=USER y status=ACTIVE
+        - Soporta autenticación directa y OAuth (Google, etc.)
     """
     
     token = credentials.credentials
     
-    # Verificar el token de Cognito
-    payload = verify_cognito_token(token)
+    try:
+        # Verificar el token de Cognito
+        payload = verify_cognito_token(token)
+    except HTTPException:
+        # Re-lanzar excepciones de autenticación sin modificar
+        raise
+    except Exception as e:
+        logger.error(f"Error inesperado al verificar token: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Error al validar credenciales",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     
     # Extraer datos del token
     user_id_str: str = payload.get("sub")
     email: str = payload.get("email")
     
     if not user_id_str:
+        logger.error("❌ Token sin claim 'sub'")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token inválido: falta el claim 'sub' (user ID)",
@@ -91,6 +101,7 @@ async def get_current_user_with_jit(
         )
     
     if not email:
+        logger.error(f"Token sin claim 'email' para user_id: {user_id_str}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token inválido: falta el claim 'email'",
@@ -100,7 +111,8 @@ async def get_current_user_with_jit(
     # Convertir sub a UUID
     try:
         user_id = uuid.UUID(user_id_str)
-    except ValueError:
+    except ValueError as e:
+        logger.error(f"❌ UUID inválido en token: {user_id_str} - {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token inválido: 'sub' no es un UUID válido",
@@ -108,8 +120,15 @@ async def get_current_user_with_jit(
         )
     
     # Buscar usuario en la base de datos
-    result = await db.execute(select(User).where(User.user_id == user_id))
-    user = result.scalar_one_or_none()
+    try:
+        result = await db.execute(select(User).where(User.user_id == user_id))
+        user = result.scalar_one_or_none()
+    except Exception as e:
+        logger.error(f"❌ Error consultando usuario en BD: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error al consultar información del usuario"
+        )
     
     # JIT: Si el usuario no existe, crearlo automáticamente
     if user is None:
@@ -117,52 +136,140 @@ async def get_current_user_with_jit(
         
         try:
             # Extraer nombre completo del token de Cognito
-            # Cognito usa 'name' como atributo para nombre completo
-            full_name = payload.get("name", "")
-            
-            # Si no hay nombre, usar parte local del email como fallback
+            # Cognito puede proveer 'name', 'given_name', 'family_name', etc.
+            # Algunos proveedores OAuth (como Google) pueden enviar datos URL-encoded o JSON
+
+            raw_name = payload.get("name")
+            given_name = payload.get("given_name")
+            family_name = payload.get("family_name")
+
+            # Intentar decodificar si viene URL-encoded desde Google
+            if isinstance(raw_name, str):
+                try:
+                    # Intentar decodificar URL-encoded
+                    import urllib.parse
+                    decoded_name = urllib.parse.unquote_plus(raw_name)
+
+                    # Si es JSON, intentar parsearlo
+                    if decoded_name.startswith('[') or decoded_name.startswith('{'):
+                        import json
+                        name_data = json.loads(decoded_name)
+
+                        # Si es un array, tomar el primer elemento
+                        if isinstance(name_data, list) and len(name_data) > 0:
+                            name_data = name_data[0]
+
+                        # Extraer displayName si existe
+                        if isinstance(name_data, dict):
+                            raw_name = name_data.get('displayName') or name_data.get('unstructuredName')
+                            if not raw_name and name_data.get('givenName') and name_data.get('familyName'):
+                                raw_name = f"{name_data['givenName']} {name_data['familyName']}"
+                    else:
+                        raw_name = decoded_name
+                except (json.JSONDecodeError, ValueError, urllib.error.URLError):
+                    # Si falla el parseo, usar el valor original
+                    pass
+
+            # Construir el nombre completo de forma segura
+            if isinstance(raw_name, str) and raw_name.strip() and len(raw_name.strip()) <= 255:
+                full_name = raw_name.strip()
+            elif given_name and family_name:
+                # Construir desde given_name y family_name
+                full_name = f"{given_name} {family_name}".strip()[:255]
+            elif given_name:
+                full_name = str(given_name).strip()[:255]
+            else:
+                # Fallback: usar la parte local del email
+                full_name = email.split("@")[0].replace('.', ' ').title()[:255]
+
+            # Validar que no esté vacío
             if not full_name:
-                full_name = email.split("@")[0]
+                full_name = email.split("@")[0].replace('.', ' ').title()[:255]
+
+            logger.info(f"✅ Nombre procesado para JIT: '{full_name}' (email: {email})")
             
             # Crear nuevo usuario
             new_user = User(
                 user_id=user_id,  # UUID de Cognito (claim 'sub')
-                email=email,
+                email=email.lower(),  # Normalizar email a minúsculas
                 full_name=full_name,
-                role=UserRoleEnum.USER,  # Rol por defecto
-                status=UserStatusEnum.ACTIVE,  # Activo inmediatamente
+                role=UserRoleEnum.USER,  # Rol por defecto para nuevos usuarios
+                status=UserStatusEnum.ACTIVE,  # Usuarios OAuth están pre-verificados
             )
             
             db.add(new_user)
+            
+            # IMPORTANTE: Flush para asignar el ID y hacer commit explícito
+            # Esto asegura que el usuario esté disponible en la misma transacción
+            await db.flush()
             await db.commit()
+            
+            # Refresh para obtener valores generados por la BD (timestamps, etc)
             await db.refresh(new_user)
             
-            logger.info(f"Usuario creado exitosamente (JIT): {email}")
+            logger.info(f"Usuario JIT creado exitosamente: {email} (user_id: {user_id})")
             user = new_user
+            
+        except IntegrityError as e:
+            # Manejar race condition: el usuario fue creado por otra petición concurrente
+            await db.rollback()
+            logger.warning(
+                f"IntegrityError al crear usuario JIT para {email}. "
+                f"Probablemente el usuario fue creado concurrentemente. Reintentando consulta..."
+            )
+            
+            # Reintentar la consulta del usuario
+            try:
+                result = await db.execute(select(User).where(User.user_id == user_id))
+                user = result.scalar_one_or_none()
+                
+                if user:
+                    logger.info(f"Usuario encontrado en segundo intento: {email}")
+                else:
+                    logger.error(f"Usuario no encontrado después de IntegrityError: {email}")
+                    raise HTTPException(
+                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        detail="Error creando usuario. Por favor intenta nuevamente."
+                    )
+            except Exception as retry_error:
+                logger.error(f"Error en reintento de consulta: {str(retry_error)}", exc_info=True)
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Error al verificar usuario después de creación concurrente"
+                )
+                
+        except SQLAlchemyError as e:
+            await db.rollback()
+            logger.error(f"Error de base de datos creando usuario JIT para {email}: {str(e)}", exc_info=True)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Error de base de datos al crear usuario. Por favor intenta nuevamente."
+            )
             
         except Exception as e:
             await db.rollback()
-            logger.error(f"Error creando usuario JIT: {e}")
+            logger.error(f"Error inesperado creando usuario JIT para {email}: {str(e)}", exc_info=True)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Error creando usuario en la base de datos"
+                detail="Error creando usuario en la base de datos. Por favor intenta nuevamente."
             )
     
     # Verificar estado del usuario
     if user.status == UserStatusEnum.BLOCKED:
+        logger.warning(f"Usuario bloqueado intentó acceder: {user.email} (user_id: {user.user_id})")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Usuario bloqueado. Contacte al administrador."
+            detail="Tu cuenta ha sido bloqueada. Contacta al administrador."
         )
     
     if user.status == UserStatusEnum.PENDING:
-        # Esto no debería pasar con Cognito, pero por seguridad
+        logger.warning(f"Usuario pendiente intentó acceder: {user.email} (user_id: {user.user_id})")
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Usuario pendiente de activación."
+            detail="Tu cuenta está pendiente de activación."
         )
     
-    logger.debug(f"Usuario autenticado: {user.email} (UUID: {user.user_id})")
+    logger.debug(f"Usuario autenticado exitosamente: {user.email} (user_id: {user.user_id}, role: {user.role})")
     return user
 
 

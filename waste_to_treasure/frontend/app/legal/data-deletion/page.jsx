@@ -227,7 +227,7 @@ export default function DataDeletionPage() {
                   <li>✓ Correo electrónico</li>
                   <li>✓ Foto de perfil</li>
                   <li>✓ Información de contacto</li>
-                  <li>✓ Datos de autenticación (Facebook, Google, etc.)</li>
+                  <li>✓ Datos de autenticación (Google, etc.)</li>
                 </ul>
               </div>
 
@@ -244,33 +244,6 @@ export default function DataDeletionPage() {
                   <li>✓ Direcciones de envío</li>
                   <li>✓ Información de pago</li>
                 </ul>
-              </div>
-            </div>
-          </div>
-
-          {/* Usuarios de Facebook */}
-          <div className="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg mb-8">
-            <div className="flex items-start">
-              <Shield className="w-6 h-6 text-blue-600 mr-3 flex-shrink-0 mt-1" />
-              <div>
-                <h3 className="text-lg font-bold text-blue-900 mb-2 font-poppins">
-                  ¿Iniciaste sesión con Facebook?
-                </h3>
-                <p className="text-blue-800 font-inter text-sm mb-3">
-                  Si iniciaste sesión en Waste to Treasure usando tu cuenta de Facebook, también puedes
-                  eliminar tus datos desde la configuración de Facebook:
-                </p>
-                <ol className="text-blue-800 font-inter text-sm space-y-2 ml-4">
-                  <li>1. Ve a tu perfil de Facebook</li>
-                  <li>2. Abre <strong>Configuración y Privacidad → Configuración</strong></li>
-                  <li>3. Ve a <strong>Aplicaciones y Sitios Web</strong></li>
-                  <li>4. Busca <strong>Waste to Treasure</strong></li>
-                  <li>5. Haz clic en <strong>Eliminar</strong></li>
-                  <li>6. Selecciona <strong>Eliminar tus datos de actividad</strong></li>
-                </ol>
-                <p className="text-blue-800 font-inter text-sm mt-3">
-                  Esto eliminará automáticamente todos tus datos de nuestra plataforma.
-                </p>
               </div>
             </div>
           </div>

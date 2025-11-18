@@ -11,9 +11,6 @@ import Checkbox from '@/components/ui/Checkbox'
  * Descripción: formulario para agregar tarjeta de suscripción usando Stripe con generación de tokens, validación y opción para establecer como tarjeta predeterminada
  */
 
-'use client'
-/* Lines 2-7 omitted */
-
 /**
  * Opciones de estilo para el Stripe CardElement
  */

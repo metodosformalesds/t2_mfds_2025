@@ -210,13 +210,14 @@ class StripeService:
             PaymentIntent de Stripe.
 
         Note:
-            Stripe trabaja con centavos, así que 1500.00 MXN = 150000 centavos.
+            El parámetro 'amount' debe estar en CENTAVOS.
+            Ejemplo: $154.31 MXN = 15431 centavos.
             Se configura automatic_payment_methods para permitir múltiples métodos de pago
             sin requerir redirección innecesaria (allow_redirects='never').
         """
         try:
-            # convertir monto a centavos
-            amount_cents = int(amount * 100)
+            # El amount ya viene en centavos desde orders.py
+            amount_cents = int(amount)
 
             params = {
                 "amount": amount_cents,
@@ -250,8 +251,7 @@ class StripeService:
             payment_intent = stripe.PaymentIntent.create(**params)
 
             logger.info(
-                f"PaymentIntent creado: {payment_intent.id} ",
-                f"Amount: {amount_cents} {currency.upper()}"
+                f"PaymentIntent creado: {payment_intent.id} - Amount: {amount_cents} {currency.upper()}"
             )
 
             return payment_intent

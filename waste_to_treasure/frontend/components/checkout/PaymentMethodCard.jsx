@@ -8,9 +8,6 @@ import { Trash2 } from 'lucide-react'
  * Descripción: tarjeta seleccionable para métodos de pago que muestra icono, título, descripción y estado de selección, con soporte para botón de eliminar tarjeta
  */
 
-'use client'
-/* Lines 2-4 omitted */
-
 /**
  * Tarjeta seleccionable para un método de pago.
  * @param {Object} props

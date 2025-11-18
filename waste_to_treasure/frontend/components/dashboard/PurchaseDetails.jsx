@@ -1,6 +1,6 @@
 // Autor: Gabriel Florentino Reyes
-//Fecha: 12/11/2025
-// Descripción: Descripción: Componente que muestra los detalles completos de un pedido, 
+// Fecha: 12/11/2025
+// Descripción: Componente que muestra los detalles completos de un pedido, 
 //              incluyendo productos, cantidades, precios, dirección de envío, estado del pedido y 
 //              resumen de pago.
 
@@ -14,9 +14,6 @@ import Link from 'next/link';
  * Componente: PurchaseDetails
  * Descripción: vista detallada de una compra mostrando información de envío, detalles de items, cantidad y precio unitario, total y estado de la orden
  */
-
-'use client';
-/* Lines 2-5 omitted */
 
 export default function PurchaseDetails({ order }) {
   if (!order) {
@@ -89,7 +86,7 @@ export default function PurchaseDetails({ order }) {
             </div>
           </div>
           <span className={`px-4 py-2 text-sm font-semibold rounded-full border ${getStatusColor(order.status)} font-inter`}>
-            {getStatusLabel('completed')}
+            {getStatusLabel(order.status)}
           </span>
         </div>
       </div>
