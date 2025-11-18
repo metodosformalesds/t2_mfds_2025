@@ -1,3 +1,6 @@
+# Autor: Oscar Alonso Nava Rivera
+# Fecha: 06/11/2025
+# Descripción: Endpoints para gestión de usuarios.
 """
 Endpoints para gestión de usuarios.
 
@@ -82,6 +85,8 @@ async def get_current_user_profile(
     - Validación del token JWT de Cognito
     - JIT user creation si es la primera vez
     - Verificación de que el usuario esté activo (no bloqueado)
+    
+    Autor: Oscar Alonso Nava Rivera
     """
     return UserRead.model_validate(current_user)
 
@@ -124,6 +129,8 @@ async def update_current_user_profile(
     
     Returns:
         UserRead: Perfil actualizado
+    
+    Autor: Oscar Alonso Nava Rivera
     """
     # Actualizar solo los campos proporcionados (exclude_unset=True)
     update_data = user_update.model_dump(exclude_unset=True)
@@ -186,6 +193,8 @@ async def upload_profile_image(
         
     Raises:
         HTTPException: Si falla la validación o el upload
+    
+    Autor: Oscar Alonso Nava Rivera
     """
     logger.info(
         f"Usuario {current_user.user_id} subiendo imagen de perfil"
@@ -255,6 +264,8 @@ async def get_user_public_profile(
 
     Raises:
         HTTPException: 404 si el usuario no existe
+    
+    Autor: Oscar Alonso Nava Rivera
     """
     result = await db.execute(
         select(User).where(User.user_id == user_id)
@@ -312,6 +323,8 @@ async def get_user_by_id(
     
     Raises:
         HTTPException: 404 si el usuario no existe
+    
+    Autor: Oscar Alonso Nava Rivera
     """
     result = await db.execute(
         select(User).where(User.user_id == user_id)
@@ -373,6 +386,8 @@ async def update_user_by_admin(
     
     Raises:
         HTTPException: 404 si el usuario no existe
+    
+    Autor: Oscar Alonso Nava Rivera
     """
     result = await db.execute(
         select(User).where(User.user_id == user_id)

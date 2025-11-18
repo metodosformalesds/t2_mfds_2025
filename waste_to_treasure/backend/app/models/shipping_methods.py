@@ -1,9 +1,11 @@
 """
-Modelo de base de datos para ShippingMethod.
+# Autor: Alejandro Campa Alonso 215833
 
-Implementa la tabla 'shipping_methods' que permite a los vendedores
-definir sus propios métodos de envío, ya sea para recojo en tienda
-o para envío a domicilio.
+# Fecha: 2025-11-05
+
+# Descripción: Modelo de base de datos para ShippingMethod.
+Implementa la tabla 'shipping_methods' que permite a los vendedores definir sus propios métodos de envío,
+ya sea para recojo en tienda o para envío a domicilio. Cada vendedor puede crear múltiples métodos de envío.
 """
 import uuid
 from typing import TYPE_CHECKING, Optional, List

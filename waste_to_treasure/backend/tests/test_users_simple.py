@@ -12,6 +12,9 @@ IMPORTANTE:
 - Cognito está mockeado - no se hacen llamadas reales a AWS
 - Usa la misma BD que desarrollo (Supabase/PostgreSQL)
 """
+# Autor: Oscar Alonso Nava Rivera
+# Fecha: 06/11/2025
+# Descripción: Tests básicos para endpoints de usuarios (JIT / profile / admin)
 
 import pytest
 from uuid import uuid4
@@ -25,6 +28,7 @@ from app.models.user import UserRoleEnum, UserStatusEnum
 @pytest.mark.asyncio
 async def test_jit_user_creation(client, mock_verify_cognito_token):
     """
+    
     Test: Primera petición crea usuario automáticamente (JIT).
     
     Verifica que:
@@ -32,6 +36,7 @@ async def test_jit_user_creation(client, mock_verify_cognito_token):
     2. GET /users/me crea el usuario automáticamente
     3. Retorna datos correctos del usuario creado
     """
+    
     # Primera petición - crea usuario
     response = await client.get(
         "/api/v1/users/me",
@@ -52,12 +57,14 @@ async def test_jit_user_creation(client, mock_verify_cognito_token):
 @pytest.mark.asyncio
 async def test_get_existing_user(client, mock_verify_cognito_token):
     """
+    
     Test: Segunda petición retorna usuario existente.
     
     Verifica que:
     1. Primera petición crea usuario
     2. Segunda petición retorna el MISMO usuario (no crea duplicado)
     """
+    
     # Primera petición - crea usuario
     response1 = await client.get(
         "/api/v1/users/me",
@@ -81,8 +88,10 @@ async def test_get_existing_user(client, mock_verify_cognito_token):
 @pytest.mark.asyncio
 async def test_get_user_without_auth(client):
     """
+    
     Test: Petición sin autenticación debe fallar.
     """
+    
     response = await client.get("/api/v1/users/me")
     assert response.status_code == 403  # FastAPI security dependency
 
@@ -94,6 +103,7 @@ async def test_get_user_without_auth(client):
 @pytest.mark.asyncio
 async def test_update_user_profile(client, mock_verify_cognito_token):
     """
+    Autor: Oscar Alonso Nava Rivera
     Test: Usuario puede actualizar su propio perfil.
     """
     # Crear usuario con primera petición
@@ -117,6 +127,7 @@ async def test_update_user_profile(client, mock_verify_cognito_token):
 @pytest.mark.asyncio
 async def test_user_cannot_change_role(client, mock_verify_cognito_token):
     """
+    Autor: Oscar Alonso Nava Rivera
     Test: Usuario normal NO puede cambiar su propio rol a ADMIN.
     
     El schema UserUpdate NO incluye el campo 'role'.

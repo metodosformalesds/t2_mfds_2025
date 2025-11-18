@@ -3,6 +3,10 @@ Modelo de base de datos para PaymentTransaction.
 
 Implementa la tabla 'payment_transactions'
 Registra todas las transacciones de pago (órdenes y suscripciones).
+
+Autor: Oscar Alonso Nava Rivera
+Fecha: 07/11/2025
+Descripción: Modelo PaymentTransaction y utilidades para workflow de pagos.
 """
 import uuid
 from typing import Optional, TYPE_CHECKING

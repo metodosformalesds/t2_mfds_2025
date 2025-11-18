@@ -1,3 +1,9 @@
+# Autor: Alejandro Campa Alonso 215833
+# Fecha: 2025-11-08
+# Descripción: Endpoints de la API para Órdenes y Checkout. Implementa el proceso completo de checkout
+# incluyendo validación de carrito, procesamiento de pagos con Stripe, creación de órdenes y gestión
+# de compras/ventas. Maneja flujos de tokens de prueba y payment methods reales.
+
 """
 Endpoints de la API para Órdenes y Checkout.
 
@@ -9,6 +15,7 @@ Implementa:
 """
 import logging
 import uuid
+from decimal import Decimal
 from typing import Annotated
 from fastapi import APIRouter, Depends, Query, status, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -54,6 +61,31 @@ async def process_checkout(
     db: Annotated[AsyncSession, Depends(get_async_db)],
     user: Annotated[User, Depends(get_current_active_user)]
 ) -> OrderRead:
+    """
+    Procesa el checkout completo: valida carrito, procesa pago con Stripe y crea la orden.
+    
+    Proceso transaccional:
+    1. Valida el carrito (stock, disponibilidad) y bloquea el stock de los listings
+    2. Obtiene o crea el customer de Stripe para el usuario
+    3. Procesa el pago mediante Stripe (soporta tokens de prueba y payment methods)
+    4. Crea la Orden y OrderItems, reduce stock y vacía el carrito
+    5. Envía email de confirmación
+    
+    Si cualquier paso falla, se hace rollback automático.
+    
+    Autor: Alejandro Campa Alonso 215833
+    
+    Args:
+        checkout_data: Datos del checkout incluyendo payment_token y return_url
+        db: Sesión asincrónica de la base de datos
+        user: Usuario autenticado (comprador)
+    
+    Returns:
+        OrderRead: Orden creada con todos sus detalles
+    
+    Raises:
+        HTTPException: Si hay error en validación, pago o creación de orden
+    """
     
     # 1. Validar carrito y bloquear stock (transaccional)
     try:
@@ -65,7 +97,36 @@ async def process_checkout(
         raise HTTPException(status_code=500, detail="Error al validar el carrito")
 
     # 2. Calcular total (a enviar a Stripe)
-    total_a_pagar = cart.get_estimated_total() # Incluye comisión
+    # get_estimated_total() retorna Decimal en PESOS, convertir a CENTAVOS para Stripe
+    total_pesos = cart.get_estimated_total() # Incluye comisión (ej: 154.31)
+    
+    # 2.1. Agregar costo de envío si se seleccionó un método
+    shipping_cost = Decimal("0.00")
+    if checkout_data.shipping_method_id:
+        from app.models.shipping_methods import ShippingMethod
+        shipping_method = await db.get(ShippingMethod, checkout_data.shipping_method_id)
+        if shipping_method:
+            shipping_cost = Decimal(str(shipping_method.cost))
+            total_pesos += shipping_cost
+            logger.info(f"Costo de envío agregado: ${shipping_cost} MXN (método: {shipping_method.name})")
+        else:
+            logger.warning(f"Método de envío {checkout_data.shipping_method_id} no encontrado, continuando sin costo de envío")
+    
+    total_a_pagar = int(total_pesos * 100)  # Convertir a centavos (ej: 15431)
+    logger.info(f"Total a pagar: ${total_pesos} MXN = {total_a_pagar} centavos")
+    
+    # 2.2 Validar monto mínimo de Stripe para MXN ($10 MXN)
+    STRIPE_MIN_AMOUNT_MXN = 1000  # $10.00 MXN en centavos
+    if total_a_pagar < STRIPE_MIN_AMOUNT_MXN:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": "amount_too_small",
+                "message": f"El monto mínimo para procesar pagos es de $10.00 MXN. Tu carrito tiene ${total_a_pagar / 100:.2f} MXN.",
+                "minimum_amount": STRIPE_MIN_AMOUNT_MXN,
+                "current_amount": total_a_pagar
+            }
+        )
     
     # 2.5. Obtener o crear customer de Stripe para usar payment methods
     # (Stripe requiere un customer para reutilizar payment methods)
@@ -101,7 +162,7 @@ async def process_checkout(
             # Crear cargo directo con el token
             try:
                 charge = stripe.Charge.create(
-                    amount=int(total_a_pagar * 100),  # centavos
+                    amount=total_a_pagar,  # Ya está en centavos
                     currency="mxn",
                     source=checkout_data.payment_token,
                     description=f"Orden de {user.full_name or user.email}",
@@ -230,6 +291,22 @@ async def get_my_purchases(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
 ) -> OrderList:
+    """
+    Obtiene una lista paginada de las órdenes de compra del usuario autenticado.
+    
+    Retorna las órdenes donde el usuario es el comprador.
+    
+    Autor: Alejandro Campa Alonso 215833
+    
+    Args:
+        db: Sesión asincrónica de la base de datos
+        user: Usuario autenticado
+        skip: Número de registros a saltar para paginación (por defecto 0)
+        limit: Número máximo de registros (por defecto 20, máximo 100)
+    
+    Returns:
+        OrderList: Lista paginada de órdenes de compra con metadatos
+    """
     
     orders, total = await order_service.get_my_purchases(db, user, skip, limit)
     page = (skip // limit) + 1
@@ -254,6 +331,22 @@ async def get_my_sales(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
 ) -> OrderList:
+    """
+    Obtiene una lista paginada de las órdenes que contienen items vendidos por el usuario autenticado.
+    
+    Retorna las órdenes donde el usuario es vendedor de al menos uno de los items.
+    
+    Autor: Alejandro Campa Alonso 215833
+    
+    Args:
+        db: Sesión asincrónica de la base de datos
+        user: Usuario autenticado
+        skip: Número de registros a saltar para paginación (por defecto 0)
+        limit: Número máximo de registros (por defecto 20, máximo 100)
+    
+    Returns:
+        OrderList: Lista paginada de órdenes donde el usuario es vendedor
+    """
     
     orders, total = await order_service.get_my_sales(db, user, skip, limit)
     page = (skip // limit) + 1
@@ -278,6 +371,25 @@ async def get_order_details(
     db: Annotated[AsyncSession, Depends(get_async_db)],
     user: Annotated[User, Depends(get_current_active_user)]
 ) -> OrderRead:
+    """
+    Obtiene los detalles completos de una orden específica.
+    
+    Solo el comprador, vendedor(es) de items, o administrador pueden ver los detalles.
+    El servicio valida los permisos automáticamente.
+    
+    Autor: Alejandro Campa Alonso 215833
+    
+    Args:
+        order_id: ID de la orden a recuperar
+        db: Sesión asincrónica de la base de datos
+        user: Usuario autenticado
+    
+    Returns:
+        OrderRead: Detalles completos de la orden con todos sus items
+    
+    Raises:
+        HTTPException: Si la orden no existe o el usuario no tiene permiso
+    """
     
     order = await order_service.get_order_details(db, order_id, user)
     return OrderRead.from_order(order)

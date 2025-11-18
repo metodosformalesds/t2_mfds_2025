@@ -4,6 +4,10 @@ Configuración de Alembic para migraciones de base de datos.
 Este archivo se ejecuta cada vez que se genera o aplica una migración.
 Conecta Alembic con los modelos SQLAlchemy y la configuración del proyecto.
 """
+
+# Autor: Oscar Alonso Nava Rivera
+# Fecha: 16/11/2025
+# Descripción: Configuración de Alembic para aplicar y generar migraciones en el proyecto.
 from logging.config import fileConfig
 import sys
 from pathlib import Path

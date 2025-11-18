@@ -1,9 +1,11 @@
 """
-Modelo de base de datos para ListingShippingOption.
+# Autor: Alejandro Campa Alonso 215833
 
-Implementa la tabla 'listing_shipping_options'
-Tabla pivote que conecta listings con shipping_methods.
-Permite a los vendedores especificar qué métodos de envío aplican a cada producto.
+# Fecha: 2025-11-05
+
+# Descripción: Modelo de base de datos para ListingShippingOption.
+Implementa la tabla pivote 'listing_shipping_options' que conecta listings con shipping_methods.
+Permite a los vendedores especificar qué métodos de envío aplican a cada producto/listing.
 """
 from typing import TYPE_CHECKING
 

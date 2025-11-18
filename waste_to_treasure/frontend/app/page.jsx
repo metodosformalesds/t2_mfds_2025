@@ -1,3 +1,10 @@
+/**
+ * Autor: Oscar Alonso Nava Rivera, AlejandroCampa-215833
+ * Fecha: 08/11/2025
+ * Componente: HomePage
+ * Descripción: Página principal (homepage) con secciones destacadas.
+ */
+
 'use client';
 
 import { useState, useEffect } from 'react';

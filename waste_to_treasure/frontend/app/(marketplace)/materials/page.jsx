@@ -1,3 +1,10 @@
+/**
+ * Autor: Arturo Perez Gonzalez
+ * Fecha: 09/11/2024
+ * Descripción: Página principal del catálogo de materiales B2B.
+ *              Muestra listado de materiales con búsqueda, filtros, ordenamiento y paginación.
+ */
+
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -27,7 +34,10 @@ export default function MaterialsPage() {
   const pageSize = 9 // 9 materiales por página (3x3 grid)
 
   /**
-   * Función para cargar materiales desde la API
+   * Autor: Arturo Perez Gonzalez
+   * Descripción: Carga materiales desde la API aplicando filtros, búsqueda y paginación.
+   * Parámetros: Ninguno (usa estados del componente)
+   * Retorna: Promise<void>
    */
   const fetchMaterials = async () => {
     setIsLoading(true)
@@ -193,12 +203,11 @@ export default function MaterialsPage() {
             </div>
           ) : (
             /* Materials Grid */
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
               {materials.map((material) => (
-                <MaterialCard
-                  key={material.listing_id}
-                  material={material}
-                />
+                <div key={material.listing_id} className="min-w-0">
+                  <MaterialCard material={material} />
+                </div>
               ))}
             </div>
           )}

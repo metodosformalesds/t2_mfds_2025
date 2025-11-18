@@ -1,13 +1,18 @@
+/**
+ * Autor: Arturo Perez Gonzalez
+ * Fecha: 09/11/2024
+ * Componente: SearchBar
+ * Descripción: Barra de búsqueda con filtros de categoría para materiales y productos.
+ *              Carga categorías dinámicamente desde la API según el modo (B2B/B2C).
+ *              Permite búsqueda por texto y filtrado por categoría con callbacks al padre.
+ */
+
 'use client'
 
 import { useState, useEffect } from 'react'
 import { Search } from 'lucide-react'
 import categoriesService from '@/lib/api/categories'
 
-/**
- * SearchBar component with category filters
- * @param {boolean} isProductMode - If true, loads product categories instead of material categories
- */
 export default function SearchBar({ onSearch, onCategoryChange, isProductMode = false }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('Todos')

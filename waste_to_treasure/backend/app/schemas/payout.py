@@ -3,6 +3,10 @@ Schemas de Pydantic para Payout.
 
 Define contratos para gestionar pagos a vendedores.
 """
+
+# Autor: Oscar Alonso Nava Rivera
+# Fecha: 16/11/2025
+# Descripción: Esquemas Pydantic usados para crear, leer y listar payouts de vendedores.
 from typing import Optional
 from datetime import datetime
 from decimal import Decimal
@@ -14,7 +18,11 @@ from app.models.payment_enums import PayoutStatusEnum
 
 
 class PayoutBase(BaseModel):
-    """Esquema base para Payout."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Esquema base para Payout.
+    """
     
     amount: Decimal = Field(
         ...,
@@ -33,6 +41,8 @@ class PayoutBase(BaseModel):
 
 class PayoutCreate(PayoutBase):
     """
+    Autor: Oscar Alonso Nava Rivera
+
     Esquema para crear payout.
     
     Usado internamente por el sistema.
@@ -51,6 +61,8 @@ class PayoutCreate(PayoutBase):
 
 class PayoutApprove(BaseModel):
     """
+    Autor: Oscar Alonso Nava Rivera
+
     Request para aprobar payout (admin).
     
     Usado en: POST /api/v1/admin/payouts/{payout_id}/approve
@@ -64,6 +76,8 @@ class PayoutApprove(BaseModel):
 
 class PayoutReject(BaseModel):
     """
+    Autor: Oscar Alonso Nava Rivera
+
     Request para rechazar payout (admin).
     
     Usado en: POST /api/v1/admin/payouts/{payout_id}/reject
@@ -77,7 +91,11 @@ class PayoutReject(BaseModel):
 
 
 class PayoutInDB(PayoutBase):
-    """Esquema de Payout en BD."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Esquema de Payout en BD.
+    """
     
     payout_id: int
     seller_id: UUID
@@ -99,6 +117,8 @@ class PayoutInDB(PayoutBase):
 
 class PayoutRead(PayoutInDB):
     """
+    Autor: Oscar Alonso Nava Rivera
+
     Esquema de respuesta para Payout.
     
     Usado en: GET /sellers/payouts, GET /admin/payouts
@@ -120,7 +140,11 @@ class PayoutRead(PayoutInDB):
 
 
 class PayoutList(BaseModel):
-    """Lista paginada de payouts."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Lista paginada de payouts.
+    """
     
     items: list[PayoutRead] = Field(
         ...,
@@ -162,6 +186,8 @@ class PayoutList(BaseModel):
 
 class PayoutStats(BaseModel):
     """
+    Autor: Oscar Alonso Nava Rivera
+
     Estadísticas de payouts para vendedor.
     
     Usado en: GET /sellers/payouts/stats

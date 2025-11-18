@@ -20,11 +20,12 @@ from app.models.user import UserRoleEnum, UserStatusEnum
 
 class UserRead(BaseModel):
     """
-    Schema para lectura de datos de usuario.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Schema para lectura de datos de usuario.
+
     Se usa en respuestas de la API para mostrar información de usuarios.
     NO incluye datos sensibles como hashed_password.
-    
+
     Example:
         ```json
         {
@@ -82,11 +83,12 @@ class UserRead(BaseModel):
 
 class UserPublic(BaseModel):
     """
-    Schema para información pública de usuario.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Schema para información pública de usuario.
+
     Información mínima que se muestra en listados o perfiles públicos.
     Útil para mostrar vendedores, compradores en reviews, etc.
-    
+
     Example:
         ```json
         {
@@ -112,11 +114,12 @@ class UserPublic(BaseModel):
 
 class UserUpdate(BaseModel):
     """
-    Schema para actualizar datos del usuario.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Schema para actualizar datos del usuario.
+
     Permite actualizar SOLO campos editables.
     El email y user_id NO se pueden cambiar (gestionados por Cognito).
-    
+
     Example:
         ```json
         {
@@ -154,12 +157,13 @@ class UserUpdate(BaseModel):
 
 class UserAdminUpdate(BaseModel):
     """
-    Schema para que administradores actualicen usuarios.
-    
+    Autor: Oscar Alonso Nava Rivera
+    Descripción: Schema para que administradores actualicen usuarios.
+
     Permite modificar campos adicionales que solo admins pueden cambiar:
     - role: Cambiar rol (USER ↔ ADMIN)
     - status: Activar/bloquear usuarios
-    
+
     Example:
         ```json
         {

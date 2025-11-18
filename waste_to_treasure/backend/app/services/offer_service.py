@@ -1,3 +1,9 @@
+# Autor: Arturo Perez Gonzalez
+# Fecha: 08/11/2024
+# Descripción: Servicio de lógica de negocio para ofertas B2B de materiales.
+#              Implementa creación, consulta y actualización de ofertas incluyendo
+#              validaciones, negociaciones, contraofertas y gestión de estados.
+
 """
 Capa de servicio para Offer.
 
@@ -30,19 +36,17 @@ async def create_offer(
     buyer_id: UUID
 ) -> Offer:
     """
-    Crea una nueva oferta de negociación.
-
-    Args:
-        db: Sesión asíncrona de base de datos.
-        offer_data: Datos de la oferta.
-        buyer_id: UUID del comprador.
-
-    Returns:
-        Offer creada.
-
+    Autor: Arturo Perez Gonzalez
+    Descripción: Crea una nueva oferta de negociación B2B para un material.
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        offer_data (OfferCreate): Datos de la oferta (precio, cantidad, listing_id).
+        buyer_id (UUID): UUID del comprador que realiza la oferta.
+    Retorna:
+        Offer: Oferta creada con estado PENDING.
     Raises:
-        HTTPException: Si el listing no existe, no es MATERIAL,
-                      o el comprador es el mismo vendedor.
+        HTTPException: Si el listing no existe, no es MATERIAL, no está activo,
+                      el comprador es el vendedor o no hay stock suficiente.
     """
     # Obtener el listing
     result = await db.execute(
@@ -222,18 +226,16 @@ async def get_offer_by_id(
     user_id: UUID
 ) -> Optional[Offer]:
     """
-    Obtiene una oferta por su ID.
-
-    Args:
-        db: Sesión asíncrona de base de datos.
-        offer_id: ID de la oferta.
-        user_id: UUID del usuario (para validar acceso).
-
-    Returns:
-        Offer encontrada o None.
-
+    Autor: Arturo Perez Gonzalez
+    Descripción: Obtiene una oferta por su ID validando permisos de acceso.
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        offer_id (int): ID de la oferta a buscar.
+        user_id (UUID): UUID del usuario (debe ser comprador o vendedor).
+    Retorna:
+        Optional[Offer]: Oferta encontrada con relaciones cargadas, o None si no existe.
     Raises:
-        HTTPException: Si el usuario no tiene permiso para ver la oferta.
+        HTTPException: Si el usuario no es el comprador ni el vendedor de la oferta.
     """
     result = await db.execute(
         select(Offer)
@@ -266,20 +268,18 @@ async def update_offer_status(
     update_data: OfferUpdateStatus
 ) -> Offer:
     """
-    Actualiza el estado de una oferta (aceptar/rechazar/contraofertar).
-
-    Args:
-        db: Sesión asíncrona de base de datos.
-        offer_id: ID de la oferta.
-        seller_id: UUID del vendedor (para validación).
-        update_data: Datos de la actualización.
-
-    Returns:
-        Offer actualizada.
-
+    Autor: Arturo Perez Gonzalez
+    Descripción: Actualiza el estado de una oferta (aceptar, rechazar o contraofertar).
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        offer_id (int): ID de la oferta a actualizar.
+        seller_id (UUID): UUID del vendedor (para validación de permisos).
+        update_data (OfferUpdateStatus): Acción a realizar y datos asociados.
+    Retorna:
+        Offer: Oferta actualizada con nuevo estado.
     Raises:
         HTTPException: Si la oferta no existe, no pertenece al vendedor,
-                      o no puede ser modificada.
+                      ya fue procesada o ha expirado.
     """
     result = await db.execute(
         select(Offer)

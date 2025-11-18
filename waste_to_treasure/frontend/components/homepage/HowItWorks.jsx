@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: HowItWorks
+ * Descripción: sección explicativa del proceso de economía circular en 3 pasos (empresa publica, artesano transforma, consumidor disfruta) con tarjetas numeradas y colores distintivos
+ */
+
 const steps = [
   {
     number: 1,

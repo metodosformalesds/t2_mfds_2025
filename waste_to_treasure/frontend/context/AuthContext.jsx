@@ -17,16 +17,26 @@ export function AuthProvider({ children }) {
   }, []);
 
   const checkAuthStatus = async () => {
+    console.log('🔍 [AuthContext] Iniciando checkAuthStatus...');
     try {
       const authenticated = await checkAuth();
+      console.log('🔐 [AuthContext] Autenticado en Cognito:', authenticated);
       setIsAuthenticated(authenticated);
 
       if (authenticated) {
         const cognitoUser = await getCurrentUser();
-        
+        console.log('👤 [AuthContext] Usuario de Cognito obtenido:', cognitoUser?.attributes?.email);
+
         // Fetch user profile from backend to get role and other data
         try {
+          console.log('📡 [AuthContext] Llamando a backend /users/me...');
           const backendUser = await usersService.getMe();
+          console.log('✅ [AuthContext] Usuario del backend obtenido:', {
+            email: backendUser.email,
+            role: backendUser.role,
+            status: backendUser.status
+          });
+
           setUser({
             ...cognitoUser,
             ...backendUser,
@@ -34,12 +44,15 @@ export function AuthProvider({ children }) {
             email: backendUser.email || cognitoUser.attributes?.email,
             role: backendUser.role || 'USER',
           });
+          console.log('✅ [AuthContext] Usuario establecido exitosamente');
         } catch (error) {
           // Si el backend falla (ej. 401), caer silenciosamente en páginas públicas
-          console.warn('No se pudo obtener perfil del backend:', error.message || error);
-          
+          console.warn('⚠️ [AuthContext] No se pudo obtener perfil del backend:', error.message || error);
+          console.warn('⚠️ [AuthContext] Status code:', error.response?.status);
+
           // Fallback to Cognito data only si hay un usuario válido en Cognito
           if (cognitoUser && cognitoUser.attributes) {
+            console.log('🔄 [AuthContext] Usando fallback con datos de Cognito');
             setUser({
               ...cognitoUser,
               name: cognitoUser.attributes?.given_name || 'Usuario',
@@ -48,20 +61,23 @@ export function AuthProvider({ children }) {
             });
           } else {
             // Si ni siquiera Cognito tiene usuario, marcar como no autenticado
+            console.error('❌ [AuthContext] No hay usuario en Cognito, marcando como no autenticado');
             setIsAuthenticated(false);
             setUser(null);
           }
         }
       } else {
         // Usuario no autenticado - esto es normal en páginas públicas
+        console.log('ℹ️ [AuthContext] Usuario no autenticado');
         setUser(null);
       }
     } catch (error) {
-      console.warn('Error checking auth status:', error.message || error);
+      console.error('❌ [AuthContext] Error checking auth status:', error.message || error);
       setIsAuthenticated(false);
       setUser(null);
     } finally {
       setIsLoading(false);
+      console.log('✅ [AuthContext] checkAuthStatus completado');
     }
   };
 

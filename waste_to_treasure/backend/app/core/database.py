@@ -1,6 +1,10 @@
 """
 Configuración de la base de datos usando SQLAlchemy 2.0.
 Proporciona el engine, sessionmaker y base declarativa para los modelos.
+
+Autor: Oscar Alonso Nava Rivera
+Fecha: 31/10/2025
+Descripción: Engine y dependencias de DB (sync/async).
 """
 import logging
 from typing import Generator, AsyncGenerator
@@ -132,12 +136,19 @@ def get_db() -> Generator[Session, None, None]:
 async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
     """
     Dependencia de FastAPI que proporciona una sesión de base de datos asíncrona.
+    
     Gestiona automáticamente el commit, rollback y cierre de la sesión.
+    
+    NOTA IMPORTANTE sobre commits:
+    - Esta función NO hace commit automático al finalizar
+    - Cada servicio/endpoint debe hacer su propio commit explícito
+    - Esto evita conflictos con JIT user creation y otras operaciones
+    - Solo hace rollback en caso de excepción
     """
     async with async_session_maker() as session:
         try:
             yield session
-            await session.commit()
+            # NO hacer commit automático - cada operación debe hacerlo explícitamente
         except Exception as e:
             logger.error(f"Error en sesión de base de datos asíncrona: {e}", exc_info=True)
             await session.rollback()

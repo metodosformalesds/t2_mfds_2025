@@ -3,6 +3,10 @@ Modelo de base de datos para Cart y CartItem.
 
 Implementa las tablas 'carts' y 'cart_items'
 Gestiona el carrito de compras temporal de usuarios autenticados.
+
+Autor: Oscar Alonso Nava Rivera
+Fecha: 05/11/2025
+Descripción: Modelos de datos para carritos de compra y sus items.
 """
 import uuid
 from typing import TYPE_CHECKING, List, Optional
@@ -85,10 +89,13 @@ class Cart(BaseModel):
     def get_total_items(self) -> int:
         """
         Obtiene el número total de items en el carrito.
-        
+
+        Autor: Oscar Alonso Nava Rivera
+        Descripción: Suma las cantidades de todos los CartItem asociados.
+
         Returns:
             Suma de las cantidades de todos los items.
-            
+
         Example:
             >>> cart.items = [CartItem(quantity=2), CartItem(quantity=3)]
             >>> cart.get_total_items()
@@ -99,10 +106,13 @@ class Cart(BaseModel):
     def get_subtotal(self) -> Decimal:
         """
         Calcula el subtotal del carrito (sin comisión).
-        
+
+        Autor: Oscar Alonso Nava Rivera
+        Descripción: Suma (price * quantity) para cada item válido del carrito.
+
         Returns:
             Suma de (precio * cantidad) de todos los items.
-            
+
         Note:
             Requiere que los items tengan sus listings cargados (lazy='selectin').
         """
@@ -115,7 +125,10 @@ class Cart(BaseModel):
     def get_estimated_total(self, commission_rate: float = 0.10) -> Decimal:
         """
         Calcula el total estimado incluyendo comisión.
-        
+
+        Autor: Oscar Alonso Nava Rivera
+        Descripción: Calcula subtotal y aplica la comisión proporcionada.
+
         Args:
             commission_rate: Tasa de comisión (default: 10% según SRS).
             
@@ -129,7 +142,10 @@ class Cart(BaseModel):
     def clear(self) -> None:
         """
         Vacía el carrito eliminando todos los items.
-        
+
+        Autor: Oscar Alonso Nava Rivera
+        Descripción: Remueve todos los CartItem del carrito (vaciar).
+
         Note:
             Utilizado después de completar una orden exitosa.
             El carrito en sí no se elimina, solo sus items.
@@ -139,10 +155,13 @@ class Cart(BaseModel):
     def has_unavailable_items(self) -> bool:
         """
         Verifica si hay items no disponibles en el carrito.
-        
+
+        Autor: Oscar Alonso Nava Rivera
+        Descripción: Retorna True si algún CartItem refiere a un listing no disponible.
+
         Returns:
             True si algún item referencia un listing inactivo o sin stock.
-            
+
         Note:
             Útil para validar antes del checkout.
         """
@@ -154,10 +173,13 @@ class Cart(BaseModel):
     def remove_unavailable_items(self) -> int:
         """
         Elimina items que referencian listings no disponibles.
-        
+
+        Autor: Oscar Alonso Nava Rivera
+        Descripción: Filtra items inválidos y devuelve la cantidad eliminada.
+
         Returns:
             Número de items eliminados.
-            
+
         Note:
             Debe llamarse en una sesión activa de SQLAlchemy.
         """
@@ -169,6 +191,10 @@ class Cart(BaseModel):
         return initial_count - len(self.items)
     
     def __repr__(self) -> str:
+        """
+        Autor: Oscar Alonso Nava Rivera
+        Descripción: Representación legible del objeto Cart.
+        """
         return (
             f"Cart(cart_id={self.cart_id!r}, user_id={self.user_id!r}, "
             f"items_count={len(self.items)})"
@@ -264,7 +290,10 @@ class CartItem(BaseModel):
     def get_item_subtotal(self) -> Decimal:
         """
         Calcula el subtotal de este item (precio * cantidad).
-        
+
+        Autor: Oscar Alonso Nava Rivera
+        Descripción: Calcula precio * cantidad si el listing está disponible.
+
         Returns:
             Subtotal del item o 0 si el listing no está disponible.
         """
@@ -275,7 +304,10 @@ class CartItem(BaseModel):
     def is_valid(self) -> bool:
         """
         Verifica si el item es válido para checkout.
-        
+
+        Autor: Oscar Alonso Nava Rivera
+        Descripción: Comprueba existencia del listing, disponibilidad y stock.
+
         Returns:
             True si el listing existe, está activo y tiene stock suficiente.
         """
@@ -290,7 +322,10 @@ class CartItem(BaseModel):
     def update_quantity(self, new_quantity: int) -> bool:
         """
         Actualiza la cantidad del item con validación de stock.
-        
+
+        Autor: Oscar Alonso Nava Rivera
+        Descripción: Intenta actualizar la cantidad respetando el stock disponible.
+
         Args:
             new_quantity: Nueva cantidad deseada.
             
@@ -312,7 +347,10 @@ class CartItem(BaseModel):
     def increase_quantity(self, amount: int = 1) -> bool:
         """
         Incrementa la cantidad del item.
-        
+
+        Autor: Oscar Alonso Nava Rivera
+        Descripción: Incrementa la cantidad en una cantidad dada, validando stock.
+
         Args:
             amount: Cantidad a incrementar (default: 1).
             
@@ -324,7 +362,10 @@ class CartItem(BaseModel):
     def decrease_quantity(self, amount: int = 1) -> bool:
         """
         Decrementa la cantidad del item.
-        
+
+        Autor: Oscar Alonso Nava Rivera
+        Descripción: Decrementa la cantidad validando que quede > 0.
+
         Args:
             amount: Cantidad a decrementar (default: 1).
             
@@ -338,6 +379,10 @@ class CartItem(BaseModel):
         return True
     
     def __repr__(self) -> str:
+        """
+        Autor: Oscar Alonso Nava Rivera
+        Descripción: Representación legible del objeto CartItem.
+        """
         return (
             f"CartItem(cart_item_id={self.cart_item_id!r}, "
             f"listing_id={self.listing_id!r}, quantity={self.quantity!r}, "

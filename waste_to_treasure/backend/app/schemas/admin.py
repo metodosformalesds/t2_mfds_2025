@@ -1,3 +1,8 @@
+# Autor: Gabriel Florentino Reyes
+# Fecha: 08-11-2025
+# Descripción:Esquemas Pydantic para la gestión administrativa y moderación 
+#               dentro de la plataforma.
+
 """
 Esquemas de Pydantic para el módulo de Administración.
 

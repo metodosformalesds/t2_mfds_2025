@@ -7,6 +7,11 @@ Implementa la lógica de negocio para:
 - Listado de compras y ventas
 - Consulta de detalles de órdenes
 """
+# Autor: Alejandro Campa Alonso 215833
+# Fecha: 2025-11-08T00:48:30-07:00
+# Descripción: Servicio que implementa la lógica de negocio para checkout,
+# validaciones de carrito/stock, creación de órdenes, notificaciones y
+# consultas de compras/ventas.
 import logging
 import uuid
 from decimal import Decimal
@@ -35,16 +40,17 @@ class OrderService:
         user: User
     ) -> Tuple[Cart, Dict[int, Listing]]:
         """
+        Autor: Alejandro Campa Alonso 215833
         Obtiene el carrito del usuario y bloquea los listings asociados
         para una validación de stock segura (previene race conditions).
-        
+
         Args:
             db: Sesión de base de datos (transacción).
             user: Usuario autenticado.
-            
+
         Returns:
             Tupla (Cart, Dict[listing_id, Listing])
-            
+
         Raises:
             HTTPException 404: Si el carrito está vacío.
             HTTPException 400: Si hay items no disponibles o sin stock.
@@ -121,7 +127,27 @@ class OrderService:
         payment_method: str
     ) -> Order:
         """
-        ... (docstring sin cambios) ...
+        Autor: Alejandro Campa Alonso 215833
+        Crea una orden a partir del carrito del usuario. Este método:
+        - Crea la cabecera `Order` y los `OrderItem` asociados.
+        - Reduce el stock de los listings involucrados.
+        - Vacía el carrito del usuario.
+        - Crea notificaciones in-app para comprador y vendedores.
+        - Intenta enviar un email de confirmación (no crítico si falla).
+
+        Args:
+            db: Sesión asíncrona de la base de datos (transacción).
+            user: Usuario que realiza la compra.
+            cart: Instancia de `Cart` con los items.
+            listings_map: Mapa de `listing_id` a `Listing` bloqueados.
+            payment_charge_id: ID de la transacción en la pasarela de pago.
+            payment_method: Método de pago usado.
+
+        Returns:
+            La instancia de `Order` recién creada (con relaciones cargadas).
+
+        Raises:
+            HTTPException 500: Si ocurre un error crítico al persistir la orden.
         """
         try:
             # ... (Pasos 1 al 4: Crear Order, OrderItems, reducir stock, vaciar carrito) ...
@@ -175,11 +201,12 @@ class OrderService:
             # 5. Vaciar el carrito
             for item in cart.items:
                 await db.delete(item)
-            
+
             await db.flush()
+            await db.commit()
             await db.refresh(new_order)
-            
-            logger.info(f"Orden {new_order.order_id} creada exitosamente.")
+
+            logger.info(f"✅ Orden {new_order.order_id} creada y guardada exitosamente.")
 
             # --- 6. (AÑADIDO) Crear notificaciones in-app ---
             try:
@@ -212,12 +239,16 @@ class OrderService:
                 
                 logger.info(f"Notificaciones in-app creadas para orden {new_order.order_id}")
 
+                # Commit de las notificaciones
+                await db.commit()
+
             except Exception as notify_error:
                 # No revertir la transacción si solo falla la notificación
                 logger.error(
                     f"Error creando notificaciones in-app para orden {new_order.order_id}: {notify_error}",
                     exc_info=True
                 )
+                await db.rollback()
             # ---------------------------------------------------
 
             # 7. Enviar email de confirmación (Lógica anterior)
@@ -254,21 +285,37 @@ class OrderService:
             )
         
     async def get_my_purchases(
-        self, 
-        db: AsyncSession, 
-        user: User, 
-        skip: int, 
+        self,
+        db: AsyncSession,
+        user: User,
+        skip: int,
         limit: int
     ) -> Tuple[List[Order], int]:
-        """Obtiene las órdenes de compra (comprador)."""
-        
+        """
+        Autor: Alejandro Campa Alonso 215833
+        Obtiene las órdenes de compra (comprador).
+
+        Args:
+            db: Sesión asíncrona de la base de datos.
+            user: Usuario comprador.
+            skip: Offset para paginación.
+            limit: Límite de items.
+
+        Returns:
+            Tupla (lista_de_orders, total)
+        """
+
+        logger.info(f"🛒 get_my_purchases - Buscando compras para user_id: {user.user_id}, email: {user.email}")
+
         stmt_base = select(Order).where(Order.buyer_id == user.user_id)
-        
+
         # Contar total
         count_stmt = select(func.count()).select_from(stmt_base.subquery())
         total_result = await db.execute(count_stmt)
         total = total_result.scalar() or 0
-        
+
+        logger.info(f"🛒 get_my_purchases - Total de compras encontradas: {total}")
+
         # Obtener órdenes con items y listings
         stmt = (
             stmt_base
@@ -279,9 +326,11 @@ class OrderService:
             .offset(skip)
             .limit(limit)
         )
-        
+
         result = await db.execute(stmt)
         orders = result.scalars().all()
+
+        logger.info(f"🛒 get_my_purchases - Retornando {len(orders)} órdenes en esta página (skip={skip}, limit={limit})")
         return list(orders), total
 
     async def get_my_sales(
@@ -291,7 +340,19 @@ class OrderService:
         skip: int, 
         limit: int
     ) -> Tuple[List[Order], int]:
-        """Obtiene las órdenes de venta (vendedor)."""
+        """
+        Autor: Alejandro Campa Alonso 215833
+        Obtiene las órdenes de venta (vendedor).
+
+        Args:
+            db: Sesión asíncrona de la base de datos.
+            user: Usuario vendedor.
+            skip: Offset para paginación.
+            limit: Límite de items.
+
+        Returns:
+            Tupla (lista_de_orders, total)
+        """
         
         # Query base para encontrar IDs de órdenes que contienen items del vendedor
         stmt_base = (
@@ -331,8 +392,21 @@ class OrderService:
         user: User
     ) -> Order:
         """
+        Autor: Alejandro Campa Alonso 215833
         Obtiene el detalle de una orden, validando que el usuario
         sea el comprador, el vendedor de al menos un item, o admin.
+
+        Args:
+            db: Sesión asíncrona de la base de datos.
+            order_id: ID de la orden a consultar.
+            user: Usuario que solicita el detalle.
+
+        Returns:
+            La instancia `Order` si el usuario tiene permisos.
+
+        Raises:
+            HTTPException 404: Si la orden no existe.
+            HTTPException 403: Si el usuario no tiene permisos.
         """
         stmt = (
             select(Order)

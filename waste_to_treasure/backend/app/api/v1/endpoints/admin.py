@@ -1,3 +1,9 @@
+# Autor: Gabriel Florentino Reyes
+# Fecha: 08-11-2025
+# Descripción: Endpoints administrativos de la plataforma
+#               Gestión de usuarios, publicaciones, reportes y dashboard
+#               Consultas de logs y manejo de excepciones con rol ADMIN
+
 """
 Endpoints de la API para el módulo de Administración.
 
@@ -33,10 +39,6 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-# ==========================================
-# USER MANAGEMENT
-# ==========================================
-
 @router.get(
     "/users",
     response_model=UserAdminList,
@@ -57,11 +59,25 @@ async def get_users_list(
     db: AsyncSession = Depends(get_async_db),
     current_admin: User = Depends(require_admin)
 ) -> UserAdminList:
-    """
-    Lista todos los usuarios de la plataforma.
     
-    **Requiere**: Rol ADMIN
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Obtiene la lista paginada de usuarios para gestión administrativa.
+
+    Parámetros:
+        role (str|None): Filtro por rol (USER, ADMIN).
+        status (str|None): Filtro por estado del usuario.
+        search (str|None): Término de búsqueda por nombre o email.
+        skip (int): Registros a omitir.
+        limit (int): Registros por página.
+        db (AsyncSession): Sesión de base de datos.
+        current_admin (User): Usuario administrador autenticado.
+
+    Retorna:
+        UserAdminList: Lista paginada de usuarios.
+    """
+    
     logger.info(
         f"Admin {current_admin.user_id} listando usuarios "
         f"(role={role}, status={status}, search={search}, skip={skip}, limit={limit})"
@@ -85,11 +101,6 @@ async def get_users_list(
         page_size=limit
     )
 
-
-# ==========================================
-# DASHBOARD
-# ==========================================
-
 @router.get(
     "/dashboard/stats",
     response_model=StatsDashboard,
@@ -106,9 +117,21 @@ async def get_dashboard_stats(
     db: AsyncSession = Depends(get_async_db),
     current_admin: User = Depends(require_admin)
 ) -> StatsDashboard:
+    
     """
-    Obtiene estadísticas generales de la plataforma.
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Obtiene métricas generales del sistema para mostrarlas
+                 en el dashboard administrativo.
+
+    Parámetros:
+        db (AsyncSession): Sesión de base de datos.
+        current_admin (User): Usuario administrador autenticado.
+
+    Retorna:
+        StatsDashboard: Estadísticas del sistema.
     """
+    
     logger.info(f"Admin {current_admin.user_id} solicitando estadísticas del dashboard")
     
     stats = await AdminService.get_dashboard_stats(db)
@@ -132,11 +155,22 @@ async def get_moderation_listing_detail(
     db: AsyncSession = Depends(get_async_db),
     current_admin: User = Depends(require_admin)
 ) -> ListingRead:
-    """
-    Obtiene detalles completos de un listing (incluyendo PENDING, REJECTED, etc.).
     
-    **Requiere**: Rol ADMIN
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Obtiene los detalles completos de una publicación,
+                 incluyendo estados ocultos para usuarios normales.
+
+    Parámetros:
+        listing_id (int): ID del listing.
+        db (AsyncSession): Sesión de base de datos.
+        current_admin (User): Administrador autenticado.
+
+    Retorna:
+        ListingRead: Información detallada del listing.
+    """
+    
     logger.info(f"Admin {current_admin.user_id} obteniendo detalles de listing {listing_id}")
     
     listing = await listing_service.get_listing_by_id(
@@ -175,11 +209,24 @@ async def get_moderation_listings(
     db: AsyncSession = Depends(get_async_db),
     current_admin: User = Depends(require_admin)
 ) -> ModerationListingList:
-    """
-    Lista las publicaciones en cola de moderación.
     
-    **Requiere**: Rol ADMIN
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Lista publicaciones en cola de moderación con filtros
+                 opcionales por estado.
+
+    Parámetros:
+        status (str|None): Estado del listing.
+        skip (int): Registros a omitir.
+        limit (int): Registros por página.
+        db (AsyncSession): Sesión de base de datos.
+        current_admin (User): Administrador autenticado.
+
+    Retorna:
+        ModerationListingList: Lista paginada de listings en moderación.
+    """
+    
     logger.info(
         f"Admin {current_admin.user_id} listando publicaciones en moderación "
         f"(status={status}, skip={skip}, limit={limit})"
@@ -221,11 +268,23 @@ async def approve_listing(
     db: AsyncSession = Depends(get_async_db),
     current_admin: User = Depends(require_admin)
 ) -> ListingModerationResponse:
-    """
-    Aprueba una publicación pendiente de moderación.
     
-    **Requiere**: Rol ADMIN
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Aprueba una publicación pendiente y registra la acción
+                 en los logs administrativos.
+
+    Parámetros:
+        listing_id (int): ID del listing.
+        action_data (ListingModerationAction): Detalles de la acción.
+        db (AsyncSession): Sesión de base de datos.
+        current_admin (User): Administrador autenticado.
+
+    Retorna:
+        ListingModerationResponse: Resultado de la aprobación.
+    """
+    
     logger.info(f"Admin {current_admin.user_id} aprobando listing {listing_id}")
     
     result = await AdminService.approve_listing(
@@ -257,11 +316,23 @@ async def reject_listing(
     db: AsyncSession = Depends(get_async_db),
     current_admin: User = Depends(require_admin)
 ) -> ListingModerationResponse:
-    """
-    Rechaza una publicación pendiente de moderación.
     
-    **Requiere**: Rol ADMIN
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Rechaza una publicación pendiente especificando la razón,
+                 y registra la acción administrativa.
+
+    Parámetros:
+        listing_id (int): ID del listing.
+        action_data (ListingModerationAction): Razón y detalles del rechazo.
+        db (AsyncSession): Sesión de base de datos.
+        current_admin (User): Administrador autenticado.
+
+    Retorna:
+        ListingModerationResponse: Resultado del rechazo.
+    """
+    
     logger.info(f"Admin {current_admin.user_id} rechazando listing {listing_id}")
     
     result = await AdminService.reject_listing(
@@ -294,11 +365,24 @@ async def get_moderation_reports(
     db: AsyncSession = Depends(get_async_db),
     current_admin: User = Depends(require_admin)
 ) -> ReportList:
-    """
-    Lista los reportes de usuarios para revisión administrativa.
     
-    **Requiere**: Rol ADMIN
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Lista reportes enviados por usuarios, filtrados por estado,
+                 para revisión administrativa.
+
+    Parámetros:
+        status (str|None): Estado del reporte.
+        skip (int): Registros a omitir.
+        limit (int): Registros por página.
+        db (AsyncSession): Sesión de base de datos.
+        current_admin (User): Administrador autenticado.
+
+    Retorna:
+        ReportList: Lista paginada de reportes.
+    """
+    
     logger.info(
         f"Admin {current_admin.user_id} listando reportes "
         f"(status={status}, skip={skip}, limit={limit})"
@@ -340,11 +424,22 @@ async def resolve_report(
     db: AsyncSession = Depends(get_async_db),
     current_admin: User = Depends(require_admin)
 ) -> ReportResolutionResponse:
-    """
-    Resuelve o desestima un reporte pendiente.
     
-    **Requiere**: Rol ADMIN
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Procesa un reporte, marcándolo como resuelto o desestimado.
+
+    Parámetros:
+        report_id (int): ID del reporte.
+        resolution_data (ReportResolution): Acción a ejecutar.
+        db (AsyncSession): Sesión de base de datos.
+        current_admin (User): Administrador autenticado.
+
+    Retorna:
+        ReportResolutionResponse: Resultado de la resolución del reporte.
+    """
+    
     logger.info(f"Admin {current_admin.user_id} resolviendo reporte {report_id}")
     
     result = await AdminService.resolve_report(
@@ -377,11 +472,23 @@ async def get_admin_logs(
     db: AsyncSession = Depends(get_async_db),
     current_admin: User = Depends(require_admin)
 ) -> AdminActionLogList:
-    """
-    Lista los logs de acciones administrativas (auditoría).
     
-    **Requiere**: Rol ADMIN
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Obtiene los registros de acciones administrativas para auditoría.
+
+    Parámetros:
+        action_type (str|None): Tipo de acción a filtrar.
+        skip (int): Registros a omitir.
+        limit (int): Registros por página.
+        db (AsyncSession): Sesión de base de datos.
+        current_admin (User): Administrador autenticado.
+
+    Retorna:
+        AdminActionLogList: Lista paginada de logs.
+    """
+    
     logger.info(
         f"Admin {current_admin.user_id} consultando logs administrativos "
         f"(action_type={action_type}, skip={skip}, limit={limit})"

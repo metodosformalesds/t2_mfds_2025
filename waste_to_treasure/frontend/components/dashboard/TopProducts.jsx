@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: TopProducts
+ * Descripción: tarjeta que muestra productos más vendidos del usuario con imagen, título, cantidad de ventas y ingresos totales generados
+ */
+
 'use client'
 
 export default function TopProducts({ products = [] }) {

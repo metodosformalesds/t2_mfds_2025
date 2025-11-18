@@ -1,3 +1,8 @@
+# Autor: Gabriel Florentino Reyes
+# Fecha: 08-11-2025
+# Descripción: Esquemas Pydantic para creación, actualización, lectura y listado de preguntas frecuentes (FAQ), 
+#               incluyendo agrupamiento por categorías y gestión administrativa.
+
 """
 Esquemas de Pydantic para el modelo FAQItem.
 

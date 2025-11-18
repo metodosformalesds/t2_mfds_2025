@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: TypeCard
+ * Descripción: tarjeta seleccionable para elegir tipo de item (Producto o Material) con icono, título y descripción, incluye efecto de escala y resaltado cuando está seleccionada
+ */
+
 'use client';
 
 import { Package, Box } from 'lucide-react'; // Importamos iconos por defecto

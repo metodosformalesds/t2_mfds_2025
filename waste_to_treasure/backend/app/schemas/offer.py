@@ -1,3 +1,9 @@
+# Autor: Arturo Perez Gonzalez
+# Fecha: 08/11/2024
+# Descripción: Schemas Pydantic para validación de datos de ofertas B2B.
+#              Define modelos para crear, actualizar y consultar ofertas de negociación,
+#              incluyendo validaciones de precios, fechas de expiración y estados.
+
 """
 Esquemas de Pydantic para Offer.
 
@@ -25,7 +31,16 @@ class OfferBase(BaseModel):
     @field_validator('expires_at')
     @classmethod
     def validate_expires_at(cls, v):
-        """Valida que la fecha de expiración sea futura."""
+        """
+        Autor: Arturo Perez Gonzalez
+        Descripción: Valida que la fecha de expiración de la oferta sea futura.
+        Parámetros:
+            v (Optional[datetime]): Fecha de expiración a validar.
+        Retorna:
+            Optional[datetime]: Fecha validada si es futura o None.
+        Raises:
+            ValueError: Si la fecha no es futura.
+        """
         if v is not None:
             from datetime import timezone
             now = datetime.now(timezone.utc)
@@ -51,7 +66,16 @@ class OfferUpdateStatus(BaseModel):
     @field_validator('action')
     @classmethod
     def validate_action(cls, v):
-        """Valida que la acción sea válida."""
+        """
+        Autor: Arturo Perez Gonzalez
+        Descripción: Valida que la acción sea 'accept', 'reject' o 'counter'.
+        Parámetros:
+            v (str): Acción a validar.
+        Retorna:
+            str: Acción validada.
+        Raises:
+            ValueError: Si la acción no es válida.
+        """
         allowed = ['accept', 'reject', 'counter']
         if v not in allowed:
             raise ValueError(f"Acción debe ser una de: {', '.join(allowed)}")
@@ -59,7 +83,16 @@ class OfferUpdateStatus(BaseModel):
 
     @model_validator(mode='after')
     def validate_action_requirements(self):
-        """Valida que se proporcionen los campos requeridos según la acción."""
+        """
+        Autor: Arturo Perez Gonzalez
+        Descripción: Valida que se proporcionen los campos requeridos según el tipo de acción.
+        Parámetros:
+            Ninguno (usa self para acceder a los campos del modelo).
+        Retorna:
+            self: Instancia del modelo validada.
+        Raises:
+            ValueError: Si faltan campos requeridos para 'counter' o 'reject'.
+        """
         if self.action == 'counter' and self.counter_offer_price is None:
             raise ValueError('Se requiere counter_offer_price para contraofertar')
 

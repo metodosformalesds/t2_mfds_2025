@@ -1,3 +1,9 @@
+# Autor: Alejandro Campa Alonso 215833
+# Fecha: 2025-11-08
+# Descripción: Schemas Pydantic para los modelos Order y OrderItem.
+#              Define los contratos de entrada (request) y salida (response)
+#              para las operaciones de checkout y listado de órdenes.
+
 """
 Schemas Pydantic para los modelos Order y OrderItem.
 
@@ -7,8 +13,8 @@ para las operaciones de checkout y listado de órdenes.
 import uuid
 from decimal import Decimal
 from datetime import datetime
-from typing import List, Optional
-from pydantic import BaseModel, Field, ConfigDict, computed_field
+from typing import List, Optional, Union
+from pydantic import BaseModel, Field, ConfigDict, computed_field, field_validator
 
 from app.models.order import OrderStatusEnum
 
@@ -29,7 +35,14 @@ class ListingBasic(BaseModel):
     
     @classmethod
     def from_listing(cls, listing):
-        """Crea una instancia desde un modelo Listing con la imagen principal."""
+        """
+        Autor: Alejandro Campa Alonso 215833
+        Descripción: Crea una instancia de ListingBasic desde un modelo Listing con la imagen principal.
+        Parámetros:
+            listing: Modelo Listing del cual extraer los datos.
+        Retorna:
+            ListingBasic: Instancia con los datos básicos del listing.
+        """
         primary_image = listing.get_primary_image() if listing else None
         return cls(
             listing_id=listing.listing_id,
@@ -71,7 +84,14 @@ class OrderItemRead(BaseModel):
     
     @classmethod
     def from_order_item(cls, order_item):
-        """Crea una instancia desde un modelo OrderItem con listing incluido."""
+        """
+        Autor: Alejandro Campa Alonso 215833
+        Descripción: Crea una instancia de OrderItemRead desde un modelo OrderItem con listing incluido.
+        Parámetros:
+            order_item: Modelo OrderItem del cual extraer los datos.
+        Retorna:
+            OrderItemRead: Instancia con los datos del ítem de orden.
+        """
         listing_basic = ListingBasic.from_listing(order_item.listing) if order_item.listing else None
         return cls(
             order_item_id=order_item.order_item_id,
@@ -115,7 +135,14 @@ class OrderRead(BaseModel):
     
     @classmethod
     def from_order(cls, order):
-        """Crea una instancia desde un modelo Order con order_items procesados."""
+        """
+        Autor: Alejandro Campa Alonso 215833
+        Descripción: Crea una instancia de OrderRead desde un modelo Order con order_items procesados.
+        Parámetros:
+            order: Modelo Order del cual extraer los datos.
+        Retorna:
+            OrderRead: Instancia con los datos completos de la orden.
+        """
         order_items = [
             OrderItemRead.from_order_item(item) 
             for item in order.order_items
@@ -171,15 +198,36 @@ class CheckoutCreate(BaseModel):
         description="ID de la dirección de envío"
     )
     
-    shipping_method_id: Optional[int] = Field(
+    shipping_method_id: Optional[Union[int, str]] = Field(
         None,
-        description="ID del método de envío"
+        description="ID del método de envío (se convierte automáticamente si es string)"
     )
     
     return_url: Optional[str] = Field(
         None,
         description="URL de retorno para métodos de pago que requieren redirección (3D Secure, OXXO, etc)"
     )
+    
+    @field_validator('shipping_method_id', mode='before')
+    @classmethod
+    def validate_shipping_method_id(cls, v):
+        """
+        Convierte shipping_method_id a int si viene como string.
+        Si no se puede convertir o es None, lo deja como None.
+        """
+        if v is None or v == '':
+            return None
+        if isinstance(v, int):
+            return v
+        if isinstance(v, str):
+            # Intentar convertir string a int
+            try:
+                return int(v)
+            except ValueError:
+                # Si no se puede convertir (ej: 'delivery', 'pickup'), retornar None
+                # Esto permite que el backend use valores por defecto
+                return None
+        return v
 
     model_config = ConfigDict(
         json_schema_extra={

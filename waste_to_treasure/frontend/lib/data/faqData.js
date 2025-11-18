@@ -1,4 +1,11 @@
-// Datos para las pestañas
+/**
+ * Datos estáticos de FAQ
+ * Estas preguntas frecuentes se mantienen en el frontend ya que:
+ * 1. No cambian frecuentemente
+ * 2. No requieren un CRUD completo
+ * 3. Mejoran el rendimiento (sin llamadas a API)
+ */
+
 export const faqCategories = [
   { id: 'general', name: 'General' },
   { id: 'account', name: 'Mi Cuenta' },
@@ -8,20 +15,19 @@ export const faqCategories = [
   { id: 'plans', name: 'Planes' },
 ]
 
-// Datos para las preguntas, organizados por pestaña
-export const allFaqs = {
+export const faqsByCategory = {
   general: [
     {
       q: '¿Qué es Waste-To-Treasure?',
-      a: 'Waste-To-Treasure es un marketplace de economía circular que conecta a empresas con residuos industriales (como plásticos, textiles, madera) con artesanos y talleres locales que pueden transformar esos materiales en nuevos productos. Es un puente entre el desperdicio y la oportunidad.',
+      a: 'Waste-To-Treasure es un marketplace de economía circular que conecta a empresas con residuos industriales (como plásticos, textiles, madera) con artesanos y talleres locales que pueden transformar esos materiales en nuevos productos.',
     },
     {
       q: '¿Cómo publico mis materiales (como Empresa)?',
-      a: 'Debes registrarte con un plan Empresarial. Una vez en tu panel de control (dashboard), podrás crear "listings" de materiales, especificando el tipo, cantidad, precio y ubicación. Nuestro equipo puede ayudarte a optimizar tus publicaciones.',
+      a: 'Debes registrarte con un plan Empresarial. Una vez en tu panel de control (dashboard), podrás crear "listings" de materiales, especificando el tipo, cantidad, precio y ubicación.',
     },
     {
       q: '¿Cómo vendo mis artesanías (como Artesano)?',
-      a: 'Regístrate con un plan Básico o Pro. En tu panel de control, podrás crear "listings" de productos terminados. Sube buenas fotos, describe tu producto y el material reciclado que usaste, ¡y listo!',
+      a: 'Regístrate con un plan Básico o Pro. En tu panel de control, podrás crear "listings" de productos terminados. Sube buenas fotos, describe tu producto y el material reciclado que usaste.',
     },
   ],
   account: [
@@ -59,7 +65,7 @@ export const allFaqs = {
   plans: [
     {
       q: '¿Qué son los planes y por qué debería pagar uno?',
-      a: 'Los planes nos ayudan a mantener la plataforma y ofrecer mejores herramientas. El plan Básico es gratuito para empezar. Los planes Pro y Empresarial ofrecen publicaciones ilimitadas, comisiones más bajas y mayor visibilidad, ideales para vendedores serios.',
+      a: 'Los planes nos ayudan a mantener la plataforma y ofrecer mejores herramientas. El plan Básico es gratuito para empezar. Los planes Pro y Empresarial ofrecen publicaciones ilimitadas, comisiones más bajas y mayor visibilidad.',
     },
     {
       q: '¿Puedo cambiar mi plan más adelante?',
@@ -68,14 +74,12 @@ export const allFaqs = {
   ],
 }
 
-// --- NUEVO ---
-// Una lista plana de todas las FAQs para simular la búsqueda en la base de datos
-// En una app real, esto vendría de tu API (ej: GET /api/v1/faq/search?q=...)
-export const searchableFaqs = Object.entries(allFaqs).flatMap(
+// Lista plana de todas las FAQs para búsqueda
+export const allFaqs = Object.entries(faqsByCategory).flatMap(
   ([categoryId, questions]) =>
     questions.map(q => ({
       ...q,
-      categoryId: categoryId,
-      categoryName: faqCategories.find(c => c.id === categoryId)?.name || '',
+      categoryId,
+      categoryName: faqCategories.find(c => c.id === categoryId)?.name || categoryId,
     }))
 )

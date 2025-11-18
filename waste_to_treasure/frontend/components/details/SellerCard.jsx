@@ -1,14 +1,18 @@
+/**
+ * Autor: Arturo Perez Gonzalez
+ * Fecha: 10/11/2024
+ * Componente: SellerCard
+ * Descripción: Card de información del vendedor con avatar, calificación promedio,
+ *              estadísticas de reseñas y enlace a perfil completo. Obtiene datos
+ *              del objeto seller del listing y estadísticas agregadas del vendedor.
+ */
+
 'use client'
 
 import Link from 'next/link'
 import { Star, User } from 'lucide-react'
 import UserAvatar from '@/components/ui/UserAvatar'
 
-/**
- * Seller Card Component
- * Displays seller information from backend
- * Seller data comes from listing.seller object and seller review statistics
- */
 export default function SellerCard({ sellerId, seller, sellerStats }) {
   // Extract seller information from the seller object passed from the listing
   const sellerName = seller?.full_name || seller?.business_name || `Vendedor ${sellerId?.substring(0, 8)}`

@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: Hero
+ * Descripción: sección principal con título llamativo, descripción de plataforma, botones de navegación hacia materiales y productos, elementos decorativos de fondo, y carrusel de imágenes
+ */
+
 import Link from 'next/link'
 import ImageCarousel from './ImageCarousel'
 import { Leaf, Sparkles } from 'lucide-react'

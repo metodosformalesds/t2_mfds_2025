@@ -1,10 +1,64 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import listingsService from '@/lib/api/listings'
-import { Loader2, RefreshCw, Power, Edit, Trash2 } from 'lucide-react'
+import { Loader2, RefreshCw, Power, Edit, Trash2, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
 import ConfirmationModal from '@/components/ui/ConfirmationModal'
+
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: PublicationsList
+ * Descripción: tabla de publicaciones del usuario con pestañas de estado (activas, inactivas, rechazadas), acciones para editar, activar y desactivar items
+ */
+
+// Componente Toast para notificaciones
+function Toast({ message, type, onClose }) {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose()
+    }, 5000)
+    
+    return () => clearTimeout(timer)
+  }, [onClose])
+
+  const icons = {
+    success: <CheckCircle className="h-5 w-5 text-green-600" />,
+    error: <XCircle className="h-5 w-5 text-red-600" />,
+    info: <AlertCircle className="h-5 w-5 text-blue-600" />
+  }
+
+  const colors = {
+    success: 'bg-green-50 border-green-200 text-green-800',
+    error: 'bg-red-50 border-red-200 text-red-800',
+    info: 'bg-blue-50 border-blue-200 text-blue-800'
+  }
+
+  return (
+    <div 
+      className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg border-2 shadow-lg transition-all duration-300 ${colors[type]}`}
+      style={{ animation: 'slideInRight 0.3s ease-out' }}
+    >
+      {icons[type]}
+      <p className="font-inter text-sm font-medium">{message}</p>
+      <button onClick={onClose} className="ml-2 hover:opacity-70 transition-opacity">
+        <XCircle className="h-4 w-4" />
+      </button>
+      <style jsx>{`
+        @keyframes slideInRight {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+      `}</style>
+    </div>
+  )
+}
 
 // Componente para la Fila de la Tabla
 function PublicationRow({ pub, onEdit, onDeactivate, onReactivate, onDelete, activeTab }) {
@@ -63,11 +117,17 @@ function PublicationRow({ pub, onEdit, onDeactivate, onReactivate, onDelete, act
           </div>
         </td>
       )}
-      {/* Acciones para publicaciones INACTIVAS */}
+      {/**
+       * Autor: Arturo Perez Gonzalez
+       * Fecha: 16/11/2024
+       * Descripción: Renderiza acciones disponibles para publicaciones inactivas.
+       *              Si está RECHAZADA: permite editar o desactivar.
+       *              Si está INACTIVE: permite reactivar, editar o desactivar.
+       */}
       {activeTab === 'inactive' && (
         <td className="py-4 px-2">
           <div className="flex items-center gap-2">
-            {/* Si está RECHAZADA, solo puede editar o eliminar */}
+            {/* Si está RECHAZADA, solo puede editar o desactivar */}
             {pub.status === 'REJECTED' ? (
               <>
                 <button
@@ -82,7 +142,7 @@ function PublicationRow({ pub, onEdit, onDeactivate, onReactivate, onDelete, act
                   className="rounded-lg border border-red-500 bg-red-500/20 px-4 py-1.5 font-inter text-sm font-semibold text-red-500 transition-colors hover:bg-red-500/30 flex items-center gap-1"
                 >
                   <Trash2 className="h-4 w-4" />
-                  Eliminar
+                  Desactivar
                 </button>
               </>
             ) : (
@@ -107,7 +167,7 @@ function PublicationRow({ pub, onEdit, onDeactivate, onReactivate, onDelete, act
                   className="rounded-lg border border-red-500 bg-red-500/20 px-4 py-1.5 font-inter text-sm font-semibold text-red-500 transition-colors hover:bg-red-500/30 flex items-center gap-1"
                 >
                   <Trash2 className="h-4 w-4" />
-                  Eliminar
+                  Desactivar
                 </button>
               </>
             )}
@@ -143,6 +203,9 @@ export default function PublicationsList() {
   const [counts, setCounts] = useState({ active: 0, pending: 0, inactive: 0 })
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
+  
+  // Estado para notificaciones toast
+  const [toast, setToast] = useState(null)
 
   // Estados para los modales
   const [modalState, setModalState] = useState({
@@ -152,12 +215,12 @@ export default function PublicationsList() {
     isProcessing: false,
   })
 
-  // Mapeo de tabs a estados del backend
-  const statusMap = {
+  // Mapeo de tabs a estados del backend (mover fuera del componente o usar useMemo)
+  const statusMap = useMemo(() => ({
     active: ['ACTIVE', 'SOLD'],
     pending: ['PENDING'],
-    inactive: ['REJECTED', 'DELETED', 'INACTIVE']
-  }
+    inactive: ['REJECTED', 'INACTIVE']
+  }), [])
 
   // Función para cargar publicaciones
   const fetchPublications = async () => {
@@ -168,25 +231,31 @@ export default function PublicationsList() {
       const response = await listingsService.getMyListings({ page_size: 100 })
       const listings = response.items || []
       
-      setAllListings(listings)
+      console.log(`[FETCH DEBUG] Recibidos ${listings.length} listings del backend`)
+      console.log('[FETCH DEBUG] Estados:', listings.map(l => ({ id: l.listing_id, status: l.status })))
+      
+      // Crear una nueva copia para forzar re-render
+      setAllListings([...listings])
 
       // Calcular contadores por estado
       const newCounts = {
         active: listings.filter(l => ['ACTIVE', 'SOLD'].includes(l.status)).length,
         pending: listings.filter(l => l.status === 'PENDING').length,
-        inactive: listings.filter(l => ['REJECTED', 'DELETED', 'INACTIVE'].includes(l.status)).length
+        inactive: listings.filter(l => ['REJECTED', 'INACTIVE'].includes(l.status)).length
       }
       setCounts(newCounts)
+      console.log('[FETCH DEBUG] Contadores:', newCounts)
 
       // Filtrar por tab activo
       const filtered = listings.filter(l => 
         statusMap[activeTab].includes(l.status)
       )
-      setPublications(filtered)
+      console.log(`[FETCH DEBUG] Filtrados para tab '${activeTab}': ${filtered.length}`)
+      setPublications([...filtered])
 
     } catch (err) {
       console.error('Error al cargar publicaciones:', err)
-      setError('Error al cargar tus publicaciones')
+      setError('No pudimos cargar tus publicaciones. Por favor, recarga la página.')
     } finally {
       setIsLoading(false)
     }
@@ -208,7 +277,7 @@ export default function PublicationsList() {
       statusMap[activeTab].includes(l.status)
     )
     setPublications(filtered)
-  }, [activeTab, allListings])
+  }, [activeTab, allListings, statusMap])
 
   const handleEdit = (listingId) => {
     window.location.href = `/dashboard/publicaciones/${listingId}/editar`
@@ -233,6 +302,7 @@ export default function PublicationsList() {
   }
 
   const handleDelete = (listingId) => {
+    console.log('[handleDelete] Abriendo modal para listing:', listingId)
     setModalState({
       isOpen: true,
       type: 'delete',
@@ -254,26 +324,57 @@ export default function PublicationsList() {
 
   const confirmAction = async () => {
     const { type, listingId } = modalState
+    console.log('[confirmAction] Iniciando:', { type, listingId })
     setModalState((prev) => ({ ...prev, isProcessing: true }))
 
     try {
-      if (type === 'deactivate') {
+      if (type === 'deactivate' || type === 'delete') {
+        console.log('[confirmAction] Llamando listingsService.delete:', listingId)
         await listingsService.delete(listingId)
+        console.log('[confirmAction] DELETE exitoso')
       } else if (type === 'reactivate') {
-        // Reactivar la publicación (actualizar status a PENDING para re-aprobación)
+        console.log('[confirmAction] Llamando listingsService.reactivate:', listingId)
         await listingsService.reactivate(listingId)
-      } else if (type === 'delete') {
-        await listingsService.delete(listingId)
+        console.log('[confirmAction] REACTIVATE exitoso')
       }
 
-      // Recargar publicaciones
-      await fetchPublications()
-
+      const messages = {
+        deactivate: 'Tu publicación ha sido desactivada. Puedes reactivarla cuando quieras.',
+        reactivate: 'Tu publicación está en revisión. Te avisaremos cuando sea aprobada.',
+        delete: 'Tu publicación ha sido desactivada correctamente.'
+      }
+      
+      // Cerrar modal primero
       closeModal()
+      console.log('[confirmAction] Modal cerrado')
+      
+      // Mostrar toast
+      setToast({ message: messages[type], type: 'success' })
+      console.log('[confirmAction] Toast mostrado')
+
+      // Recargar lista después de un pequeño delay
+      await new Promise(resolve => setTimeout(resolve, 500))
+      console.log(`[DELETE DEBUG] Recargando publicaciones después de ${type}...`)
+      await fetchPublications()
+      console.log(`[DELETE DEBUG] Publicaciones recargadas. Total: ${allListings.length}`)
+      
     } catch (err) {
-      console.error(`Error al ${type}:`, err)
+      console.error('[confirmAction] ERROR:', err)
+      const errorMessages = {
+        deactivate: 'No pudimos desactivar tu publicación. Por favor, intenta de nuevo.',
+        reactivate: 'No pudimos procesar tu solicitud. Por favor, intenta más tarde.',
+        delete: 'No pudimos desactivar tu publicación. Por favor, intenta de nuevo.'
+      }
+      
+      let errorDetail = errorMessages[type]
+      if (err.response?.data?.detail) {
+        errorDetail = err.response.data.detail
+      } else if (err.message) {
+        errorDetail = err.message
+      }
+      
+      setToast({ message: errorDetail, type: 'error' })
       setModalState((prev) => ({ ...prev, isProcessing: false }))
-      alert(`Error al ${type === 'deactivate' ? 'desactivar' : type === 'reactivate' ? 'reactivar' : 'eliminar'} la publicación`)
     }
   }
 
@@ -283,22 +384,22 @@ export default function PublicationsList() {
       case 'deactivate':
         return {
           title: 'Desactivar Publicación',
-          message: '¿Estás seguro de que deseas desactivar esta publicación? Podrás reactivarla más tarde desde la sección de "Inactivas".',
+          message: '¿Quieres desactivar esta publicación? Ya no será visible para otros usuarios, pero podrás reactivarla cuando quieras desde la sección "Inactivas".',
           confirmText: 'Desactivar',
           variant: 'danger',
         }
       case 'reactivate':
         return {
           title: 'Reactivar Publicación',
-          message: 'Esta publicación será enviada nuevamente a revisión y estará visible una vez aprobada. ¿Deseas continuar?',
+          message: 'Tu publicación se enviará nuevamente a revisión. Una vez aprobada, volverá a estar visible para otros usuarios. ¿Deseas continuar?',
           confirmText: 'Reactivar',
           variant: 'success',
         }
       case 'delete':
         return {
-          title: 'Eliminar Publicación',
-          message: '¿Estás seguro de que deseas eliminar permanentemente esta publicación? Esta acción no se puede deshacer.',
-          confirmText: 'Eliminar',
+          title: 'Desactivar Publicación',
+          message: '¿Quieres desactivar esta publicación? Ya no será visible para otros usuarios, pero podrás reactivarla más tarde si lo deseas.',
+          confirmText: 'Desactivar',
           variant: 'danger',
         }
       default:
@@ -312,7 +413,17 @@ export default function PublicationsList() {
   }
 
   return (
-    <div className="w-full rounded-xl bg-white p-8 shadow-lg">
+    <>
+      {/* Toast de notificación */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+      
+      <div className="w-full rounded-xl bg-white p-8 shadow-lg">
       {/* Cabecera */}
       <div className="flex flex-col items-start justify-between gap-4 border-b border-neutral-900/60 pb-4 md:flex-row md:items-center">
         <h1 className="font-poppins text-3xl font-bold text-neutral-900">
@@ -428,6 +539,16 @@ export default function PublicationsList() {
         isLoading={modalState.isProcessing}
         {...getModalConfig()}
       />
+
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
+    </>
   )
 }

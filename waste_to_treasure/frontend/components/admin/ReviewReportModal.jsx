@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: ReviewReportModal
+ * Descripción: modal para revisar reportes detallados con contexto del reporte y opciones para marcar como resuelto o desestimar
+ */
+
 'use client'
 
 import { X } from 'lucide-react'

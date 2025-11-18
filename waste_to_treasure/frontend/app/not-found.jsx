@@ -1,3 +1,9 @@
+// Autor: Gabriel Florentino Reyes
+// Fecha: 13-11-2025
+// Descripción: Componente de página 404 para la aplicación.
+//              Muestra un mensaje creativo y amigable cuando la página solicitada no existe.
+//              Proporciona sugerencias y botones para regresar al inicio, explorar materiales o volver atrás.
+
 'use client'
 
 import Link from 'next/link'

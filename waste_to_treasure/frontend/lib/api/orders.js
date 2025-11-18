@@ -37,8 +37,22 @@ export const ordersService = {
         throw customError
       }
       
+      // Detectar si el monto es demasiado pequeño
+      if (error.response?.status === 400 && 
+          error.response?.data?.detail?.error === 'amount_too_small') {
+        const detail = error.response.data.detail
+        const customError = new Error('AMOUNT_TOO_SMALL')
+        customError.minimumAmount = detail.minimum_amount
+        customError.currentAmount = detail.current_amount
+        customError.message = detail.message
+        throw customError
+      }
+      
       // Error genérico
-      throw new Error('No se pudo procesar tu pago. Por favor, verifica tus fondos o intenta con otra tarjeta.')
+      const errorMsg = error.response?.data?.detail?.message || 
+                       error.response?.data?.detail || 
+                       'No se pudo procesar tu pago. Por favor, verifica tus fondos o intenta con otra tarjeta.'
+      throw new Error(errorMsg)
     }
   },
 

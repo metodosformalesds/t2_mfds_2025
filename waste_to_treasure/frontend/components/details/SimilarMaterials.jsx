@@ -1,12 +1,16 @@
+/**
+ * Autor: Arturo Perez Gonzalez
+ * Fecha: 10/11/2024
+ * Componente: SimilarMaterials
+ * Descripción: Muestra carrusel de materiales o productos similares basados en categoría.
+ *              Renderiza hasta 4 items similares usando MaterialCard. Datos obtenidos
+ *              de la API de listings con filtro de categoría.
+ */
+
 'use client'
 
 import MaterialCard from '@/components/marketplace/MaterialCard'
 
-/**
- * Similar Materials Component
- * Displays similar materials based on category or type
- * Data comes from backend listings API with category filter
- */
 export default function SimilarMaterials({ materials = [], title = 'Materiales Similares' }) {
   if (materials.length === 0) {
     return null

@@ -1,6 +1,9 @@
 /**
- * Muestra la tabla de categorías existentes en el admin.
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: CategoryList
+ * Descripción: tabla que muestra todas las categorías existentes con opciones para editar y eliminar cada una
  */
+
 export default function CategoryList({ categories, onEdit, onDelete }) {
   if (!categories || categories.length === 0) {
     return (

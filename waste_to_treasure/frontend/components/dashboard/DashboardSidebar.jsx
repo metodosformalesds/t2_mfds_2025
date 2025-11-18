@@ -17,6 +17,14 @@ import {
 } from 'lucide-react'
 
 /**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: DashboardSidebar
+ * Descripción: barra lateral de navegación responsive del dashboard de usuario con opciones para panel, perfil, publicaciones, compras, ventas, suscripciones y logout
+ */
+
+/* Lines 2-18 omitted */
+
+/**
  * Item individual del sidebar de navegación
  */
 function SidebarItem({ href, icon: Icon, label, isActive, isLogout }) {

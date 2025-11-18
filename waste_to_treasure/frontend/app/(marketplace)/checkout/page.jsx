@@ -12,24 +12,6 @@ import CheckoutSummary from '@/components/checkout/CheckoutSummary'
 import AddAddressForm from '@/components/checkout/AddAddressForm'
 import { Home, Briefcase, Plus } from 'lucide-react'
 
-// ... (Datos mock de envío no cambian) ...
-const mockShippingMethods = [
-  {
-    method_id: 1,
-    name: 'Envío estándar',
-    description: '5-7 días hábiles',
-    cost: 150.0,
-    type: 'delivery',
-  },
-  {
-    method_id: 2,
-    name: 'Recolección directa',
-    description: 'Disponible en 2 días hábiles',
-    cost: 0.0,
-    type: 'pickup',
-  },
-]
-
 // --- INICIO DE MODIFICACIÓN: Estética de AddressCard ---
 function AddressCard({ address, isSelected, onSelect }) {
   return (
@@ -128,11 +110,12 @@ export default function CheckoutPage() {
 
   const [step, setStep] = useState('delivery')
   const [addresses, setAddresses] = useState([])
-  const [shippingMethods, setShippingMethods] = useState(mockShippingMethods)
+  const [shippingMethods, setShippingMethods] = useState([])
   const [selectedAddressId, setSelectedAddressId] = useState(addressId)
-  const [selectedShippingId, setSelectedShippingId] = useState(shippingMethod?.method_id || shippingMethods[0]?.method_id)
+  const [selectedShippingId, setSelectedShippingId] = useState(shippingMethod?.method_id || null)
   const [isLoading, setIsLoading] = useState(true)
   const [isAddFormVisible, setIsAddFormVisible] = useState(false)
+  const [shippingError, setShippingError] = useState(null)
 
   useEffect(() => {
     if (!isAuthorized) return
@@ -151,6 +134,33 @@ export default function CheckoutPage() {
             setSelectedAddressId(defaultAddress.address_id)
           }
         }
+
+        // TODO: Implementar carga de métodos de envío desde el backend
+        // Nota: El backend tiene endpoints de shipping pero están orientados a vendedores
+        // Se necesita un endpoint para obtener métodos de envío disponibles para un carrito/listings
+        // Por ahora, mostraremos opciones genéricas hasta que se implemente el endpoint correcto
+        // Endpoint sugerido: GET /api/v1/cart/shipping-options o similar
+        
+        setShippingMethods([
+          {
+            method_id: 'delivery',
+            name: 'Envío a domicilio',
+            description: 'El vendedor enviará los artículos a tu dirección',
+            cost: 0.0,
+            type: 'delivery',
+          },
+          {
+            method_id: 'pickup',
+            name: 'Recolección en persona',
+            description: 'Coordinarás con el vendedor para recoger los artículos',
+            cost: 0.0,
+            type: 'pickup',
+          },
+        ])
+        
+        setSelectedShippingId('delivery')
+        setShippingError('Nota: Los métodos de envío específicos se cargarán cuando el vendedor los configure')
+        
       } catch (error) {
         console.error('Error al cargar datos de checkout:', error)
       } finally {
@@ -160,7 +170,7 @@ export default function CheckoutPage() {
     loadData()
     // Asegurar que el carrito esté actualizado
     fetchCart()
-  }, [isAuthorized, fetchCart, addressId]) // <--- addressId añadido como dependencia
+  }, [isAuthorized, fetchCart, addressId])
 
   const handleAddressAdded = (newAddress) => {
     setAddresses(prev => [...prev, newAddress])
@@ -258,15 +268,24 @@ export default function CheckoutPage() {
               <h2 className="border-b border-neutral-300 pb-4 font-poppins text-3xl font-semibold text-black">
                 Método de envío
               </h2>
+              {shippingError && (
+                <div className="mt-4 rounded-lg bg-amber-50 border border-amber-200 p-4">
+                  <p className="text-sm text-amber-800">{shippingError}</p>
+                </div>
+              )}
               <div className="mt-6 flex flex-col gap-4 md:flex-row">
-                {shippingMethods.map(method => (
-                  <ShippingCard
-                    key={method.method_id}
-                    method={method}
-                    isSelected={selectedShippingId === method.method_id}
-                    onSelect={() => setSelectedShippingId(method.method_id)}
-                  />
-                ))}
+                {shippingMethods.length > 0 ? (
+                  shippingMethods.map(method => (
+                    <ShippingCard
+                      key={method.method_id}
+                      method={method}
+                      isSelected={selectedShippingId === method.method_id}
+                      onSelect={() => setSelectedShippingId(method.method_id)}
+                    />
+                  ))
+                ) : (
+                  <p className="text-neutral-600">No hay métodos de envío disponibles</p>
+                )}
               </div>
             </div>
           </div>

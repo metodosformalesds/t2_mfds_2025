@@ -1,6 +1,13 @@
-'use client'
+/**
+ * Autor: Oscar Alonso Nava Rivera
+ * Fecha: 09/11/2025
+ * Componente: LoginPage (login/page.jsx)
+ * Descripción: Página de inicio de sesión.
+ */
 
-import { useState } from 'react'
+'use client';
+
+import { useState } from 'react';
 import { useRouter } from 'next/navigation'
 import { Eye, EyeOff } from 'lucide-react'
 import Image from 'next/image'
@@ -340,26 +347,6 @@ export default function LoginPage() {
             </svg>
 
             <span className="text-black">Inicia Sesión con Google</span>
-          </button>
-
-          {/* Facebook */}
-
-          <button
-            type="button"
-            onClick={() => handleSocialLogin('Facebook')}
-            disabled={isLoading}
-            className="w-full h-[55px] bg-white border border-[rgba(0,0,0,0.3)] rounded-[40px] flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors disabled:opacity-50"
-          >
-            <svg className="w-8 h-8" viewBox="0 0 32 32" fill="none">
-              <circle cx="16" cy="16" r="14" fill="#0C82EE" />
-
-              <path
-                d="M17.667 20.75v-4.917h1.65l.247-1.916h-1.897v-1.223c0-.555.154-.933.95-.933h1.016V10.09a13.634 13.634 0 00-1.48-.076c-1.464 0-2.467.894-2.467 2.535v1.414h-1.654v1.916h1.654v4.917h1.98z"
-                fill="white"
-              />
-            </svg>
-
-            <span className="text-black">Inicia Sesión con Facebook</span>
           </button>
         </div>
       </div>

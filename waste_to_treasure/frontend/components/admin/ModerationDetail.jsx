@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: ModerationDetail
+ * Descripción: vista detallada de un item en moderación con galerías de imágenes, información del vendedor y opciones para aprobar o rechazar
+ */
+
 'use client'
 
 import Image from 'next/image'

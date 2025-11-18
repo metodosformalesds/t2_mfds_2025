@@ -1,3 +1,14 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: SalesList
+ * Descripción: tabla paginada de ventas del usuario mostrando información del comprador, estado de la orden, fechas y acciones para ver detalles
+ */
+
+// Autor: Gabriel Florentino Reyes
+// Fecha: 12-11-2025
+// Descripción: Componente que muestra la lista de ventas del usuario, incluyendo productos vendidos, 
+//              totales, estado de cada venta y paginación.
+
 'use client';
 
 import { useSales } from '@/hooks/useSales';

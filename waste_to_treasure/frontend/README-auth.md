@@ -72,7 +72,24 @@ Asegúrate de que tu User Pool tenga estas configuraciones:
 - La opción "Recordarme" guarda el email en localStorage
 - Al recargar la página, el contexto verifica la sesión automáticamente
 
-### 5. Cierre de Sesión
+### 5. Recuperación de Contraseña (NUEVO - 17/11/2025)
+1. Usuario hace clic en "¿Olvidaste tu contraseña?" en `/login`
+2. Ingresa email en `/forgot-password`
+3. Cognito envía código de verificación de 6 dígitos por email
+4. Usuario ingresa código y nueva contraseña en `/reset-password`
+5. Cognito valida código y actualiza contraseña
+6. Redirección a `/login` con nueva contraseña
+
+**Características:**
+- ✅ Usa AWS Cognito nativo (sin necesidad de Amazon SES)
+- ✅ Código expira en 1 hora
+- ✅ Validación de contraseña (8+ chars, mayúscula, minúscula, número, especial)
+- ✅ Rate limiting automático (previene abuso)
+- ✅ Manejo completo de errores
+
+**Documentación completa:** Ver `README-password-recovery.md`
+
+### 6. Cierre de Sesión
 1. Usuario hace clic en "Cerrar Sesión" en el header
 2. Se elimina la sesión de Cognito
 3. Se limpian datos de localStorage
@@ -83,7 +100,8 @@ Asegúrate de que tu User Pool tenga estas configuraciones:
 - ✅ `/register` - Formulario de registro
 - ✅ `/verify-email` - Verificación de código por email
 - ✅ `/login` - Inicio de sesión
-- ✅ `/forgot-password` - Recuperación de contraseña (placeholder)
+- ✅ `/forgot-password` - Solicitud de código de recuperación (COMPLETO)
+- ✅ `/reset-password` - Restablecer contraseña con código (NUEVO)
 - ✅ `/` - Homepage (muestra contenido diferente si está autenticado)
 
 ## Componentes de Autenticación
@@ -108,6 +126,8 @@ Asegúrate de que tu User Pool tenga estas configuraciones:
 - **getCurrentUser()** - Obtiene usuario actual
 - **getAuthToken()** - Obtiene token JWT
 - **isAuthenticated()** - Verifica si hay sesión activa
+- **forgotPassword(email)** - Solicita código de recuperación (NUEVO)
+- **confirmPassword(email, code, newPassword)** - Confirma nueva contraseña (NUEVO)
 
 ## Protección de Rutas
 
@@ -136,10 +156,10 @@ export function withAuth(Component) {
 
 ## Próximos Pasos
 
-- [ ] Implementar página de login
-- [ ] Agregar autenticación con Google/Facebook/Apple
+- [x] Implementar página de login
+- [x] Implementar recuperación de contraseña con Cognito (COMPLETO - 17/11/2025)
+- [ ] Agregar autenticación con Google/Apple
 - [ ] Configurar OAuth en Cognito
-- [ ] Implementar recuperación de contraseña
 - [ ] Crear middleware de protección de rutas
 - [ ] Configurar dominio personalizado en Cognito
 

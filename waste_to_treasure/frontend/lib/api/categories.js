@@ -1,7 +1,9 @@
 /**
- * Servicio para operaciones con Categorías.
- *
- * Implementa todas las llamadas al endpoint /categories del backend.
+ * Autor: Arturo Perez Gonzalez
+ * Fecha: 09/11/2024
+ * Descripción: Servicio API para operaciones CRUD de categorías de materiales y productos.
+ *              Implementa endpoints para listar, obtener árbol jerárquico, crear, actualizar
+ *              y eliminar categorías. Incluye normalización de tipos MATERIAL/PRODUCT.
  */
 
 import apiClient from './client'

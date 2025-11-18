@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: FeaturedProducts
+ * Descripción: carrusel infinito horizontal de productos destacados con scroll suave, botones de navegación, efecto loop infinito y duplicación de items para continuidad visual
+ */
+
 'use client'
 import { useRef, useEffect } from 'react'
 import Link from 'next/link'

@@ -1,8 +1,19 @@
+// Autor: Gabriel Florentino Reyes
+// Fecha: 12-11-2025
+// Descripción: Componente que muestra el detalle de una venta específica del usuario, incluyendo 
+//              productos vendidos, totales, comprador, dirección de envío y estado de la venta.
+
 'use client';
 
 import { DollarSign, Package, User, CreditCard, Calendar, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
+
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: SalesDetails
+ * Descripción: vista detallada de una venta del usuario mostrando información del comprador, dirección de envío, items vendidos y total de la venta
+ */
 
 export default function SalesDetails({ sale }) {
   const { user } = useAuth();

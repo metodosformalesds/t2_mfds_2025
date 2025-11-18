@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: ImageCarousel
+ * Descripción: carrusel de imágenes automático que rota cada 4 segundos, soporta múltiples formatos de URLs de imagen, incluye transiciones suaves y placeholder cuando no hay imágenes
+ */
+
 'use client'
 
 import { useState, useEffect } from 'react'

@@ -1,3 +1,13 @@
+# Autor: Gabriel Florentino Reyes
+# Fecha: 08-11-2025
+# Descripción: Servicio de reseñas de la plataforma.
+#              Contiene la lógica de negocio para:
+#               - Crear reseñas verificadas por compra.
+#               - Validar existencia de entidades.
+#               - Consultar reseñas por listing, vendedor o usuario.
+#               - Obtener estadísticas y resúmenes.
+#               - Manejar excepciones y logging de acciones.
+
 """
 Capa de servicio para Review.
 
@@ -28,27 +38,22 @@ async def create_review(
     review_data: ReviewCreate,
     current_user: User
 ) -> Review:
-    """
-    Crea una nueva reseña para un item comprado.
     
-    Args:
-        db: Sesión asíncrona de base de datos.
-        review_data: Datos de la reseña a crear.
-        current_user: Usuario autenticado (reviewer).
-        
-    Returns:
-        Reseña creada.
-        
-    Raises:
-        HTTPException 404: Si el order_item no existe.
-        HTTPException 403: Si el usuario no compró el item.
-        HTTPException 400: Si ya existe una reseña para ese order_item.
-        
-    Note:
-        - Valida que el current_user sea el comprador del order_item
-        - Previene reseñas duplicadas (solo una por order_item)
-        - Extrae el listing_id del order_item automáticamente
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Crea una nueva reseña para un item comprado, validando
+                 que el usuario haya comprado el item y evitando reseñas duplicadas.
+
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        review_data (ReviewCreate): Datos de la reseña a crear.
+        current_user (User): Usuario autenticado que realiza la reseña.
+
+    Retorna:
+        Review: Reseña creada.
+    """
+    
     logger.info(
         f"Usuario {current_user.user_id} creando reseña para "
         f"order_item {review_data.order_item_id}"
@@ -139,22 +144,23 @@ async def get_listing_reviews(
     skip: int = 0,
     limit: int = 100
 ) -> Tuple[List[Review], int, Optional[float]]:
-    """
-    Obtiene lista paginada de reseñas de una publicación.
     
-    Args:
-        db: Sesión asíncrona de base de datos.
-        listing_id: ID de la publicación.
-        skip: Número de registros a omitir.
-        limit: Número máximo de registros.
-        
-    Returns:
-        Tupla (lista de reseñas, total, calificación promedio).
-        
-    Note:
-        Las reseñas se ordenan por fecha (más recientes primero).
-        Se incluye eager loading del reviewer para mostrar nombres.
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Obtiene reseñas de un listing específico con paginación
+                 y cálculo del rating promedio.
+
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        listing_id (int): ID del listing.
+        skip (int): Número de registros a omitir.
+        limit (int): Número máximo de registros a retornar.
+
+    Retorna:
+        Tuple[List[Review], int, Optional[float]]: Lista de reseñas, total y promedio de rating.
+    """
+    
     logger.info(f"Obteniendo reseñas del listing {listing_id}")
     
     # Validar que el listing exista
@@ -203,21 +209,23 @@ async def get_seller_reviews(
     skip: int = 0,
     limit: int = 100
 ) -> Tuple[List[Review], int, Optional[float]]:
-    """
-    Obtiene lista paginada de reseñas recibidas por un vendedor.
     
-    Args:
-        db: Sesión asíncrona de base de datos.
-        seller_id: UUID del vendedor.
-        skip: Número de registros a omitir.
-        limit: Número máximo de registros.
-        
-    Returns:
-        Tupla (lista de reseñas, total, calificación promedio).
-        
-    Note:
-        Se obtienen reseñas de todas las publicaciones del vendedor.
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Obtiene reseñas recibidas por un vendedor con paginación
+                 y cálculo del rating promedio.
+
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        seller_id (UUID): ID del vendedor.
+        skip (int): Número de registros a omitir.
+        limit (int): Número máximo de registros a retornar.
+
+    Retorna:
+        Tuple[List[Review], int, Optional[float]]: Lista de reseñas, total y promedio de rating.
+    """
+    
     logger.info(f"Obteniendo reseñas del vendedor {seller_id}")
     
     # Validar que el vendedor exista
@@ -276,21 +284,22 @@ async def get_user_reviews(
     skip: int = 0,
     limit: int = 100
 ) -> Tuple[List[Review], int]:
-    """
-    Obtiene lista paginada de reseñas creadas por un usuario.
     
-    Args:
-        db: Sesión asíncrona de base de datos.
-        user_id: UUID del usuario.
-        skip: Número de registros a omitir.
-        limit: Número máximo de registros.
-        
-    Returns:
-        Tupla (lista de reseñas, total).
-        
-    Note:
-        Útil para ver el historial de reseñas del usuario.
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Obtiene reseñas creadas por un usuario con paginación.
+
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        user_id (UUID): ID del usuario.
+        skip (int): Número de registros a omitir.
+        limit (int): Número máximo de registros a retornar.
+
+    Retorna:
+        Tuple[List[Review], int]: Lista de reseñas y total de reseñas.
+    """
+    
     logger.info(f"Obteniendo reseñas creadas por usuario {user_id}")
     
     # Query base con eager loading
@@ -316,19 +325,21 @@ async def get_review_statistics(
     db: AsyncSession,
     listing_id: int
 ) -> dict:
-    """
-    Obtiene estadísticas de reseñas de una publicación.
     
-    Args:
-        db: Sesión asíncrona de base de datos.
-        listing_id: ID de la publicación.
-        
-    Returns:
-        Diccionario con estadísticas.
-        
-    Note:
-        Incluye distribución de ratings y promedio.
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Obtiene estadísticas de reseñas de un listing, incluyendo
+                 promedio de rating y distribución de ratings.
+
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        listing_id (int): ID del listing.
+
+    Retorna:
+        dict: Estadísticas de reseñas.
+    """
+
     logger.info(f"Obteniendo estadísticas de reseñas para listing {listing_id}")
     
     # Total de reseñas
@@ -371,16 +382,21 @@ async def get_seller_review_summary(
     db: AsyncSession,
     seller_id: UUID
 ) -> dict:
-    """
-    Obtiene resumen de reseñas de un vendedor.
     
-    Args:
-        db: Sesión asíncrona de base de datos.
-        seller_id: UUID del vendedor.
-        
-    Returns:
-        Diccionario con resumen.
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Obtiene un resumen de reseñas de un vendedor, incluyendo
+                 total de reseñas, promedio de rating y total de listings con reseñas.
+
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        seller_id (UUID): ID del vendedor.
+
+    Retorna:
+        dict: Resumen de reseñas del vendedor.
+    """
+    
     logger.info(f"Obteniendo resumen de reseñas del vendedor {seller_id}")
     
     # Subquery de listings del vendedor

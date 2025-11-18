@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: SuccessModal
+ * Descripción: modal de confirmación que muestra después de enviar una publicación con opciones para ir a mis publicaciones o publicar otro item
+ */
+
 'use client'
 
 import { CheckCircle } from 'lucide-react'

@@ -4,6 +4,10 @@ Test suite para Plan, Subscription, ShippingMethod, AdminActionLog, FAQItem, Leg
 Tests compactos para validar funcionalidades core de modelos auxiliares.
 """
 
+# Autor: Oscar Alonso Nava Rivera
+# Fecha: 07/11/2025
+# Descripción: Tests para modelos auxiliares (planes, suscripciones, métodos de envío, logs de admin, FAQ y documentos legales).
+
 import pytest
 from uuid import uuid4
 from decimal import Decimal
@@ -26,7 +30,11 @@ from app.models.legal_documents import LegalDocument
 @pytest.mark.models
 @pytest.mark.unit
 class TestPlanModel:
-    """Test Plan model creation and validation."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test Plan model creation and validation.
+    """
 
     def test_create_plan_basic(self, db):
         """Test creating a plan with required fields."""
@@ -76,7 +84,11 @@ class TestPlanModel:
 @pytest.mark.models
 @pytest.mark.unit
 class TestSubscriptionModel:
-    """Test Subscription model creation and validation."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test Subscription model creation and validation.
+    """
 
     def test_create_subscription_basic(self, db, user):
         """Test creating a subscription."""
@@ -187,7 +199,11 @@ class TestSubscriptionModel:
 @pytest.mark.models
 @pytest.mark.unit
 class TestShippingMethodModel:
-    """Test ShippingMethod model creation and validation."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test ShippingMethod model creation and validation.
+    """
 
     def test_create_shipping_method_pickup(self, db, user):
         """Test creating a pickup shipping method."""
@@ -230,7 +246,11 @@ class TestShippingMethodModel:
 @pytest.mark.models
 @pytest.mark.unit
 class TestListingShippingOptionModel:
-    """Test ListingShippingOption model (Many-to-Many pivot table)."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test ListingShippingOption model (Many-to-Many pivot table).
+    """
 
     def test_create_listing_shipping_option(self, db, user, category):
         """Test creating listing shipping option (pivot entry)."""
@@ -277,7 +297,11 @@ class TestListingShippingOptionModel:
 @pytest.mark.models
 @pytest.mark.unit
 class TestAdminActionLogModel:
-    """Test AdminActionLog model creation and validation."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test AdminActionLog model creation and validation.
+    """
 
     def test_create_admin_action_log(self, db):
         """Test creating an admin action log."""
@@ -327,7 +351,11 @@ class TestAdminActionLogModel:
 @pytest.mark.models
 @pytest.mark.unit
 class TestFAQItemModel:
-    """Test FAQItem model creation and validation."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test FAQItem model creation and validation.
+    """
 
     def test_create_faq_item_basic(self, db):
         """Test creating an FAQ item."""
@@ -376,7 +404,11 @@ class TestFAQItemModel:
 @pytest.mark.models
 @pytest.mark.unit
 class TestLegalDocumentModel:
-    """Test LegalDocument model creation and validation."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test LegalDocument model creation and validation.
+    """
 
     def test_create_legal_document_basic(self, db):
         """Test creating a legal document."""
@@ -436,7 +468,11 @@ class TestLegalDocumentModel:
 @pytest.mark.integration
 @pytest.mark.db
 class TestAuxiliaryModelsRelationships:
-    """Test relationships for auxiliary models."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test relationships for auxiliary models.
+    """
 
     def test_user_has_subscriptions(self, db, user):
         """Test user can have multiple subscriptions."""

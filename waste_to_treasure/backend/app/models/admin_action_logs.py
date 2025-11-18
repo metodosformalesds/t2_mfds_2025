@@ -1,3 +1,8 @@
+# Autor: Gabriel Florentino Reyes
+# Fecha: 06-11-2025
+# Descripción: Descripción: Modelo que registra las acciones administrativas 
+#               realizadas por los administradores para auditoría.
+
 """
 Modelo de base de datos para Registros de acciones de administrador.
 Implementa la tabla 'admin_action_logs'

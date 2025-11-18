@@ -1,3 +1,10 @@
+# Autor: Gabriel Florentino Reyes
+# Fecha: 08-11-2025
+# Descripción: Endpoints para reportes de usuarios
+#               Crear reportes sobre contenido, usuarios u órdenes
+#               Consultar mis reportes o reportes específicos
+#               Requiere autenticación y manejo de excepciones
+
 """
 Endpoints de la API para Report.
 
@@ -47,11 +54,23 @@ async def create_report(
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_active_user)
 ) -> ReportRead:
-    """
-    Crea un nuevo reporte de contenido, usuario u orden.
     
-    **Requiere**: Usuario autenticado
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción:
+        Crea un nuevo reporte sobre una publicación, usuario u orden.
+        Maneja validaciones y excepciones.
+
+    Parámetros:
+        report_data (ReportCreate): Datos enviados por el usuario para el reporte.
+        db (AsyncSession): Sesión de base de datos.
+        current_user (User): Usuario autenticado que crea el reporte.
+
+    Retorna:
+        ReportRead: Información completa del reporte creado.
+    """
+    
     logger.info(
         f"Usuario {current_user.user_id} creando reporte: "
         f"razón={report_data.reason}"
@@ -78,11 +97,23 @@ async def get_my_reports(
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_active_user)
 ) -> ReportList:
-    """
-    Lista los reportes creados por el usuario actual.
     
-    **Requiere**: Usuario autenticado
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción:
+        Obtiene una lista paginada de los reportes creados por el usuario autenticado.
+
+    Parámetros:
+        skip (int): Cantidad de elementos a omitir.
+        limit (int): Límite de elementos a devolver.
+        db (AsyncSession): Sesión de base de datos.
+        current_user (User): Usuario que solicita sus reportes.
+
+    Retorna:
+        ReportList: Lista paginada de reportes creados por el usuario.
+    """
+    
     logger.info(
         f"Usuario {current_user.user_id} listando sus reportes "
         f"(skip={skip}, limit={limit})"
@@ -123,11 +154,23 @@ async def get_report(
     db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_active_user)
 ) -> ReportRead:
-    """
-    Obtiene un reporte específico por su ID.
     
-    **Requiere**: Usuario autenticado (creador del reporte o admin)
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción:
+        Obtiene un reporte específico por ID.
+        Solo el creador del reporte o un administrador puede accederlo.
+
+    Parámetros:
+        report_id (int): Identificador del reporte.
+        db (AsyncSession): Sesión de base de datos.
+        current_user (User): Usuario autenticado solicitante.
+
+    Retorna:
+        ReportRead: Datos completos del reporte solicitado.
+    """
+    
     logger.info(f"Usuario {current_user.user_id} obteniendo reporte {report_id}")
     
     report = await report_service.get_report_by_id(db, report_id, current_user)

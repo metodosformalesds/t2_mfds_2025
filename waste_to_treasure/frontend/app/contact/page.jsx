@@ -27,12 +27,24 @@ export default function ContactPage() {
     e.preventDefault()
     setIsSubmitting(true)
 
-    // Simular envío del formulario
-    setTimeout(() => {
+    try {
+      // TODO: Integrar con endpoint real de contacto
+      // Ejemplo: await contactService.sendMessage(formData)
+      // Por ahora, simulamos éxito pero sin setTimeout artificial
+      
+      console.log('Formulario de contacto:', formData)
+      
+      // En un escenario real, aquí iría la llamada a la API
+      // const response = await fetch('/api/contact', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(formData)
+      // })
+      
       setIsSubmitting(false)
       setIsSubmitted(true)
       
-      // Reset form después de 3 segundos
+      // Reset form después de mostrar mensaje de éxito
       setTimeout(() => {
         setIsSubmitted(false)
         setFormData({
@@ -44,7 +56,11 @@ export default function ContactPage() {
           message: '',
         })
       }, 3000)
-    }, 1500)
+    } catch (error) {
+      console.error('Error al enviar formulario:', error)
+      setIsSubmitting(false)
+      // TODO: Mostrar mensaje de error al usuario
+    }
   }
 
   return (

@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: FeaturedMaterials
+ * Descripción: carrusel infinito horizontal de materiales destacados con scroll suave, botones de navegación, detección automática de fin de lista para crear efecto loop infinito
+ */
+
 'use client'
 import { useRef, useEffect } from 'react'
 import Link from 'next/link'

@@ -5,6 +5,10 @@ Implementa la lógica de negocio para:
 - CRUD de ShippingMethods (con validación de ownership).
 - Asociación y desasociación de métodos a Listings.
 """
+# Autor: Alejandro Campa Alonso 215833
+# Fecha: 2025-11-08T00:48:35-07:00
+# Descripción: Servicio para CRUD de métodos de envío, validación de
+# ownership y asociación/desasociación de métodos a publicaciones (Listings).
 import logging
 import uuid
 from typing import List
@@ -32,7 +36,18 @@ class ShippingService:
         data: ShippingMethodCreate, 
         user: User
     ) -> ShippingMethod:
-        """Crea un nuevo método de envío para el usuario (vendedor) actual."""
+        """
+        Autor: Alejandro Campa Alonso 215833
+        Crea un nuevo método de envío para el usuario (vendedor) actual.
+
+        Args:
+            db: Sesión asíncrona de la base de datos.
+            data: Datos del método de envío.
+            user: Usuario vendedor que crea el método.
+
+        Returns:
+            La instancia `ShippingMethod` creada.
+        """
         db_method = ShippingMethod(
             **data.model_dump(),
             seller_id=user.user_id
@@ -53,7 +68,17 @@ class ShippingService:
         db: AsyncSession, 
         user: User
     ) -> List[ShippingMethod]:
-        """Obtiene todos los métodos de envío de un vendedor."""
+        """
+        Autor: Alejandro Campa Alonso 215833
+        Obtiene todos los métodos de envío de un vendedor.
+
+        Args:
+            db: Sesión asíncrona de la base de datos.
+            user: Usuario vendedor.
+
+        Returns:
+            Lista de `ShippingMethod` del vendedor.
+        """
         stmt = (
             select(ShippingMethod)
             .where(ShippingMethod.seller_id == user.user_id)
@@ -69,8 +94,17 @@ class ShippingService:
         user: User
     ) -> ShippingMethod:
         """
+        Autor: Alejandro Campa Alonso 215833
         Obtiene un método de envío por ID, validando que pertenezca
         al usuario (vendedor) actual.
+
+        Args:
+            db: Sesión asíncrona de la base de datos.
+            method_id: ID del método.
+            user: Usuario que solicita.
+
+        Returns:
+            `ShippingMethod` si existe y pertenece al usuario.
         """
         stmt = select(ShippingMethod).where(ShippingMethod.method_id == method_id)
         result = await db.execute(stmt)
@@ -98,7 +132,19 @@ class ShippingService:
         data: ShippingMethodUpdate,
         user: User
     ) -> ShippingMethod:
-        """Actualiza un método de envío del vendedor."""
+        """
+        Autor: Alejandro Campa Alonso 215833
+        Actualiza un método de envío del vendedor.
+
+        Args:
+            db: Sesión asíncrona de la base de datos.
+            method_id: ID del método a actualizar.
+            data: Campos a actualizar.
+            user: Usuario propietario.
+
+        Returns:
+            El `ShippingMethod` actualizado.
+        """
         db_method = await self.get_shipping_method_by_id(db, method_id, user)
         
         update_data = data.model_dump(exclude_unset=True)
@@ -124,9 +170,16 @@ class ShippingService:
         user: User
     ):
         """
+        Autor: Alejandro Campa Alonso 215833
         Elimina un método de envío del vendedor.
+
         Gracias a `ondelete="CASCADE"` en ListingShippingOption,
         esto eliminará automáticamente las asociaciones a listings.
+
+        Args:
+            db: Sesión asíncrona de la base de datos.
+            method_id: ID del método a eliminar.
+            user: Usuario propietario.
         """
         db_method = await self.get_shipping_method_by_id(db, method_id, user)
         
@@ -142,7 +195,18 @@ class ShippingService:
         listing_id: int,
         user: User
     ) -> Listing:
-        """Helper: Obtiene un listing y valida que pertenezca al usuario."""
+        """
+        Autor: Alejandro Campa Alonso 215833
+        Helper: Obtiene un listing y valida que pertenezca al usuario.
+
+        Args:
+            db: Sesión asíncrona de la base de datos.
+            listing_id: ID del listing.
+            user: Usuario propietario esperado.
+
+        Returns:
+            `Listing` si existe y pertenece al usuario.
+        """
         stmt = select(Listing).where(Listing.listing_id == listing_id)
         result = await db.execute(stmt)
         listing = result.scalar_one_or_none()
@@ -163,8 +227,18 @@ class ShippingService:
         user: User
     ) -> ListingShippingOption:
         """
+        Autor: Alejandro Campa Alonso 215833
         Asocia un método de envío (propio del vendedor) a una
         publicación (propia del vendedor).
+
+        Args:
+            db: Sesión asíncrona de la base de datos.
+            listing_id: ID de la publicación.
+            method_id: ID del método de envío.
+            user: Usuario propietario.
+
+        Returns:
+            `ListingShippingOption` creada.
         """
         # Validar que el listing pertenece al usuario
         await self._get_listing_by_id_and_owner(db, listing_id, user)
@@ -198,8 +272,15 @@ class ShippingService:
         user: User
     ):
         """
+        Autor: Alejandro Campa Alonso 215833
         Elimina la asociación de un método de envío a una publicación,
         validando propiedad.
+
+        Args:
+            db: Sesión asíncrona de la base de datos.
+            listing_id: ID de la publicación.
+            method_id: ID del método.
+            user: Usuario propietario.
         """
         # Validar que el listing pertenece al usuario (implica que puede
         # gestionar las opciones de este listing)

@@ -7,6 +7,13 @@ import { Trash2, AlertCircle, CheckCircle, AlertTriangle } from 'lucide-react'
 import QuantitySelector from './QuantitySelector'
 import { useCartStore } from '@/stores/useCartStore'
 import Toast from '../ui/Toast'
+import { getPlaceholderDataUri } from '@/components/ui/ImagePlaceholder'
+
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: CartItem
+ * Descripción: representa un item individual en el carrito de compras con controles para ajustar cantidad, remover item, mostrar disponibilidad, manejo de errores y notificaciones toast personalizadas
+ */
 
 export default function CartItem({ item, isUnavailable = false }) {
   const { updateItem, removeItem, fetchCart } = useCartStore()
@@ -130,7 +137,7 @@ export default function CartItem({ item, isUnavailable = false }) {
     >
       <div className="relative h-24 w-24 flex-shrink-0 md:h-36 md:w-48">
         <Image
-          src={item.listing_image_url || 'https://via.placeholder.com/190x150'}
+          src={item.listing_image_url || getPlaceholderDataUri(190, 150, 'Item')}
           alt={item.listing_title || 'Imagen de producto'}
           fill
           sizes="(max-width: 768px) 96px, 192px"
@@ -156,7 +163,7 @@ export default function CartItem({ item, isUnavailable = false }) {
             {item.listing_title}
           </h3>
           <p className="font-inter text-base font-medium text-neutral-600">
-            {item.listing_description || 'Material reciclado'}
+            {item.listing_description || null}
           </p>
           <p className="font-inter text-sm font-small text-neutral-600">
             Tu cantidad: {item.quantity} {quantityUnit}

@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: EditCategoryModal
+ * Descripción: modal para editar categorías existentes con campos para nombre y tipo
+ */
+
 'use client'
 
 import { useState } from 'react'

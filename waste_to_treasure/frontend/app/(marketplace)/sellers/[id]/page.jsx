@@ -1,3 +1,11 @@
+/**
+ * Autor: Arturo Perez Gonzalez
+ * Fecha: 11/11/2024
+ * Descripción: Página de perfil público de vendedor.
+ *              Muestra información del vendedor, estadísticas, listings publicados
+ *              y reseñas recibidas. Incluye sistema de pestañas para navegación.
+ */
+
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -9,11 +17,6 @@ import listingsService from '@/lib/api/listings'
 import MaterialCard from '@/components/marketplace/MaterialCard'
 import ProductCard from '@/components/marketplace/ProductCard'
 
-/**
- * Seller Profile Page (Material Seller)
- * Displays public seller profile with their listings and reviews
- * All data comes from backend API
- */
 export default function SellerProfilePage() {
   const params = useParams()
   const router = useRouter()

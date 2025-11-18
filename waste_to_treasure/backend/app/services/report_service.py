@@ -1,3 +1,13 @@
+# Autor: Gabriel Florentino Reyes
+# Fecha: 08-11-2025
+# Descripción: Servicio de reportes de la plataforma.
+#              Contiene la lógica de negocio para:
+#               - Crear reportes de listings, usuarios u órdenes.
+#               - Validar existencia de entidades reportadas.
+#               - Consultar reportes por usuario o por ID.
+#               - Obtener estadísticas de reportes para administración.
+#               - Manejar excepciones y logging de acciones.
+
 """
 Capa de servicio para Report.
 
@@ -27,26 +37,21 @@ async def create_report(
     report_data: ReportCreate,
     current_user: User
 ) -> Report:
-    """
-    Crea un nuevo reporte de usuario.
     
-    Args:
-        db: Sesión asíncrona de base de datos.
-        report_data: Datos del reporte a crear.
-        current_user: Usuario autenticado que crea el reporte.
-        
-    Returns:
-        Reporte creado.
-        
-    Raises:
-        HTTPException 400: Si no se especifica ninguna entidad a reportar
-                          o si la entidad no existe.
-        
-    Note:
-        - reporter_id se asigna automáticamente del current_user
-        - Al menos una entidad debe ser especificada (listing/user/order)
-        - Se valida que la entidad reportada exista
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Crea un nuevo reporte sobre una publicación, usuario u orden.
+
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        report_data (ReportCreate): Datos del reporte a crear.
+        current_user (User): Usuario que realiza el reporte.
+
+    Retorna:
+        Report: Reporte creado.
+    """
+    
     logger.info(
         f"Usuario {current_user.user_id} creando reporte de publicación: "
         f"listing_id={report_data.reported_listing_id}, razón={report_data.reason}"
@@ -97,21 +102,22 @@ async def get_user_reports(
     skip: int = 0,
     limit: int = 100
 ) -> Tuple[List[Report], int]:
-    """
-    Obtiene lista paginada de reportes creados por un usuario.
     
-    Args:
-        db: Sesión asíncrona de base de datos.
-        user_id: UUID del usuario.
-        skip: Número de registros a omitir.
-        limit: Número máximo de registros.
-        
-    Returns:
-        Tupla (lista de reportes, total).
-        
-    Note:
-        Los reportes se ordenan por fecha (más recientes primero).
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Obtiene la lista paginada de reportes creados por un usuario.
+
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        user_id (UUID): ID del usuario.
+        skip (int): Número de registros a omitir.
+        limit (int): Número máximo de registros a retornar.
+
+    Retorna:
+        Tuple[List[Report], int]: Lista de reportes y total.
+    """
+    
     logger.info(f"Obteniendo reportes del usuario {user_id}")
     
     # Query base
@@ -137,24 +143,21 @@ async def get_report_by_id(
     report_id: int,
     current_user: User
 ) -> Report:
-    """
-    Obtiene un reporte por su ID.
     
-    Args:
-        db: Sesión asíncrona de base de datos.
-        report_id: ID del reporte.
-        current_user: Usuario autenticado.
-        
-    Returns:
-        Reporte encontrado.
-        
-    Raises:
-        HTTPException 404: Si el reporte no existe.
-        HTTPException 403: Si el usuario no es el creador ni admin.
-        
-    Note:
-        Solo el creador del reporte o un admin pueden verlo.
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Obtiene un reporte por su ID, solo si el usuario es el creador o un administrador.
+
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        report_id (int): ID del reporte.
+        current_user (User): Usuario autenticado que solicita el reporte.
+
+    Retorna:
+        Report: Reporte encontrado.
+    """
+    
     logger.info(f"Usuario {current_user.user_id} solicitando reporte {report_id}")
     
     stmt = select(Report).where(Report.report_id == report_id)
@@ -182,18 +185,19 @@ async def get_report_by_id(
 
 
 async def get_report_statistics(db: AsyncSession) -> dict:
-    """
-    Obtiene estadísticas de reportes (uso administrativo).
     
-    Args:
-        db: Sesión asíncrona de base de datos.
-        
-    Returns:
-        Diccionario con estadísticas de reportes.
-        
-    Note:
-        Este endpoint es típicamente usado por admins en el dashboard.
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Obtiene estadísticas generales de reportes para uso administrativo.
+
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+
+    Retorna:
+        dict: Estadísticas de reportes (totales, pendientes, resueltos, descartados y por razón).
+    """
+    
     logger.info("Obteniendo estadísticas de reportes")
     
     # Total de reportes
@@ -234,16 +238,20 @@ async def get_report_statistics(db: AsyncSession) -> dict:
     return stats
 
 async def validate_listing_exists(db: AsyncSession, listing_id: int) -> None:
-    """
-    Valida que una publicación exista.
     
-    Args:
-        db: Sesión asíncrona de base de datos.
-        listing_id: ID de la publicación.
-        
-    Raises:
-        HTTPException 404: Si la publicación no existe.
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Valida que una publicación exista en la base de datos.
+
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        listing_id (int): ID de la publicación a validar.
+
+    Retorna:
+        None
+    """
+
     stmt = select(Listing).where(Listing.listing_id == listing_id)
     result = await db.execute(stmt)
     listing = result.scalar_one_or_none()
@@ -257,16 +265,20 @@ async def validate_listing_exists(db: AsyncSession, listing_id: int) -> None:
 
 
 async def validate_user_exists(db: AsyncSession, user_id: UUID) -> None:
-    """
-    Valida que un usuario exista.
     
-    Args:
-        db: Sesión asíncrona de base de datos.
-        user_id: UUID del usuario.
-        
-    Raises:
-        HTTPException 404: Si el usuario no existe.
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Valida que un usuario exista en la base de datos.
+
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        user_id (UUID): ID del usuario a validar.
+
+    Retorna:
+        None
+    """
+    
     stmt = select(User).where(User.user_id == user_id)
     result = await db.execute(stmt)
     user = result.scalar_one_or_none()
@@ -280,16 +292,20 @@ async def validate_user_exists(db: AsyncSession, user_id: UUID) -> None:
 
 
 async def validate_order_exists(db: AsyncSession, order_id: int) -> None:
-    """
-    Valida que una orden exista.
     
-    Args:
-        db: Sesión asíncrona de base de datos.
-        order_id: ID de la orden.
-        
-    Raises:
-        HTTPException 404: Si la orden no existe.
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción: Valida que una orden exista en la base de datos.
+
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        order_id (int): ID de la orden a validar.
+
+    Retorna:
+        None
+    """
+    
     stmt = select(Order).where(Order.order_id == order_id)
     result = await db.execute(stmt)
     order = result.scalar_one_or_none()

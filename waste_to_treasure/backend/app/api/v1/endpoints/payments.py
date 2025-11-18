@@ -2,12 +2,10 @@
 Endpoints de la API para Pagos con Stripe.
 
 Implementa:
-- POST /customers: Crear/obtener customer de Stripe
-- POST /checkout: Crear sesión de Stripe Checkout  
-- POST /process: Procesar pago directo con Payment Intent
-- POST /{transaction_id}/refund: Procesar reembolso
-- GET /methods: Listar métodos de pago guardados
 """
+# Autor: Oscar Alonso Nava Rivera
+# Fecha: 08/11/2025
+# Descripción: Endpoints para pagos (webhooks, checkout y reembolsos)
 import logging
 from typing import Annotated, Optional, List
 from decimal import Decimal
@@ -97,6 +95,7 @@ async def create_customer(
     user: Annotated[User, Depends(get_current_active_user)]
 ) -> PaymentCustomerRead:
     """
+    Autor: Oscar Alonso Nava Rivera
     Crea o retorna customer existente de Stripe.
     """
     try:
@@ -158,6 +157,7 @@ async def get_my_customer(
     user: Annotated[User, Depends(get_current_active_user)]
 ) -> PaymentCustomerRead:
     """
+    Autor: Oscar Alonso Nava Rivera
     Obtiene el customer de Stripe del usuario.
     """
     customer = await payment_service.get_customer_by_user_id(db, user.user_id)
@@ -209,6 +209,7 @@ async def create_checkout_session(
     user: Annotated[User, Depends(get_current_active_user)]
 ) -> CheckoutSessionResponse:
     """
+    Autor: Oscar Alonso Nava Rivera
     Crea sesión de Stripe Checkout.
     """
     try:
@@ -315,6 +316,7 @@ async def process_payment(
     user: Annotated[User, Depends(get_current_active_user)]
 ) -> PaymentIntentResponse:
     """
+    Autor: Oscar Alonso Nava Rivera
     Procesa pago directo con Payment Intent.
     """
     try:
@@ -440,6 +442,7 @@ async def process_refund(
     user: Annotated[User, Depends(get_current_active_user)]
 ) -> RefundResponse:
     """
+    Autor: Oscar Alonso Nava Rivera
     Procesa reembolso de transacción.
     """
     try:
@@ -498,4 +501,359 @@ async def process_refund(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error interno procesando reembolso"
+        )
+
+
+# ==========================================
+# PAYMENT METHODS
+# ==========================================
+
+@router.get(
+    "/methods",
+    response_model=List[dict],
+    summary="Listar métodos de pago guardados",
+    description="""
+    Lista todos los métodos de pago (tarjetas) guardados del usuario autenticado.
+
+    **Funcionalidad:**
+    - Obtiene el customer de Stripe del usuario
+    - Lista todos los payment methods asociados al customer
+    - Retorna información de las tarjetas (últimos 4 dígitos, marca, expiración)
+
+    **Retorna:**
+    Lista de objetos con información de cada tarjeta guardada.
+    """,
+    responses={
+        200: {"description": "Lista de métodos de pago"},
+        404: {"description": "Usuario no tiene customer en Stripe"},
+        401: {"description": "No autenticado"},
+        500: {"description": "Error obteniendo métodos de pago"}
+    }
+)
+async def list_payment_methods(
+    db: Annotated[AsyncSession, Depends(get_async_db)],
+    user: Annotated[User, Depends(get_current_active_user)]
+) -> List[dict]:
+    """
+    Lista métodos de pago guardados del usuario.
+    """
+    try:
+        # Obtener customer del usuario
+        customer = await payment_service.get_customer_by_user_id(db, user.user_id)
+
+        if not customer:
+            # Si no tiene customer, retornar lista vacía en lugar de error
+            return []
+
+        # Listar payment methods de Stripe
+        payment_methods = await stripe_service.list_payment_methods(
+            customer_id=customer.gateway_customer_id,
+            type="card"
+        )
+
+        # Formatear respuesta
+        result = []
+        for pm in payment_methods:
+            result.append({
+                "id": pm.id,
+                "type": pm.type,
+                "card": {
+                    "brand": pm.card.brand,
+                    "last4": pm.card.last4,
+                    "exp_month": pm.card.exp_month,
+                    "exp_year": pm.card.exp_year
+                },
+                "created": pm.created
+            })
+
+        logger.info(f"Listados {len(result)} payment methods para usuario {user.user_id}")
+        return result
+
+    except StripeError as e:
+        logger.error(f"Error en Stripe listando payment methods: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error obteniendo métodos de pago: {str(e)}"
+        )
+    except Exception as e:
+        logger.error(f"Error listando payment methods: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error interno obteniendo métodos de pago"
+        )
+
+
+@router.post(
+    "/setup-intent",
+    response_model=dict,
+    summary="Crear SetupIntent para guardar método de pago",
+    description="""
+    Crea un SetupIntent de Stripe para guardar un método de pago de forma segura.
+
+    Flujo Correcto (recomendado por Stripe):
+    1. Backend crea SetupIntent y retorna client_secret
+    2. Frontend confirma con stripe.confirmCardSetup(client_secret, {...})
+    3. Stripe adjunta automáticamente el PaymentMethod al Customer
+    4. El PaymentMethod queda guardado y reutilizable SIN riesgo de quemarse
+
+    Ventajas:
+    - El PaymentMethod se adjunta automáticamente al Customer
+    - No hay riesgo de quemar el PaymentMethod
+    - Stripe maneja la autenticación 3D Secure automáticamente
+    - Múltiples usuarios pueden usar la misma tarjeta de prueba (4242...)
+
+    Importante:
+    - Este es el UNICO flujo correcto para guardar tarjetas
+    - NO uses stripe.createPaymentMethod() + attach() manualmente
+    """,
+    responses={
+        200: {"description": "SetupIntent creado exitosamente"},
+        401: {"description": "No autenticado"},
+        500: {"description": "Error creando SetupIntent"}
+    }
+)
+async def create_setup_intent(
+    db: Annotated[AsyncSession, Depends(get_async_db)],
+    user: Annotated[User, Depends(get_current_active_user)]
+) -> dict:
+    """
+    Crea un SetupIntent para guardar método de pago.
+    """
+    try:
+        # Obtener o crear customer
+        customer = await payment_service.get_or_create_stripe_customer(db, user)
+
+        # Crear SetupIntent
+        import stripe
+        setup_intent = stripe.SetupIntent.create(
+            customer=customer.gateway_customer_id,
+            payment_method_types=["card"],
+            usage="off_session",  # Permite uso futuro sin que el usuario esté presente
+            metadata={
+                "user_id": str(user.user_id)
+            }
+        )
+
+        logger.info(
+            f"SetupIntent creado: {setup_intent.id} "
+            f"para customer {customer.gateway_customer_id}"
+        )
+
+        return {
+            "client_secret": setup_intent.client_secret,
+            "setup_intent_id": setup_intent.id
+        }
+
+    except StripeError as e:
+        logger.error(f"Error en Stripe creando SetupIntent: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error creando SetupIntent: {str(e)}"
+        )
+    except Exception as e:
+        logger.error(f"Error creando SetupIntent: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error interno creando SetupIntent"
+        )
+
+
+@router.post(
+    "/methods/attach",
+    response_model=dict,
+    summary="[DEPRECATED] Adjuntar payment method al customer",
+    deprecated=True,
+    description="""
+    DEPRECATED: Este endpoint está obsoleto y puede causar PaymentMethods quemados.
+
+    Usa /setup-intent en su lugar.
+
+    El flujo correcto es:
+    1. POST /payments/setup-intent -> client_secret
+    2. stripe.confirmCardSetup(client_secret) en frontend
+    3. Stripe adjunta el PaymentMethod automáticamente
+
+    Este endpoint intenta adjuntar un payment method existente al customer,
+    pero falla si el PaymentMethod ya fue usado sin customer (quemado).
+    """,
+    responses={
+        200: {"description": "Payment method adjuntado exitosamente"},
+        400: {"description": "Payment method inválido o ya usado"},
+        401: {"description": "No autenticado"},
+        500: {"description": "Error adjuntando payment method"}
+    }
+)
+async def attach_payment_method(
+    request: dict,
+    db: Annotated[AsyncSession, Depends(get_async_db)],
+    user: Annotated[User, Depends(get_current_active_user)]
+) -> dict:
+    """
+    Adjunta un payment method al customer del usuario.
+
+    Body esperado:
+    {
+        "payment_method_id": "pm_xxxxx",
+        "set_as_default": true  // opcional
+    }
+    """
+    try:
+        payment_method_id = request.get("payment_method_id")
+        set_as_default = request.get("set_as_default", False)
+
+        if not payment_method_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="payment_method_id es requerido"
+            )
+
+        # Obtener o crear customer
+        customer = await payment_service.get_or_create_stripe_customer(db, user)
+
+        # Adjuntar payment method al customer
+        try:
+            payment_method = await stripe_service.attach_payment_method(
+                customer_id=customer.gateway_customer_id,
+                payment_method_id=payment_method_id,
+                set_as_default=set_as_default
+            )
+
+            logger.info(
+                f"Payment method {payment_method_id} adjuntado exitosamente "
+                f"al customer {customer.gateway_customer_id} para usuario {user.user_id}"
+            )
+
+            return {
+                "success": True,
+                "payment_method_id": payment_method.id,
+                "customer_id": customer.gateway_customer_id,
+                "message": "Tarjeta guardada exitosamente"
+            }
+
+        except StripeError as e:
+            error_msg = str(e).lower()
+
+            # Si ya está adjuntado al mismo customer, retornar éxito
+            if "already attached" in error_msg:
+                logger.info(f"Payment method {payment_method_id} ya estaba adjuntado")
+                return {
+                    "success": True,
+                    "payment_method_id": payment_method_id,
+                    "customer_id": customer.gateway_customer_id,
+                    "message": "Tarjeta ya estaba guardada"
+                }
+
+            # Si fue usado sin customer o está en otro customer
+            if "previously used" in error_msg or "may not be used again" in error_msg or "was detached" in error_msg:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Este método de pago ya no puede ser usado. Por favor, crea una nueva tarjeta."
+                )
+
+            # Otro error de Stripe
+            raise
+
+    except HTTPException:
+        raise
+    except StripeError as e:
+        logger.error(f"Error en Stripe adjuntando payment method: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Error guardando tarjeta: {str(e)}"
+        )
+    except Exception as e:
+        logger.error(f"Error adjuntando payment method: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error interno guardando tarjeta"
+        )
+
+
+@router.delete(
+    "/methods/{payment_method_id}",
+    response_model=dict,
+    summary="Eliminar método de pago",
+    description="""
+    Desadjunta un payment method del customer del usuario autenticado.
+
+    Funcionalidad:
+    - Verifica que el payment method pertenezca al customer del usuario
+    - Lo desadjunta del customer en Stripe
+    - El payment method queda inutilizable después de esto
+
+    Importante:
+    - Solo puede eliminar payment methods que pertenezcan al customer del usuario
+    - Una vez desadjuntado, el payment method no puede volver a usarse
+    """,
+    responses={
+        200: {"description": "Payment method eliminado exitosamente"},
+        404: {"description": "Payment method no encontrado"},
+        401: {"description": "No autenticado"},
+        403: {"description": "El payment method no pertenece al usuario"},
+        500: {"description": "Error eliminando payment method"}
+    }
+)
+async def delete_payment_method(
+    payment_method_id: str,
+    db: Annotated[AsyncSession, Depends(get_async_db)],
+    user: Annotated[User, Depends(get_current_active_user)]
+) -> dict:
+    """
+    Elimina un payment method del customer del usuario.
+    """
+    try:
+        # Obtener customer del usuario
+        customer = await payment_service.get_customer_by_user_id(db, user.user_id)
+
+        if not customer:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No tienes un customer en Stripe"
+            )
+
+        # Verificar que el payment method pertenezca al customer
+        try:
+            import stripe
+            payment_method = stripe.PaymentMethod.retrieve(payment_method_id)
+
+            if payment_method.customer != customer.gateway_customer_id:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Este método de pago no te pertenece"
+                )
+
+        except stripe.error.InvalidRequestError:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Método de pago no encontrado"
+            )
+
+        # Desadjuntar el payment method del customer
+        stripe.PaymentMethod.detach(payment_method_id)
+
+        logger.info(
+            f"Payment method {payment_method_id} desadjuntado "
+            f"del customer {customer.gateway_customer_id} "
+            f"para usuario {user.user_id}"
+        )
+
+        return {
+            "success": True,
+            "payment_method_id": payment_method_id,
+            "message": "Método de pago eliminado exitosamente"
+        }
+
+    except HTTPException:
+        raise
+    except StripeError as e:
+        logger.error(f"Error en Stripe eliminando payment method: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Error eliminando método de pago: {str(e)}"
+        )
+    except Exception as e:
+        logger.error(f"Error eliminando payment method: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error interno eliminando método de pago"
         )

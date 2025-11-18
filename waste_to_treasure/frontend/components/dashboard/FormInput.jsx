@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: FormInput
+ * Descripción: componente de input reutilizable para formularios que soporta tipo text, textarea, validación, label opcional, placeholder y estilos consistentes
+ */
+
 'use client';
 
 /**

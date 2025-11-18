@@ -1,3 +1,9 @@
+# Autor: Alejandro Campa Alonso 215833
+# Fecha: 2025-11-08
+# Descripción: Schemas Pydantic para el modelo Plan.
+#              Define los contratos de salida para las operaciones relacionadas
+#              con los planes de suscripción disponibles en la plataforma.
+
 """
 Schemas Pydantic para el modelo Plan.
 """
@@ -27,7 +33,12 @@ class PlanRead(BaseModel):
     @property
     def features(self) -> Optional[Dict[str, Any]]:
         """
-        Analiza la cadena JSON de 'features_json' y la devuelve como un dict.
+        Autor: Alejandro Campa Alonso 215833
+        Descripción: Analiza la cadena JSON de 'features_json' y la devuelve como un diccionario.
+        Parámetros:
+            Ninguno (propiedad computada).
+        Retorna:
+            Optional[Dict[str, Any]]: Diccionario con las características del plan o None si hay error.
         """
         if self.features_json:
             try:

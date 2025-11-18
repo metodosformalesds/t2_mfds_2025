@@ -70,6 +70,73 @@ export const paymentsService = {
       throw error
     }
   },
+
+  /**
+   * Lista todos los métodos de pago guardados del usuario.
+   * (GET /api/v1/payments/methods)
+   * @returns {Promise<Array>} Lista de payment methods
+   */
+  listPaymentMethods: async () => {
+    try {
+      const { data } = await apiClient.get('/payments/methods')
+      return data
+    } catch (error) {
+      throw error
+    }
+  },
+
+  /**
+   * Crea un SetupIntent para guardar un método de pago.
+   * (POST /api/v1/payments/setup-intent)
+   * Este es el flujo CORRECTO recomendado por Stripe.
+   * @returns {Promise<Object>} { client_secret, setup_intent_id }
+   */
+  createSetupIntent: async () => {
+    try {
+      const { data } = await apiClient.post('/payments/setup-intent')
+      return data
+    } catch (error) {
+      throw error
+    }
+  },
+
+  /**
+   * Elimina un método de pago del usuario.
+   * (DELETE /api/v1/payments/methods/{payment_method_id})
+   * @param {string} paymentMethodId - ID del payment method a eliminar
+   * @returns {Promise<Object>}
+   */
+  deletePaymentMethod: async (paymentMethodId) => {
+    try {
+      const { data } = await apiClient.delete(`/payments/methods/${paymentMethodId}`)
+      return data
+    } catch (error) {
+      throw error
+    }
+  },
+
+  /**
+   * [DEPRECATED] Adjunta un payment method al customer del usuario en Stripe.
+   * (POST /api/v1/payments/methods/attach)
+   * ADVERTENCIA: Este método está obsoleto y puede causar PaymentMethods quemados.
+   * Usa createSetupIntent() en su lugar.
+   * @param {string} paymentMethodId - ID del payment method (pm_xxxxx)
+   * @param {boolean} setAsDefault - Si se debe marcar como método por defecto
+   * @returns {Promise<Object>}
+   * @deprecated Use createSetupIntent() instead
+   */
+  attachPaymentMethod: async (paymentMethodId, setAsDefault = true) => {
+    console.warn('attachPaymentMethod está obsoleto. Usa createSetupIntent() en su lugar.')
+    try {
+      const { data } = await apiClient.post('/payments/methods/attach', {
+        payment_method_id: paymentMethodId,
+        set_as_default: setAsDefault
+      })
+      return data
+    } catch (error) {
+      throw error
+    }
+  },
 }
 
 export default paymentsService

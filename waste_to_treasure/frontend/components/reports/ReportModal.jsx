@@ -1,3 +1,12 @@
+/**
+ * Autor: Arturo Perez Gonzalez
+ * Fecha: 12/11/2024
+ * Componente: ReportModal
+ * Descripción: Modal para reportar publicaciones inapropiadas o fraudulentas.
+ *              Incluye dropdown de motivos predefinidos, campo de descripción opcional,
+ *              validaciones, estados de carga y mensajes de éxito/error. Integra con API de reports.
+ */
+
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -14,13 +23,6 @@ const MODAL_STATES = {
   ERROR: 'error',
 }
 
-/**
- * Componente Modal para reportar una publicación
- * @param {Object} props
- * @param {boolean} props.isOpen - Si el modal está abierto
- * @param {Function} props.onClose - Función para cerrar el modal
- * @param {number} props.listingId - ID de la publicación a reportar
- */
 export default function ReportModal({ isOpen, onClose, listingId }) {
   const [modalState, setModalState] = useState(MODAL_STATES.INITIAL)
   const [reason, setReason] = useState('')

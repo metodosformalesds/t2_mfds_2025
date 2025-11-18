@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: UserDetailModal
+ * Descripción: modal que muestra detalles completos del usuario con estadísticas, historial de incidencias y opciones de moderación
+ */
+
 'use client'
 
 import { X } from 'lucide-react'
@@ -73,16 +79,6 @@ export default function UserDetailModal({
         }
       },
       false
-    )
-  }
-  
-  // Acciones placeholder
-  const handleWarn = () => {
-    openConfirmModal(
-      'Enviar Advertencia',
-      `¿Estás seguro de que quieres enviar una advertencia a ${displayName}?`,
-      () => console.log('Advirtiendo a', user.id),
-      false // No es una acción peligrosa
     )
   }
   
@@ -207,11 +203,6 @@ export default function UserDetailModal({
                 onClick={handleUnblock}
               />
             )}
-            <ActionButton
-              text="Enviar advertencia"
-              color="bg-yellow-400 text-black hover:bg-yellow-500"
-              onClick={handleWarn}
-            />
             <ActionButton
               text="Resetear contraseña"
               color="bg-secondary-600 text-white hover:bg-secondary-500"

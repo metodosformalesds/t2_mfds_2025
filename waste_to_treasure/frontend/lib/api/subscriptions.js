@@ -1,3 +1,9 @@
+// Autor: Gabriel Florentino Reyes
+// Fecha: 13-11-2025
+// Descripción: Servicio para manejar operaciones de suscripción del usuario en un sistema SaaS. 
+//              Permite obtener la suscripción activa, crear o cambiar el plan de suscripción, y 
+//              cancelar la suscripción existente.
+
 /**
  * Servicio para operaciones de Suscripciones (SaaS).
  *

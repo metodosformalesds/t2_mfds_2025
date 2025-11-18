@@ -1,3 +1,9 @@
+# Autor: Arturo Perez Gonzalez
+# Fecha: 08/11/2024
+# Descripción: Servicio de lógica de negocio para el carrito de compras.
+#              Implementa operaciones CRUD asíncronas sobre el carrito incluyendo
+#              validaciones de stock, cálculos de totales y preparación para checkout.
+
 """
 Capa de servicio para Cart.
 
@@ -23,14 +29,13 @@ from app.schemas.cart import CartItemCreate, CartItemUpdate, CartItemRead
 
 async def get_or_create_cart(db: AsyncSession, user_id: UUID) -> Cart:
     """
-    Obtiene el carrito del usuario o lo crea si no existe.
-
-    Args:
-        db: Sesión asíncrona de base de datos.
-        user_id: UUID del usuario.
-
-    Returns:
-        Cart del usuario con todas las relaciones cargadas (eager loading).
+    Autor: Arturo Perez Gonzalez
+    Descripción: Obtiene el carrito del usuario o lo crea si no existe.
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        user_id (UUID): UUID del usuario.
+    Retorna:
+        Cart: Carrito del usuario con todas las relaciones cargadas (eager loading).
     """
     result = await db.execute(
         select(Cart)
@@ -68,19 +73,16 @@ async def add_item_to_cart(
     item_data: CartItemCreate
 ) -> Cart:
     """
-    Agrega un item al carrito o actualiza su cantidad si ya existe.
-
-    Args:
-        db: Sesión asíncrona de base de datos.
-        user_id: UUID del usuario.
-        item_data: Datos del item a agregar.
-
-    Returns:
-        Cart actualizado.
-
+    Autor: Arturo Perez Gonzalez
+    Descripción: Agrega un item al carrito o actualiza su cantidad si ya existe.
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        user_id (UUID): UUID del usuario.
+        item_data (CartItemCreate): Datos del item a agregar (listing_id, quantity).
+    Retorna:
+        Cart: Carrito actualizado con el nuevo item.
     Raises:
-        HTTPException: Si el listing no existe, no está disponible,
-                      o no hay stock suficiente.
+        HTTPException: Si el listing no existe, no está disponible o no hay stock suficiente.
     """
     # Validar que el listing existe y está disponible
     result = await db.execute(
@@ -167,20 +169,17 @@ async def update_cart_item_quantity(
     update_data: CartItemUpdate
 ) -> Cart:
     """
-    Actualiza la cantidad de un item en el carrito.
-
-    Args:
-        db: Sesión asíncrona de base de datos.
-        user_id: UUID del usuario.
-        cart_item_id: ID del item a actualizar.
-        update_data: Nueva cantidad.
-
-    Returns:
-        Cart actualizado.
-
+    Autor: Arturo Perez Gonzalez
+    Descripción: Actualiza la cantidad de un item existente en el carrito.
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        user_id (UUID): UUID del usuario.
+        cart_item_id (int): ID del item a actualizar.
+        update_data (CartItemUpdate): Nueva cantidad deseada.
+    Retorna:
+        Cart: Carrito actualizado.
     Raises:
-        HTTPException: Si el item no existe, no pertenece al usuario,
-                      o no hay stock suficiente.
+        HTTPException: Si el item no existe, no pertenece al usuario o no hay stock suficiente.
     """
     # Obtener el carrito del usuario
     cart = await get_or_create_cart(db, user_id)
@@ -242,16 +241,14 @@ async def remove_item_from_cart(
     cart_item_id: int
 ) -> Cart:
     """
-    Elimina un item del carrito.
-
-    Args:
-        db: Sesión asíncrona de base de datos.
-        user_id: UUID del usuario.
-        cart_item_id: ID del item a eliminar.
-
-    Returns:
-        Cart actualizado.
-
+    Autor: Arturo Perez Gonzalez
+    Descripción: Elimina un item específico del carrito del usuario.
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        user_id (UUID): UUID del usuario.
+        cart_item_id (int): ID del item a eliminar.
+    Retorna:
+        Cart: Carrito actualizado sin el item eliminado.
     Raises:
         HTTPException: Si el item no existe o no pertenece al usuario.
     """
@@ -295,14 +292,13 @@ async def remove_item_from_cart(
 
 async def clear_cart(db: AsyncSession, user_id: UUID) -> Cart:
     """
-    Vacía completamente el carrito del usuario.
-
-    Args:
-        db: Sesión asíncrona de base de datos.
-        user_id: UUID del usuario.
-
-    Returns:
-        Cart vacío.
+    Autor: Arturo Perez Gonzalez
+    Descripción: Vacía completamente el carrito del usuario eliminando todos los items.
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        user_id (UUID): UUID del usuario.
+    Retorna:
+        Cart: Carrito vacío del usuario.
     """
     cart = await get_or_create_cart(db, user_id)
 
@@ -334,14 +330,14 @@ async def validate_cart_for_checkout(
     cart: Cart
 ) -> Tuple[bool, Optional[str]]:
     """
-    Valida que el carrito esté listo para checkout.
-
-    Args:
-        db: Sesión asíncrona de base de datos.
-        cart: Carrito a validar.
-
-    Returns:
-        Tupla (es_válido, mensaje_error).
+    Autor: Arturo Perez Gonzalez
+    Descripción: Valida que el carrito esté listo para proceder al checkout.
+    Parámetros:
+        db (AsyncSession): Sesión asíncrona de base de datos.
+        cart (Cart): Carrito a validar.
+    Retorna:
+        Tuple[bool, Optional[str]]: Tupla con (es_válido, mensaje_error).
+                                     Si es válido, mensaje_error es None.
     """
     if not cart.items or len(cart.items) == 0:
         return False, "El carrito está vacío"
@@ -362,13 +358,12 @@ async def validate_cart_for_checkout(
 
 def convert_cart_to_response(cart: Cart) -> dict:
     """
-    Convierte un Cart a formato CartRead con cálculos.
-
-    Args:
-        cart: Objeto Cart de SQLAlchemy.
-
-    Returns:
-        Diccionario con datos para CartRead.
+    Autor: Arturo Perez Gonzalez
+    Descripción: Convierte un objeto Cart de SQLAlchemy a formato CartRead con cálculos de totales.
+    Parámetros:
+        cart (Cart): Objeto Cart de SQLAlchemy con items cargados.
+    Retorna:
+        dict: Diccionario con datos formateados para schema CartRead, incluyendo subtotales y comisiones.
     """
     items_data = []
 

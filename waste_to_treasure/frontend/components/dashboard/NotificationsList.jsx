@@ -17,6 +17,12 @@ import {
   CheckCheck
 } from 'lucide-react';
 
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: NotificationsList
+ * Descripción: lista paginada de notificaciones del usuario con iconografía por tipo, formateo de fechas, marcado como leído, y navegación entre páginas
+ */
+
 export default function NotificationsList() {
   const { 
     notifications, 

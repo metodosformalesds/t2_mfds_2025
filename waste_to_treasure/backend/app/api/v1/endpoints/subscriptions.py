@@ -1,3 +1,9 @@
+# Autor: Alejandro Campa Alonso 215833
+# Fecha: 2025-11-09
+# Descripción: Endpoints de la API para Suscripciones (SaaS). Gestiona el ciclo completo de
+# suscripciones incluyendo visualización de suscripción activa, creación/cambio de plan y
+# cancelación. Integra con Stripe simulado para pagos de suscripción.
+
 """
 Endpoints de la API para Suscripciones (SaaS).
 
@@ -36,9 +42,18 @@ async def get_my_subscription(
     user: Annotated[User, Depends(get_current_active_user)]
 ) -> Optional[SubscriptionRead]:
     """
-    Obtiene la suscripción activa del usuario.
-    El servicio `get_active_subscription` retorna Optional[Subscription],
-    por lo que Pydantic manejará el retorno `None` correctamente.
+    Obtiene los detalles de la suscripción activa del usuario autenticado.
+    
+    Retorna null si el usuario no tiene ninguna suscripción activa.
+    
+    Autor: Alejandro Campa Alonso 215833
+    
+    Args:
+        db: Sesión asincrónica de la base de datos
+        user: Usuario autenticado
+    
+    Returns:
+        Optional[SubscriptionRead]: Suscripción activa del usuario, o None si no existe
     """
     subscription = await subscription_service.get_active_subscription(db, user)
     return subscription
@@ -58,12 +73,26 @@ async def create_or_change_subscription(
     user: Annotated[User, Depends(get_current_active_user)]
 ) -> SubscriptionRead:
     """
-    Llama al servicio para crear la suscripción.
-    El servicio ya maneja:
-    1. Validación del plan.
-    2. Cancelación de la suscripción antigua (si existe).
-    3. Simulación de llamada a Stripe con el token.
-    4. Creación de la nueva suscripción en BD.
+    Crea una nueva suscripción o actualiza la existente a un nuevo plan.
+    
+    El servicio maneja:
+    1. Validación del plan solicitado
+    2. Cancelación de la suscripción anterior (si existe)
+    3. Simulación de llamada a Stripe con el token de pago
+    4. Creación de la nueva suscripción en base de datos
+    
+    Autor: Alejandro Campa Alonso 215833
+    
+    Args:
+        sub_data: Datos de suscripción incluyendo plan_id y payment_token
+        db: Sesión asincrónica de la base de datos
+        user: Usuario autenticado
+    
+    Returns:
+        SubscriptionRead: Suscripción creada o actualizada
+    
+    Raises:
+        HTTPException: Si el plan no existe o hay error en el pago
     """
     subscription = await subscription_service.create_subscription(
         db=db,
@@ -86,11 +115,24 @@ async def cancel_subscription(
     user: Annotated[User, Depends(get_current_active_user)]
 ) -> SubscriptionRead:
     """
-    Llama al servicio para cancelar la suscripción.
-    El servicio maneja la lógica de:
-    1. Encontrar la suscripción activa.
-    2. Simular la cancelación en la pasarela de pago.
-    3. Actualizar el estado en la BD.
+    Cancela la suscripción activa del usuario autenticado.
+    
+    El servicio maneja:
+    1. Búsqueda de la suscripción activa
+    2. Simulación de la cancelación en la pasarela de pago
+    3. Actualización del estado a CANCELLED en la base de datos
+    
+    Autor: Alejandro Campa Alonso 215833
+    
+    Args:
+        db: Sesión asincrónica de la base de datos
+        user: Usuario autenticado
+    
+    Returns:
+        SubscriptionRead: Suscripción cancelada (con estado CANCELLED)
+    
+    Raises:
+        HTTPException: Si no hay suscripción activa para cancelar
     """
     subscription = await subscription_service.cancel_subscription(db, user)
     # El servicio (get_active_subscription) ya lanza 404 si no hay nada que cancelar

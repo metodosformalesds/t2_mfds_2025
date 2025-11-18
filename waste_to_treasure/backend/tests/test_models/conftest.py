@@ -4,6 +4,10 @@ Fixtures específicas para tests de modelos.
 Provee fixtures comunes como user, category, etc.
 Estos tests usan sesiones SÍNCRONAS porque testan modelos directamente.
 """
+
+# Autor: Oscar Alonso Nava Rivera
+# Fecha: 06/11/2025
+# Descripción: Fixtures reutilizables para tests de modelos (sesión síncrona, usuarios y categorías de prueba).
 import pytest
 from uuid import uuid4
 from sqlalchemy import create_engine
@@ -17,6 +21,8 @@ from app.core.config import get_settings
 @pytest.fixture(scope="session")
 def sync_engine():
     """
+    Autor: Oscar Alonso Nava Rivera
+
     Engine síncrono para tests de modelo.
     """
     settings = get_settings()
@@ -28,6 +34,8 @@ def sync_engine():
 @pytest.fixture
 def db(sync_engine):
     """
+    Autor: Oscar Alonso Nava Rivera
+
     Sesión síncrona de base de datos para tests de modelo.
     
     Usa transacciones que se revierten automáticamente.
@@ -47,6 +55,8 @@ def db(sync_engine):
 @pytest.fixture
 def user(db):
     """
+    Autor: Oscar Alonso Nava Rivera
+
     Fixture que provee un usuario de prueba.
     
     Simula un usuario registrado en Cognito con UUID único.
@@ -68,6 +78,8 @@ def user(db):
 @pytest.fixture
 def category(db):
     """
+    Autor: Oscar Alonso Nava Rivera
+
     Fixture que provee una categoría de prueba.
     """
     from app.models.category import ListingTypeEnum

@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: AdminSidebar
+ * Descripción: barra lateral de navegación de la consola admin con menú de opciones, perfil del usuario y botón de logout
+ */
+
 'use client'
 
 import Link from 'next/link'

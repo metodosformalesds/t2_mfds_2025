@@ -1,3 +1,16 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: PurchasesList
+ * Descripción: tabla paginada de compras del usuario con información de orden, estado, fechas y acciones para ver detalles de cada compra
+ */
+
+// Autor: Gabriel Florentino Reyes
+// Fecha: 12-11-2025
+// Descripción: Descripción: Componente que muestra la lista de compras del usuario con 
+//              paginación, manejo de estados (cargando, error), visualización de detalles de cada compra y 
+//              representación del estado de cada pedido con colores y etiquetas.
+
+
 'use client';
 
 import { usePurchases } from '@/hooks/usePurchases';
@@ -112,7 +125,7 @@ export default function PurchasesList() {
                   </td>
                   <td className="py-4 px-4">
                     <span className={`px-3 py-1 text-xs font-semibold rounded-full border ${getStatusColor(order.status)} font-inter`}>
-                      {getStatusLabel('completed')}
+                      {getStatusLabel(order.status)}
                     </span>
                   </td>
                   <td className="py-4 px-4">

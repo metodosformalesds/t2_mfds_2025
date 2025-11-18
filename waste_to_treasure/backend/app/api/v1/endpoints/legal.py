@@ -1,3 +1,11 @@
+# Autor: Gabriel Florentino Reyes
+# Fecha: 08-11-2025
+# Descripción: Endpoints para documentos legales
+#               Lectura pública de documentos activos
+#               Consultar documento por slug
+#               CRUD de documentos para administradores
+#               Requiere rol ADMIN para endpoints de gestión 
+
 """
 Endpoints de la API para LegalDocument.
 
@@ -42,11 +50,20 @@ router = APIRouter()
 async def get_legal_documents_public(
     db: AsyncSession = Depends(get_async_db)
 ) -> LegalDocumentSummaryList:
-    """
-    Lista los documentos legales activos (endpoint público).
     
-    **No requiere autenticación**
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción:
+        Lista los documentos legales activos disponibles para cualquier usuario.
+
+    Parámetros:
+        db (AsyncSession): Sesión de base de datos.
+
+    Retorna:
+        LegalDocumentSummaryList: Lista de documentos legales activos (sin contenido).
+    """
+    
     logger.info("Listando documentos legales públicos")
     
     documents, total = await document_service.get_legal_documents(
@@ -85,11 +102,21 @@ async def get_legal_document_public(
     slug: str,
     db: AsyncSession = Depends(get_async_db)
 ) -> LegalDocumentRead:
-    """
-    Obtiene un documento legal específico por su slug (endpoint público).
     
-    **No requiere autenticación**
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción:
+        Obtiene un documento legal público mediante su slug.
+
+    Parámetros:
+        slug (str): Identificador URL del documento.
+        db (AsyncSession): Sesión de base de datos.
+
+    Retorna:
+        LegalDocumentRead: Documento legal completo.
+    """
+    
     logger.info(f"Obteniendo documento legal público: {slug}")
     
     document = await document_service.get_legal_document_by_slug(
@@ -118,11 +145,22 @@ async def create_legal_document_admin(
     db: AsyncSession = Depends(get_async_db),
     current_admin: User = Depends(require_admin)
 ) -> LegalDocumentRead:
-    """
-    Crea un nuevo documento legal (solo administradores).
     
-    **Requiere**: Rol ADMIN
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción:
+        Crea un nuevo documento legal. Solo accesible para administradores.
+
+    Parámetros:
+        document_data (LegalDocumentCreate): Datos del nuevo documento.
+        db (AsyncSession): Sesión de base de datos.
+        current_admin (User): Usuario autenticado con rol ADMIN.
+
+    Retorna:
+        LegalDocumentRead: Documento legal creado.
+    """
+    
     logger.info(f"Admin {current_admin.user_id} creando documento legal")
     
     document = await document_service.create_legal_document(
@@ -149,11 +187,24 @@ async def get_all_legal_documents_admin(
     db: AsyncSession = Depends(get_async_db),
     current_admin: User = Depends(require_admin)
 ) -> LegalDocumentList:
-    """
-    Lista todos los documentos legales, incluyendo inactivos (solo administradores).
     
-    **Requiere**: Rol ADMIN
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción:
+        Lista todos los documentos legales, incluyendo los inactivos.
+        Solo accesible para administradores.
+
+    Parámetros:
+        skip (int): Registros a omitir.
+        limit (int): Registros máximos a mostrar.
+        db (AsyncSession): Sesión de base de datos.
+        current_admin (User): Usuario administrador autenticado.
+
+    Retorna:
+        LegalDocumentList: Lista paginada de documentos legales.
+    """
+    
     logger.info(f"Admin {current_admin.user_id} listando todos los documentos")
     
     documents, total = await document_service.get_legal_documents(
@@ -192,11 +243,23 @@ async def update_legal_document_admin(
     db: AsyncSession = Depends(get_async_db),
     current_admin: User = Depends(require_admin)
 ) -> LegalDocumentRead:
-    """
-    Actualiza un documento legal existente (solo administradores).
     
-    **Requiere**: Rol ADMIN
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción:
+        Actualiza un documento legal existente. Solo administradores pueden realizar esta acción.
+
+    Parámetros:
+        slug (str): Identificador del documento.
+        document_data (LegalDocumentUpdate): Nuevos datos del documento.
+        db (AsyncSession): Sesión de base de datos.
+        current_admin (User): Administrador autenticado.
+
+    Retorna:
+        LegalDocumentRead: Documento legal actualizado.
+    """
+    
     logger.info(f"Admin {current_admin.user_id} actualizando documento: {slug}")
     
     document = await document_service.update_legal_document(
@@ -223,11 +286,23 @@ async def delete_legal_document_admin(
     db: AsyncSession = Depends(get_async_db),
     current_admin: User = Depends(require_admin)
 ) -> None:
-    """
-    Elimina un documento legal (solo administradores).
     
-    **Requiere**: Rol ADMIN
     """
+    Autor: Gabriel Florentino Reyes
+
+    Descripción:
+        Elimina un documento legal específico.
+        Acción exclusiva para administradores.
+
+    Parámetros:
+        slug (str): Identificador del documento a eliminar.
+        db (AsyncSession): Sesión de base de datos.
+        current_admin (User): Administrador autenticado.
+
+    Retorna:
+        None: No retorna datos (204 No Content).
+    """
+    
     logger.info(f"Admin {current_admin.user_id} eliminando documento: {slug}")
     
     await document_service.delete_legal_document(db, slug, current_admin)

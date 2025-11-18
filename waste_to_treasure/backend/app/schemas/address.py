@@ -3,6 +3,10 @@ Esquemas de Pydantic para el modelo Address.
 
 Define los contratos de entrada y salida para las operaciones CRUD 
 sobre las direcciones físicas de los usuarios (Address Book).
+
+Autor: Oscar Alonso Nava Rivera
+Fecha: 06/11/2025
+Descripción: Pydantic schemas para Address (validaciones y DTOs)
 """
 from typing import Optional
 from datetime import datetime

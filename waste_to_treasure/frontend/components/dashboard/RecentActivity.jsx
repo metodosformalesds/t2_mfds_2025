@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: RecentActivity
+ * Descripción: feed de actividad reciente del usuario con iconografía por tipo de actividad, fechas formateadas y enlace para ver todas las notificaciones
+ */
+
 'use client'
 
 import { 

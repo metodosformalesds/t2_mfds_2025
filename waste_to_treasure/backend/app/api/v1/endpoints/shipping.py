@@ -1,3 +1,9 @@
+# Autor: Alejandro Campa Alonso 215833
+# Fecha: 2025-11-08
+# Descripción: Endpoints de la API para Métodos de Envío (Shipping). Permite a vendedores gestionar
+# su catálogo de métodos de envío y asociarlos a sus publicaciones (listings). Incluye CRUD completo
+# para métodos de envío y operaciones de asociación/desasociación con listings.
+
 """
 Endpoints de la API para Métodos de Envío (Shipping).
 
@@ -39,6 +45,21 @@ async def create_shipping_method(
     db: Annotated[AsyncSession, Depends(get_async_db)],
     user: Annotated[User, Depends(get_current_active_user)]
 ) -> ShippingMethodRead:
+    """
+    Crea un nuevo método de envío para el vendedor autenticado.
+    
+    El método de envío puede ser usado en múltiples publicaciones.
+    
+    Autor: Alejandro Campa Alonso 215833
+    
+    Args:
+        shipping_data: Datos del método de envío (nombre, descripción, costo)
+        db: Sesión asincrónica de la base de datos
+        user: Usuario vendedor autenticado
+    
+    Returns:
+        ShippingMethodRead: Método de envío creado con ID asignado
+    """
     
     return await shipping_service.create_shipping_method(db, shipping_data, user)
 
@@ -54,6 +75,18 @@ async def get_my_shipping_methods(
     db: Annotated[AsyncSession, Depends(get_async_db)],
     user: Annotated[User, Depends(get_current_active_user)]
 ) -> List[ShippingMethodRead]:
+    """
+    Obtiene una lista de todos los métodos de envío creados por el vendedor autenticado.
+    
+    Autor: Alejandro Campa Alonso 215833
+    
+    Args:
+        db: Sesión asincrónica de la base de datos
+        user: Usuario vendedor autenticado
+    
+    Returns:
+        List[ShippingMethodRead]: Lista de métodos de envío del vendedor
+    """
     
     return await shipping_service.get_seller_shipping_methods(db, user)
 
@@ -71,6 +104,25 @@ async def update_my_shipping_method(
     db: Annotated[AsyncSession, Depends(get_async_db)],
     user: Annotated[User, Depends(get_current_active_user)]
 ) -> ShippingMethodRead:
+    """
+    Actualiza un método de envío existente que pertenece al vendedor autenticado.
+    
+    Solo el propietario del método de envío puede actualizarlo.
+    
+    Autor: Alejandro Campa Alonso 215833
+    
+    Args:
+        method_id: ID del método de envío a actualizar
+        shipping_data: Datos a actualizar (parciales o completos)
+        db: Sesión asincrónica de la base de datos
+        user: Usuario vendedor autenticado
+    
+    Returns:
+        ShippingMethodRead: Método de envío actualizado
+    
+    Raises:
+        HTTPException: Si el método no existe o no pertenece al usuario
+    """
     
     return await shipping_service.update_shipping_method(
         db, method_id, shipping_data, user
@@ -89,6 +141,24 @@ async def delete_my_shipping_method(
     db: Annotated[AsyncSession, Depends(get_async_db)],
     user: Annotated[User, Depends(get_current_active_user)]
 ):
+    """
+    Elimina un método de envío del vendedor autenticado.
+    
+    Desasociará automáticamente el método de todas las publicaciones.
+    
+    Autor: Alejandro Campa Alonso 215833
+    
+    Args:
+        method_id: ID del método de envío a eliminar
+        db: Sesión asincrónica de la base de datos
+        user: Usuario vendedor autenticado
+    
+    Returns:
+        None (Retorna 204 No Content)
+    
+    Raises:
+        HTTPException: Si el método no existe o no pertenece al usuario
+    """
     
     await shipping_service.delete_shipping_method(db, method_id, user)
     return None # Retorna 204 No Content
@@ -113,8 +183,23 @@ async def add_shipping_to_listing(
     user: Annotated[User, Depends(get_current_active_user)]
 ) -> ListingShippingOptionRead:
     """
-    Crea la asociación entre un Listing y un ShippingMethod.
-    El servicio valida que el usuario sea propietario de ambos.
+    Asocia un método de envío existente del vendedor a una de sus publicaciones (listings).
+    
+    El servicio valida que el usuario sea propietario de tanto el método como la publicación.
+    
+    Autor: Alejandro Campa Alonso 215833
+    
+    Args:
+        listing_id: ID de la publicación
+        option_data: Datos con el ID del método de envío a asociar
+        db: Sesión asincrónica de la base de datos
+        user: Usuario vendedor autenticado
+    
+    Returns:
+        ListingShippingOptionRead: Asociación creada
+    
+    Raises:
+        HTTPException: Si el listing o método no existen o no pertenecen al usuario
     """
     association = await shipping_service.add_shipping_option_to_listing(
         db=db,
@@ -138,8 +223,23 @@ async def remove_shipping_from_listing(
     user: Annotated[User, Depends(get_current_active_user)]
 ):
     """
-    Elimina la asociación (ListingShippingOption).
-    El servicio valida que el usuario sea propietario del listing.
+    Desasocia un método de envío de una publicación específica.
+    
+    Elimina la relación entre el ListingShippingOption del listing y el método.
+    
+    Autor: Alejandro Campa Alonso 215833
+    
+    Args:
+        listing_id: ID de la publicación
+        method_id: ID del método de envío a desasociar
+        db: Sesión asincrónica de la base de datos
+        user: Usuario vendedor autenticado
+    
+    Returns:
+        None (Retorna 204 No Content)
+    
+    Raises:
+        HTTPException: Si el listing no existe o no pertenece al usuario
     """
     await shipping_service.remove_shipping_option_from_listing(
         db=db,

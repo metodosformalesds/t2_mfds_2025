@@ -1,14 +1,17 @@
+/**
+ * Autor: Arturo Perez Gonzalez
+ * Fecha: 09/11/2024
+ * Componente: SortDropdown
+ * Descripción: Dropdown de ordenamiento para listados de materiales y productos.
+ *              Actualmente soporta ordenamiento por fecha (más recientes).
+ *              Diseñado para expansión cuando el backend agregue más opciones de ordenamiento.
+ */
+
 'use client'
 
 import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 
-/**
- * SortDropdown component for sorting materials
- *
- * Nota: El backend actualmente solo soporta ordenamiento por fecha (más recientes).
- * Solo se muestra esa opción hasta que se implemente ordenamiento en el backend.
- */
 export default function SortDropdown({ onSortChange }) {
   const [isOpen, setIsOpen] = useState(false)
   const [selected, setSelected] = useState('Más recientes')

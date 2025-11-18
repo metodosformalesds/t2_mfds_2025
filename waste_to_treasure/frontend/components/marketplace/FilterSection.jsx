@@ -1,20 +1,17 @@
+/**
+ * Autor: Arturo Perez Gonzalez
+ * Fecha: 09/11/2024
+ * Componente: FilterSection
+ * Descripción: Panel lateral de filtros para catálogo de materiales y productos.
+ *              Actualmente implementa filtros de precio por rangos. Notifica cambios
+ *              al componente padre mediante callback. Diseñado para expansión futura.
+ */
+
 'use client'
 
 import { useState } from 'react'
 import Checkbox from '@/components/ui/Checkbox'
 
-/**
- * FilterSection component for materials catalog filtering
- *
- * Nota: Solo incluye filtros soportados por el backend actual:
- * - Tipo de Material (se maneja con categorías en SearchBar)
- * - Precio (min_price, max_price)
- *
- * Filtros removidos temporalmente (no soportados por backend):
- * - Condición (necesita campo 'condition' en modelo)
- * - Cantidad Disponible (no hay filtro de rango en backend)
- * - Transporte Incluido (necesita campo 'has_transport' en modelo)
- */
 export default function FilterSection({ onFiltersChange }) {
   const [filters, setFilters] = useState({
     price: {

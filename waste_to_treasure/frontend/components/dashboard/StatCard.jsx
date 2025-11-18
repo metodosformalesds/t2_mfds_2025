@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: StatCard
+ * Descripción: tarjeta de estadística para dashboard responsiva que muestra icono personalizado, valor numérico grande y título descriptivo con diseño adaptable a mobile
+ */
+
 'use client'
 import { DollarSign } from 'lucide-react'
 

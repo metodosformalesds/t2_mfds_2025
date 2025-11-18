@@ -1,4 +1,10 @@
 
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: AdminLoading
+ * Descripción: muestra un spinner animado con mensaje de carga en pantalla completa, usado mientras se cargan datos en la consola admin
+ */
+
 'use client'
 
 export default function AdminLoading({ message = 'Cargando...' }) {

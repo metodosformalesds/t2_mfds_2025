@@ -15,6 +15,10 @@ Conceptos clave:
 - En tests: Generamos UUIDs únicos para testing aislado
 """
 
+# Autor: Oscar Alonso Nava Rivera
+# Fecha: 05/11/2025
+# Descripción: Tests para el modelo User (creación, constraints, relaciones y enums). 
+
 import pytest
 from uuid import uuid4
 from sqlalchemy.exc import IntegrityError
@@ -25,10 +29,16 @@ from app.models.user import User, UserRoleEnum, UserStatusEnum
 @pytest.mark.models
 @pytest.mark.unit
 class TestUserModel:
-    """Test User model creation and validation."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test User model creation and validation.
+    """
 
     def test_create_user_with_required_fields(self, db):
         """
+        Autor: Oscar Alonso Nava Rivera
+
         Test creating a user with required fields.
         
         Simula el flujo real:
@@ -55,7 +65,11 @@ class TestUserModel:
         assert user.updated_at is not None
 
     def test_create_admin_user(self, db):
-        """Test creating an admin user with explicit role."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test creating an admin user with explicit role.
+        """
         admin_uuid = uuid4()
         admin = User(
             user_id=admin_uuid,
@@ -73,7 +87,11 @@ class TestUserModel:
         assert admin.user_id == admin_uuid
 
     def test_user_email_unique_constraint(self, db, user):
-        """Test that duplicate emails are not allowed."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that duplicate emails are not allowed.
+        """
         duplicate_user = User(
             user_id=uuid4(),  # UUID diferente
             email=user.email,  # mismo email (debe fallar)
@@ -85,7 +103,11 @@ class TestUserModel:
             db.commit()
 
     def test_user_id_unique_constraint(self, db, user):
-        """Test that duplicate user_id (cognito sub) are not allowed."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that duplicate user_id (cognito sub) are not allowed.
+        """
         duplicate_user = User(
             user_id=user.user_id,  # mismo UUID (debe fallar)
             email="different@example.com",  # email diferente
@@ -97,7 +119,11 @@ class TestUserModel:
             db.commit()
 
     def test_user_with_all_fields(self, db):
-        """Test creating a user with all fields populated."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test creating a user with all fields populated.
+        """
         user_uuid = uuid4()
         user = User(
             user_id=user_uuid,
@@ -117,7 +143,11 @@ class TestUserModel:
         assert user.status == UserStatusEnum.ACTIVE
 
     def test_user_default_values(self, db):
-        """Test that default values are set correctly."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that default values are set correctly.
+        """
         user_uuid = uuid4()
         user = User(
             user_id=user_uuid,
@@ -137,10 +167,18 @@ class TestUserModel:
 @pytest.mark.integration
 @pytest.mark.db
 class TestUserRelationships:
-    """Test User model relationships with other models."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test User model relationships with other models.
+    """
 
     def test_user_can_have_multiple_listings(self, db, user, category):
-        """Test that a user can have multiple listings as seller."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that a user can have multiple listings as seller.
+        """
         from app.models.listing import Listing, ListingStatusEnum, ListingTypeEnum
 
         listing1 = Listing(
@@ -170,7 +208,11 @@ class TestUserRelationships:
         assert listing2 in user.listings
 
     def test_user_can_have_orders(self, db, user):
-        """Test that a user can create orders as buyer."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that a user can create orders as buyer.
+        """
         from app.models.order import Order, OrderStatusEnum
         from decimal import Decimal
 
@@ -189,7 +231,11 @@ class TestUserRelationships:
         assert user.orders[0].buyer_id == user.user_id
 
     def test_user_can_have_cart(self, db, user):
-        """Test that a user can have a cart (1:1 relationship)."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that a user can have a cart (1:1 relationship).
+        """
         from app.models.cart import Cart
 
         cart = Cart(user_id=user.user_id)
@@ -201,7 +247,11 @@ class TestUserRelationships:
         assert user.cart.user_id == user.user_id
 
     def test_user_can_have_addresses(self, db, user):
-        """Test that a user can have multiple addresses in their address book."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that a user can have multiple addresses in their address book.
+        """
         from app.models.address import Address
 
         address1 = Address(
@@ -234,21 +284,37 @@ class TestUserRelationships:
 @pytest.mark.models
 @pytest.mark.unit
 class TestUserEnums:
-    """Test User enum values."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test User enum values.
+    """
 
     def test_user_role_enum_values(self):
-        """Test that UserRoleEnum has expected values."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that UserRoleEnum has expected values.
+        """
         assert UserRoleEnum.USER == "USER"
         assert UserRoleEnum.ADMIN == "ADMIN"
 
     def test_user_status_enum_values(self):
-        """Test that UserStatusEnum has expected values."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that UserStatusEnum has expected values.
+        """
         assert UserStatusEnum.PENDING == "PENDING"
         assert UserStatusEnum.ACTIVE == "ACTIVE"
         assert UserStatusEnum.BLOCKED == "BLOCKED"
 
     def test_user_role_assignment(self, db):
-        """Test assigning different roles to users."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test assigning different roles to users.
+        """
         user_uuid = uuid4()
         user = User(
             user_id=user_uuid,
@@ -262,7 +328,11 @@ class TestUserEnums:
         assert user.role == UserRoleEnum.ADMIN
 
     def test_user_status_assignment(self, db):
-        """Test assigning different statuses to users."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test assigning different statuses to users.
+        """
         user_uuid = uuid4()
         user = User(
             user_id=user_uuid,
@@ -279,10 +349,16 @@ class TestUserEnums:
 @pytest.mark.models
 @pytest.mark.unit
 class TestUserCreation:
-    """Test creating users programmatically."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test creating users programmatically.
+    """
 
     def test_create_multiple_users(self, db):
         """
+        Autor: Oscar Alonso Nava Rivera
+
         Test creating multiple users with unique UUIDs.
         
         Simula múltiples usuarios registrados en Cognito.

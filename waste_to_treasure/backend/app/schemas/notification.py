@@ -1,3 +1,9 @@
+# Autor: Alejandro Campa Alonso 215833
+# Fecha: 2025-11-08
+# Descripción: Schemas Pydantic para el modelo Notification.
+#              Define los contratos de salida (response) para las operaciones
+#              sobre las notificaciones "in-app" del usuario.
+
 """
 Schemas Pydantic para el modelo Notification.
 

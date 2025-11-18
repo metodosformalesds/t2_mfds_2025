@@ -1,9 +1,16 @@
 """
-Modelo de base de datos para OrderItem.
+# Autor: Alejandro Campa Alonso 215833
 
-Implementa la tabla 'order_items'
-Representa un ítem dentro de una orden de compra.
+# Fecha: 2025-11-05
+
+# Descripción: Modelo de base de datos para OrderItem.
+Implementa la tabla 'order_items' que representa un ítem (producto/material) dentro de una orden de compra.
+Guarda un "snapshot" del precio para mantener la integridad histórica. Cada orden puede contener múltiples items.
 """
+
+# Autor: Oscar Alonso Nava Rivera
+# Fecha: 03/11/2025
+# Descripción: Modelo de SQLAlchemy para representar ítems dentro de una orden (snapshot de precio y relaciones).
 from decimal import Decimal
 from sqlalchemy import Integer, Numeric, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -18,6 +25,8 @@ if TYPE_CHECKING:
 
 class OrderItem(BaseModel):
     """
+    Autor: Oscar Alonso Nava Rivera
+
     Modelo de ítem de orden.
     
     Representa un producto o material específico dentro de una orden de compra.
@@ -83,6 +92,11 @@ class OrderItem(BaseModel):
     )
 
     def __repr__(self) -> str:
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Representación en string útil para logging y debugging.
+        """
         return (
             f"OrderItem(order_item_id={self.order_item_id!r}, "
             f"order_id={self.order_id!r}, listing_id={self.listing_id!r}, "

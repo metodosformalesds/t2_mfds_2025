@@ -10,6 +10,10 @@ Este archivo demuestra cómo probar el modelo Category, incluyendo:
 - Métodos de negocio (get_full_path)
 """
 
+# Autor: Oscar Alonso Nava Rivera
+# Fecha: 05/11/2025
+# Descripción: Tests para el modelo Category (validaciones, jerarquía, relaciones y constraints).
+
 import pytest
 from sqlalchemy.exc import IntegrityError
 
@@ -19,10 +23,18 @@ from app.models.category import Category, ListingTypeEnum
 @pytest.mark.models
 @pytest.mark.unit
 class TestCategoryModel:
-    """Test Category model creation and validation."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test Category model creation and validation.
+    """
 
     def test_create_category_with_required_fields(self, db):
-        """Test creating a category with only required fields."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test creating a category with only required fields.
+        """
         category = Category(
             name="Electronics",
             slug="electronics",
@@ -41,7 +53,11 @@ class TestCategoryModel:
         assert category.updated_at is not None
 
     def test_create_material_category(self, db):
-        """Test creating a MATERIAL category for B2B marketplace."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test creating a MATERIAL category for B2B marketplace.
+        """
         category = Category(
             name="Metal Scraps",
             slug="metal-scraps",
@@ -56,6 +72,8 @@ class TestCategoryModel:
 
     def test_category_name_unique_constraint(self, db, category):
         """
+        Autor: Oscar Alonso Nava Rivera
+
         Test that duplicate category names are not allowed for same type.
         
         Note: ix_categories_name_type enforces uniqueness on (name, type).
@@ -71,7 +89,11 @@ class TestCategoryModel:
             db.commit()
 
     def test_category_slug_unique_constraint(self, db, category):
-        """Test that duplicate category slugs are not allowed globally."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that duplicate category slugs are not allowed globally.
+        """
         duplicate_category = Category(
             name="Different Name",
             slug=category.slug,  # same slug
@@ -84,6 +106,8 @@ class TestCategoryModel:
 
     def test_same_name_different_type_allowed(self, db):
         """
+        Autor: Oscar Alonso Nava Rivera
+
         Test that same name is allowed for different types.
         
         Example: "General" can exist as both MATERIAL and PRODUCT category.
@@ -110,10 +134,18 @@ class TestCategoryModel:
 @pytest.mark.integration
 @pytest.mark.db
 class TestCategoryHierarchy:
-    """Test Category hierarchical relationships."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test Category hierarchical relationships.
+    """
 
     def test_create_parent_category(self, db):
-        """Test creating a parent category."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test creating a parent category.
+        """
         parent = Category(
             name="Electronics",
             slug="electronics",
@@ -128,7 +160,11 @@ class TestCategoryHierarchy:
         assert len(parent.children) == 0
 
     def test_create_child_category(self, db):
-        """Test creating a child category under a parent."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test creating a child category under a parent.
+        """
         parent = Category(
             name="Electronics",
             slug="electronics",
@@ -153,7 +189,11 @@ class TestCategoryHierarchy:
         assert child in parent.children
 
     def test_create_multiple_child_categories(self, db):
-        """Test creating multiple children under same parent."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test creating multiple children under same parent.
+        """
         parent = Category(
             name="Electronics",
             slug="electronics",
@@ -183,7 +223,11 @@ class TestCategoryHierarchy:
         assert child2 in parent.children
 
     def test_get_full_path_root_category(self, db):
-        """Test get_full_path for a root category."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test get_full_path for a root category.
+        """
         parent = Category(
             name="Electronics",
             slug="electronics",
@@ -196,7 +240,11 @@ class TestCategoryHierarchy:
         assert parent.get_full_path() == "Electronics"
 
     def test_get_full_path_nested_category(self, db):
-        """Test get_full_path for nested categories."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test get_full_path for nested categories.
+        """
         # Create hierarchy: Electronics > Smartphones > Android
         parent = Category(
             name="Electronics",
@@ -232,10 +280,18 @@ class TestCategoryHierarchy:
 @pytest.mark.integration
 @pytest.mark.db
 class TestCategoryRelationships:
-    """Test Category relationships with other models."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test Category relationships with other models.
+    """
 
     def test_category_can_have_listings(self, db, user, category):
-        """Test that a category can have multiple listings."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that a category can have multiple listings.
+        """
         from app.models.listing import Listing, ListingStatusEnum, ListingTypeEnum
 
         listing1 = Listing(
@@ -266,6 +322,8 @@ class TestCategoryRelationships:
 
     def test_category_delete_restricted_with_listings(self, db, user):
         """
+        Autor: Oscar Alonso Nava Rivera
+
         Test that deleting a category with listings is restricted.
         
         Note: Category uses ondelete='RESTRICT' for listings to prevent
@@ -305,15 +363,27 @@ class TestCategoryRelationships:
 @pytest.mark.models
 @pytest.mark.unit
 class TestCategoryEnums:
-    """Test Category enum values."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test Category enum values.
+    """
 
     def test_listing_type_enum_values(self):
-        """Test that ListingTypeEnum has expected values."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test that ListingTypeEnum has expected values.
+        """
         assert ListingTypeEnum.MATERIAL == "MATERIAL"
         assert ListingTypeEnum.PRODUCT == "PRODUCT"
 
     def test_create_categories_with_both_types(self, db):
-        """Test creating categories for both marketplaces."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test creating categories for both marketplaces.
+        """
         material_cat = Category(
             name="Metal",
             slug="metal",
@@ -334,10 +404,18 @@ class TestCategoryEnums:
 @pytest.mark.models
 @pytest.mark.unit
 class TestCategoryFactory:
-    """Test creating multiple categories using fixtures."""
+    """
+    Autor: Oscar Alonso Nava Rivera
+
+    Test creating multiple categories using fixtures.
+    """
 
     def test_create_multiple_categories_with_factory(self, db):
-        """Test creating multiple categories programmatically."""
+        """
+        Autor: Oscar Alonso Nava Rivera
+
+        Test creating multiple categories programmatically.
+        """
         categories = [
             Category(
                 name=f"Category {i}",

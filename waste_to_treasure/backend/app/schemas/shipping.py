@@ -1,3 +1,9 @@
+# Autor: Alejandro Campa Alonso 215833
+# Fecha: 2025-11-08
+# Descripción: Schemas Pydantic para el modelo ShippingMethod.
+#              Define los contratos de entrada y salida para las operaciones
+#              relacionadas con métodos de envío y su asociación con publicaciones.
+
 """
 Schemas Pydantic para el modelo ShippingMethod.
 """

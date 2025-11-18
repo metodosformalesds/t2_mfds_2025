@@ -1,3 +1,9 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: ModerationQueue
+ * Descripción: lista de items pendientes de moderación con selección de item, paginación y estados de carga
+ */
+
 'use client'
 import clsx from 'clsx'
 import { ChevronLeft, ChevronRight, Package } from 'lucide-react'

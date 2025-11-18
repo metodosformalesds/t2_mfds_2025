@@ -1,7 +1,14 @@
+/**
+ * Autor: Alejandro Campa Alonso 215833
+ * Componente: ConfirmationProductCard
+ * Descripción: tarjeta de producto en página de confirmación que muestra imagen, cantidad, detalles del vendedor, precio y método de envío seleccionado
+ */
+
 'use client'
 
 import Image from 'next/image'
 import { Radio } from 'lucide-react'
+import { getPlaceholderDataUri } from '@/components/ui/ImagePlaceholder'
 
 export default function ConfirmationProductCard({ item, shippingMethod }) {
   return (
@@ -10,7 +17,7 @@ export default function ConfirmationProductCard({ item, shippingMethod }) {
       <div className="flex-shrink-0 md:w-1/3 ml-4">
         <div className="relative h-32 w-full md:w-32">
           <Image
-            src={item.listing_image_url || 'https://via.placeholder.com/150'}
+            src={item.listing_image_url || getPlaceholderDataUri(150, 150, 'Producto')}
             alt={item.listing_title}
             layout="fill"
             objectFit="cover"
@@ -27,10 +34,11 @@ export default function ConfirmationProductCard({ item, shippingMethod }) {
         <h3 className="font-roboto text-1xl font-bold text-black">
           {item.listing_title}
         </h3>
-        <p className="font-inter text-base font-sm text-neutral-600">
-          {/* TODO: La API del carrito no provee el nombre del vendedor */}
-          Vendido por: {item.seller_name || 'Vendedor'}
-        </p>
+        {item.seller_name && (
+          <p className="font-inter text-base font-sm text-neutral-600">
+            Vendido por: {item.seller_name}
+          </p>
+        )}
         <p className="font-inter text-base font-sm text-neutral-600">
           ${parseFloat(item.listing_price).toFixed(2)}
         </p>
