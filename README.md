@@ -28,6 +28,12 @@
 | **Despliegue Backend (Docs)** | [![AWS EC2](https://img.shields.io/badge/AWS%20EC2-FF9900?style=for-the-badge&logo=amazon-ec2&logoColor=white)](http://98.95.79.84:8000/api/v1/docs#/) | *[Swagger API Docs](http://98.95.79.84:8000/api/v1/docs#/)* |
 | **Presentación Final** | [![Google Slides](https://img.shields.io/badge/Google%20Slides-FBBC04?style=for-the-badge&logo=google-slides&logoColor=white)](https://docs.google.com/presentation/d/1Xm_uwuPdM2kJf2nvExkzZw4Nc1vbr2OllGPx53mZnus/edit?usp=drive_link) | *[Presentación Final Waste-to-Treasure](https://docs.google.com/presentation/d/1Xm_uwuPdM2kJf2nvExkzZw4Nc1vbr2OllGPx53mZnus/edit?usp=drive_link)* |
 
+
+---
+## Cuenta de Acceso
+
+- alan.ponce@uacj.mx
+- Alan@123456
 ---
 
 ## <img src="meetings/logo-3.png" alt="Logo W2T" width="45" style="vertical-align:middle"/> Descripción del Proyecto
