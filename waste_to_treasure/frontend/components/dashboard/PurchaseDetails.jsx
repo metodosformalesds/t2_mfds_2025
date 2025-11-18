@@ -27,31 +27,6 @@ export default function PurchaseDetails({ order }) {
     );
   }
 
-  const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'completed':
-        return 'bg-green-100 text-green-700 border-green-300';
-      case 'shipped':
-        return 'bg-blue-100 text-blue-700 border-blue-300';
-      case 'processing':
-        return 'bg-yellow-100 text-yellow-700 border-yellow-300';
-      case 'cancelled':
-        return 'bg-red-100 text-red-700 border-red-300';
-      default:
-        return 'bg-gray-100 text-gray-700 border-gray-300';
-    }
-  };
-
-  const getStatusLabel = (status) => {
-    const labels = {
-      'pending': 'Pendiente',
-      'processing': 'Procesando',
-      'shipped': 'En camino',
-      'completed': 'Entregado',
-      'cancelled': 'Cancelado',
-    };
-    return labels[status?.toLowerCase()] || status;
-  };
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
@@ -73,21 +48,16 @@ export default function PurchaseDetails({ order }) {
     <div className="space-y-6">
       {/* Encabezado */}
       <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold font-poppins text-neutral-900">
-              Pedido #{order.order_id}
-            </h1>
-            <div className="flex items-center gap-2 mt-2">
-              <Calendar className="w-4 h-4 text-gray-500" />
-              <p className="text-sm text-gray-600 font-inter">
-                {formatDate(order.created_at)}
-              </p>
-            </div>
+        <div>
+          <h1 className="text-3xl font-bold font-poppins text-neutral-900">
+            Pedido #{order.order_id}
+          </h1>
+          <div className="flex items-center gap-2 mt-2">
+            <Calendar className="w-4 h-4 text-gray-500" />
+            <p className="text-sm text-gray-600 font-inter">
+              {formatDate(order.created_at)}
+            </p>
           </div>
-          <span className={`px-4 py-2 text-sm font-semibold rounded-full border ${getStatusColor(order.status)} font-inter`}>
-            {getStatusLabel(order.status)}
-          </span>
         </div>
       </div>
 

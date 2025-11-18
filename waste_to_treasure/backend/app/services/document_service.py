@@ -114,15 +114,15 @@ async def get_legal_documents(
     
     stmt = select(LegalDocument)
     
-    if active_only:
-        stmt = stmt.where(LegalDocument.is_active == True)
+    # Nota: El modelo LegalDocument no tiene campo is_active
+    # Todos los documentos en la base de datos se consideran activos
     
     # Contar total
     count_stmt = select(func.count()).select_from(stmt.subquery())
     total = (await db.execute(count_stmt)).scalar() or 0
     
     # Ordenar por fecha de actualización
-    stmt = stmt.order_by(LegalDocument.updated_at.desc()).offset(skip).limit(limit)
+    stmt = stmt.order_by(LegalDocument.last_updated.desc()).offset(skip).limit(limit)
     
     result = await db.execute(stmt)
     documents = result.scalars().all()
@@ -155,8 +155,8 @@ async def get_legal_document_by_slug(
     
     stmt = select(LegalDocument).where(LegalDocument.slug == slug)
     
-    if active_only:
-        stmt = stmt.where(LegalDocument.is_active == True)
+    # Nota: El modelo LegalDocument no tiene campo is_active
+    # Todos los documentos en la base de datos se consideran activos
     
     result = await db.execute(stmt)
     document = result.scalar_one_or_none()

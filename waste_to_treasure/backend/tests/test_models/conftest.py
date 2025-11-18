@@ -12,10 +12,24 @@ import pytest
 from uuid import uuid4
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+import time
 
 from app.models.user import User, UserRoleEnum, UserStatusEnum
 from app.models.category import Category
 from app.core.config import get_settings
+
+
+# Contador global para generar valores únicos
+_unique_counter = 0
+
+
+def get_unique_id():
+    """
+    Genera un identificador único basado en timestamp y contador.
+    """
+    global _unique_counter
+    _unique_counter += 1
+    return f"{int(time.time() * 1000)}_{_unique_counter}"
 
 
 @pytest.fixture(scope="session")

@@ -169,7 +169,7 @@ export default function Step2_Info({
           <FormInput
             id="price"
             name="price" // <-- FUNCIONAL: Añadido
-            label="Precio (USD)"
+            label="Precio (MXN)"
             type="number"
             value={listingData.price}
             onChange={handleChange}

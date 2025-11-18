@@ -503,8 +503,11 @@ class TestAuxiliaryModelsRelationships:
 
     def test_plan_has_subscriptions(self, db, user):
         """Test plan has relationship with subscriptions."""
+        from uuid import uuid4
+        unique_suffix = uuid4().hex[:8]
+        
         plan = Plan(
-            name="Enterprise",
+            name=f"Enterprise_{unique_suffix}",
             price=Decimal("99.99"),
             billing_cycle=BillingCycle.YEARLY
         )
@@ -516,7 +519,7 @@ class TestAuxiliaryModelsRelationships:
             user_id=user.user_id,
             plan_id=plan.plan_id,
             next_billing_date=next_billing,
-            gateway_sub_id="sub_enterprise_001"
+            gateway_sub_id=f"sub_enterprise_001_{unique_suffix}"
         )
         db.add(sub)
         db.commit()
