@@ -23,36 +23,6 @@ export default function PurchasesList() {
     window.location.href = `/dashboard/purchases/${orderId}`;
   };
 
-  const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'completed':
-      case 'entregado':
-        return 'bg-green-100 text-green-700 border-green-300';
-      case 'shipped':
-      case 'en camino':
-        return 'bg-blue-100 text-blue-700 border-blue-300';
-      case 'processing':
-      case 'procesando':
-        return 'bg-yellow-100 text-yellow-700 border-yellow-300';
-      case 'cancelled':
-      case 'cancelado':
-        return 'bg-red-100 text-red-700 border-red-300';
-      default:
-        return 'bg-gray-100 text-gray-700 border-gray-300';
-    }
-  };
-
-  const getStatusLabel = (status) => {
-    const labels = {
-      'pending': 'Pendiente',
-      'processing': 'Procesando',
-      'shipped': 'En camino',
-      'completed': 'Entregado',
-      'cancelled': 'Cancelado',
-    };
-    return labels[status?.toLowerCase()] || status;
-  };
-
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
@@ -100,9 +70,6 @@ export default function PurchasesList() {
                 Fecha
               </th>
               <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 font-inter">
-                Estado
-              </th>
-              <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 font-inter">
                 Acciones
               </th>
             </tr>
@@ -124,11 +91,6 @@ export default function PurchasesList() {
                     {formatDate(order.created_at)}
                   </td>
                   <td className="py-4 px-4">
-                    <span className={`px-3 py-1 text-xs font-semibold rounded-full border ${getStatusColor(order.status)} font-inter`}>
-                      {getStatusLabel(order.status)}
-                    </span>
-                  </td>
-                  <td className="py-4 px-4">
                     <button
                       onClick={() => handleViewDetails(order.order_id)}
                       className="px-6 py-2 bg-indigo-100 text-indigo-700 text-sm font-semibold rounded-full hover:bg-indigo-200 transition-colors border border-indigo-300 font-inter"
@@ -140,7 +102,7 @@ export default function PurchasesList() {
               ))
             ) : (
               <tr>
-                <td colSpan="6" className="py-12 text-center">
+                <td colSpan="5" className="py-12 text-center">
                   <div className="flex flex-col items-center gap-3 text-gray-500">
                     <ShoppingBag className="w-12 h-12" />
                     <p className="font-inter font-semibold">
